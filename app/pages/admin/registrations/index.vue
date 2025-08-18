@@ -1,0 +1,770 @@
+<template>
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <!-- Page header -->
+    <div class="bg-white dark:bg-gray-800 shadow">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="md:flex md:items-center md:justify-between">
+          <div class="flex-1 min-w-0">
+            <h1
+              class="text-2xl font-bold leading-7 text-gray-900 dark:text-white sm:text-3xl sm:truncate"
+            >
+              Registrations
+            </h1>
+          </div>
+          <div class="mt-4 flex md:mt-0 md:ml-4">
+            <UButton
+              icon="i-heroicons-funnel"
+              color="neutral"
+              variant="outline"
+              class="mr-2"
+              @click="showFilters = !showFilters"
+            >
+              {{ showFilters ? 'Hide Filters' : 'Filters' }}
+            </UButton>
+            <UButton icon="i-heroicons-plus" color="primary" to="/admin/registrations/new">
+              New Registration
+            </UButton>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <!-- Stats -->
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+        <StatCard
+          title="Total Registrations"
+          :value="stats.total"
+          :change="stats.change"
+          icon="i-heroicons-user-group"
+          color="blue"
+        />
+        <StatCard title="Paid" :value="stats.paid" icon="i-heroicons-banknotes" color="green" />
+        <StatCard title="Pending" :value="stats.pending" icon="i-heroicons-clock" color="yellow" />
+        <StatCard
+          title="Cancelled"
+          :value="stats.cancelled"
+          icon="i-heroicons-x-circle"
+          color="red"
+        />
+      </div>
+
+      <!-- Registrations table -->
+      <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+        <div
+          class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between"
+        >
+          <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-2 sm:mb-0">
+            All Registrations
+          </h3>
+          <div class="flex items-center">
+            <UInput
+              v-model="searchQuery"
+              placeholder="Search registrations..."
+              icon="i-heroicons-magnifying-glass"
+              autocomplete="off"
+              class="w-full sm:w-64"
+            />
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                >
+                  <UCheckbox v-model="selectAll" />
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                >
+                  Name
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                >
+                  Event
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                >
+                  Type
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                >
+                  Date
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                >
+                  Amount
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                >
+                  Status
+                </th>
+                <th scope="col" class="relative px-6 py-3">
+                  <span class="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              <tr v-for="registration in paginatedRegistrations" :key="registration.id">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <UCheckbox
+                    :model-value="selectedRegistrations.includes(registration.id)"
+                    @update:model-value="
+                      (checked: boolean | 'indeterminate') => {
+                        if (typeof checked === 'boolean') {
+                          toggleRegistration(registration.id, checked)
+                        }
+                      }
+                    "
+                  />
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 h-10 w-10">
+                      <div
+                        class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
+                      >
+                        <span class="text-gray-600 dark:text-gray-300 font-medium">{{
+                          getInitials(registration.name)
+                        }}</span>
+                      </div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900 dark:text-white">
+                        {{ registration.name }}
+                      </div>
+                      <div class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ registration.email }}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900 dark:text-white">{{ registration.event }}</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ formatDate(registration.eventDate) }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span
+                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                    :class="getTypeBadgeClass(registration.type)"
+                  >
+                    {{ registration.type }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  {{ formatDate(registration.date) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  ₦{{ registration.amount.toLocaleString() }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span
+                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                    :class="getStatusBadgeClass(registration.status)"
+                  >
+                    {{ registration.status }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <UDropdown :items="getActionItems(registration)">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      size="xs"
+                      icon="i-heroicons-ellipsis-horizontal"
+                      class="rounded-full"
+                    />
+                  </UDropdown>
+                </td>
+              </tr>
+              <tr v-if="paginatedRegistrations.length === 0">
+                <td colspan="8" class="px-6 py-12 text-center">
+                  <UIcon name="i-heroicons-inbox" class="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">
+                    No registrations found
+                  </h3>
+                  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {{
+                      searchQuery
+                        ? 'No registrations match your search.'
+                        : 'Get started by creating a new registration.'
+                    }}
+                  </p>
+                  <div class="mt-6">
+                    <UButton to="/admin/registrations/new" color="primary" icon="i-heroicons-plus">
+                      New Registration
+                    </UButton>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div
+          class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between"
+        >
+          <div class="flex-1 flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-700 dark:text-gray-300">
+                Showing <span class="font-medium">{{ pagination.from }}</span> to
+                <span class="font-medium">{{ pagination.to }}</span> of
+                <span class="font-medium">{{ pagination.total }}</span> results
+              </p>
+            </div>
+            <div class="flex space-x-2">
+              <UButton
+                color="neutral"
+                variant="ghost"
+                :disabled="pagination.currentPage === 1"
+                icon="i-heroicons-chevron-left"
+                @click="pagination.currentPage--"
+              />
+              <UButton
+                color="neutral"
+                variant="ghost"
+                :disabled="pagination.currentPage * pagination.perPage >= pagination.total"
+                icon="i-heroicons-chevron-right"
+                @click="pagination.currentPage++"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bulk Actions -->
+    <div
+      v-if="selectedRegistrations.length > 0"
+      class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg p-4"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <p class="text-sm text-gray-700 dark:text-gray-300">
+              <span class="font-medium">{{ selectedRegistrations.length }}</span>
+              {{ selectedRegistrations.length === 1 ? 'registration' : 'registrations' }} selected
+            </p>
+            <UButton
+              color="neutral"
+              variant="ghost"
+              size="xs"
+              class="ml-2"
+              @click="selectedRegistrations = []"
+            >
+              Clear
+            </UButton>
+          </div>
+          <div class="flex space-x-2">
+            <UDropdown :items="bulkActions">
+              <UButton color="neutral" variant="outline" trailing-icon="i-heroicons-chevron-down">
+                Update Status
+              </UButton>
+            </UDropdown>
+            <UButton color="error" variant="outline" @click="confirmDeleteMultiple">
+              Delete
+            </UButton>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <UModal v-model="isDeleteModalOpen">
+      <UCard>
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">
+              {{
+                selectedRegistrations.length > 1
+                  ? `Delete ${selectedRegistrations.length} registrations`
+                  : 'Delete Registration'
+              }}
+            </h3>
+            <UButton
+              color="neutral"
+              variant="ghost"
+              icon="i-heroicons-x-mark"
+              @click="isDeleteModalOpen = false"
+            />
+          </div>
+        </template>
+
+        <p class="text-gray-600 dark:text-gray-300">
+          Are you sure you want to delete
+          {{ selectedRegistrations.length > 1 ? 'these registrations' : 'this registration' }}? This
+          action cannot be undone.
+        </p>
+
+        <template #footer>
+          <div class="flex justify-end space-x-3">
+            <UButton color="neutral" variant="ghost" @click="isDeleteModalOpen = false">
+              Cancel
+            </UButton>
+            <UButton color="error" :loading="isDeleting" @click="deleteRegistrations">
+              Delete
+            </UButton>
+          </div>
+        </template>
+      </UCard>
+    </UModal>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+
+// Data
+const selectedRegistrations = ref<string[]>([])
+
+// Toggle registration selection
+const selectAll = computed({
+  get: () => {
+    if (filteredRegistrations.value.length === 0) return false
+    return filteredRegistrations.value.every(reg => selectedRegistrations.value.includes(reg.id))
+  },
+  set: (value: boolean) => {
+    if (value) {
+      // Only select the currently visible (paginated) registrations
+      selectedRegistrations.value = [
+        ...selectedRegistrations.value,
+        ...paginatedRegistrations.value
+          .map(reg => reg.id)
+          .filter(id => !selectedRegistrations.value.includes(id)),
+      ]
+    } else {
+      // Only deselect the currently visible (paginated) registrations
+      const paginatedIds = new Set(paginatedRegistrations.value.map(reg => reg.id))
+      selectedRegistrations.value = selectedRegistrations.value.filter(id => !paginatedIds.has(id))
+    }
+  },
+})
+
+const showFilters = ref(false)
+const isDeleteModalOpen = ref(false)
+const isDeleting = ref(false)
+const searchQuery = ref('')
+
+// Pagination
+const pagination = ref({
+  currentPage: 1,
+  perPage: 10,
+  total: 0,
+  get from() {
+    return (this.currentPage - 1) * this.perPage + 1
+  },
+  get to() {
+    return Math.min(this.currentPage * this.perPage, this.total)
+  },
+})
+
+// Stats
+const stats = ref({
+  total: 245,
+  change: 12.5,
+  paid: 198,
+  pending: 42,
+  cancelled: 5,
+})
+
+// Sample data - in a real app, this would come from an API
+const registrations = ref([
+  {
+    id: '1',
+    name: 'John Doe',
+    email: 'john.doe@example.com',
+    event: 'Annual Conference 2024',
+    eventDate: '2024-11-15',
+    type: 'Member',
+    date: '2023-08-15',
+    amount: 50000,
+    status: 'Paid',
+    paymentMethod: 'Bank Transfer',
+    reference: 'TX123456789',
+  },
+  {
+    id: '2',
+    name: 'Jane Smith',
+    email: 'jane.smith@example.com',
+    event: 'Workshop on Data Analysis',
+    eventDate: '2024-10-15',
+    type: 'Non-Member',
+    date: '2023-08-14',
+    amount: 75000,
+    status: 'Pending',
+    paymentMethod: 'Paystack',
+    reference: 'PS987654321',
+  },
+  {
+    id: '3',
+    name: 'Dr. Michael Brown',
+    email: 'michael.brown@example.com',
+    event: 'Public Health Forum',
+    eventDate: '2024-09-20',
+    type: 'Student',
+    date: '2023-08-13',
+    amount: 15000,
+    status: 'Paid',
+    paymentMethod: 'Bank Transfer',
+    reference: 'TX987654321',
+  },
+  {
+    id: '4',
+    name: 'Dr. Sarah Johnson',
+    email: 'sarah.j@example.com',
+    event: 'Annual Conference 2024',
+    eventDate: '2024-11-15',
+    type: 'Member',
+    date: '2023-08-12',
+    amount: 50000,
+    status: 'Paid',
+    paymentMethod: 'Paystack',
+    reference: 'PS123456789',
+  },
+  {
+    id: '5',
+    name: 'Dr. David Wilson',
+    email: 'david.w@example.com',
+    event: 'Workshop on Data Analysis',
+    eventDate: '2024-10-15',
+    type: 'Non-Member',
+    date: '2023-08-11',
+    amount: 75000,
+    status: 'Pending',
+    paymentMethod: 'Bank Transfer',
+    reference: 'TX456789123',
+  },
+  {
+    id: '6',
+    name: 'Dr. Emily Davis',
+    email: 'emily.d@example.com',
+    event: 'Public Health Forum',
+    eventDate: '2024-09-20',
+    type: 'Speaker',
+    date: '2023-08-10',
+    amount: 0,
+    status: 'Paid',
+    paymentMethod: 'Waived',
+    reference: 'N/A',
+  },
+  {
+    id: '7',
+    name: 'Dr. Robert Thompson',
+    email: 'robert.t@example.com',
+    event: 'Annual Conference 2024',
+    eventDate: '2024-11-15',
+    type: 'Sponsor',
+    date: '2023-08-09',
+    amount: 150000,
+    status: 'Paid',
+    paymentMethod: 'Bank Transfer',
+    reference: 'TX789123456',
+  },
+  {
+    id: '8',
+    name: 'Dr. Jennifer Lee',
+    email: 'jennifer.l@example.com',
+    event: 'Workshop on Data Analysis',
+    eventDate: '2024-10-15',
+    type: 'Member',
+    date: '2023-08-08',
+    amount: 50000,
+    status: 'Cancelled',
+    paymentMethod: 'Paystack',
+    reference: 'PS456789123',
+  },
+  {
+    id: '9',
+    name: 'Dr. James Wilson',
+    email: 'james.w@example.com',
+    event: 'Public Health Forum',
+    eventDate: '2024-09-20',
+    type: 'Non-Member',
+    date: '2023-08-07',
+    amount: 75000,
+    status: 'Paid',
+    paymentMethod: 'Bank Transfer',
+    reference: 'TX321654987',
+  },
+  {
+    id: '10',
+    name: 'Dr. Patricia Brown',
+    email: 'patricia.b@example.com',
+    event: 'Annual Conference 2024',
+    eventDate: '2024-11-15',
+    type: 'Student',
+    date: '2023-08-06',
+    amount: 15000,
+    status: 'Paid',
+    paymentMethod: 'Paystack',
+    reference: 'PS789123456',
+  },
+])
+
+// Computed
+const filteredRegistrations = computed(() => {
+  let result = [...registrations.value]
+
+  // Apply search
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(
+      reg =>
+        reg.name.toLowerCase().includes(query) ||
+        reg.email.toLowerCase().includes(query) ||
+        reg.event.toLowerCase().includes(query) ||
+        reg.reference.toLowerCase().includes(query)
+    )
+  }
+
+  return result
+})
+
+// Handle pagination
+const paginatedRegistrations = computed(() => {
+  const start = (pagination.value.currentPage - 1) * pagination.value.perPage
+  const end = start + pagination.value.perPage
+  return filteredRegistrations.value.slice(start, end)
+})
+
+// Update total count when filtered results change
+watch(filteredRegistrations, newVal => {
+  pagination.value.total = newVal.length
+})
+
+// Bulk actions
+const bulkActions = [
+  [
+    {
+      label: 'Mark as Paid',
+      icon: 'i-heroicons-check-circle',
+      click: () => updateStatus('Paid'),
+    },
+  ],
+  [
+    {
+      label: 'Mark as Pending',
+      icon: 'i-heroicons-clock',
+      click: () => updateStatus('Pending'),
+    },
+  ],
+  [
+    {
+      label: 'Mark as Cancelled',
+      icon: 'i-heroicons-x-circle',
+      click: () => updateStatus('Cancelled'),
+    },
+  ],
+  [
+    {
+      label: 'Send Payment Reminder',
+      icon: 'i-heroicons-envelope',
+      click: sendPaymentReminder,
+    },
+  ],
+]
+
+// Methods
+function formatDate(dateString: string): string {
+  if (!dateString) return ''
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }
+  return new Date(dateString).toLocaleDateString('en-US', options)
+}
+
+function getStatusBadgeClass(status: string): string {
+  const statusClasses: Record<string, string> = {
+    Paid: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    Pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    Cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    Refunded: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  }
+  return statusClasses[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+}
+
+function getTypeBadgeClass(type: string): string {
+  const typeClasses: Record<string, string> = {
+    Member: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    'Non-Member': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+    Student: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    Speaker: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    Sponsor: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+  }
+  return typeClasses[type] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+}
+
+const toggleRegistration = (id: string, checked: boolean | 'indeterminate') => {
+  if (checked === true) {
+    selectedRegistrations.value = [...selectedRegistrations.value, id]
+  } else if (checked === false) {
+    selectedRegistrations.value = selectedRegistrations.value.filter(regId => regId !== id)
+  }
+  // Handle 'indeterminate' state if needed
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map(part => part[0])
+    .join('')
+    .toUpperCase()
+    .substring(0, 2)
+}
+
+interface Registration {
+  id: string
+  name: string
+  email: string
+  status: string
+  type: string
+  event: string
+  reference: string
+  // Add other properties as needed
+}
+
+function getActionItems(registration: Registration) {
+  return [
+    [
+      {
+        label: 'View Details',
+        icon: 'i-heroicons-eye',
+        to: `/admin/registrations/${registration.id}`,
+      },
+    ],
+    [
+      {
+        label: 'Edit',
+        icon: 'i-heroicons-pencil',
+        to: `/admin/registrations/${registration.id}/edit`,
+      },
+    ],
+    [
+      {
+        label: 'Send Confirmation',
+        icon: 'i-heroicons-envelope',
+        click: () => sendConfirmation(registration.id),
+      },
+    ],
+    [
+      {
+        label: 'Delete',
+        icon: 'i-heroicons-trash',
+        click: () => confirmDelete(registration),
+      },
+    ],
+  ]
+}
+
+function confirmDelete(registration: Registration) {
+  selectedRegistrations.value = [registration.id]
+  isDeleteModalOpen.value = true
+}
+
+function confirmDeleteMultiple() {
+  isDeleteModalOpen.value = true
+}
+
+async function deleteRegistrations() {
+  isDeleting.value = true
+  try {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    // In a real app, this would delete the registrations from the server
+    registrations.value = registrations.value.filter(
+      reg => !selectedRegistrations.value.includes(reg.id)
+    )
+
+    // Clear selection
+    selectedRegistrations.value = []
+
+    // Close modal
+    isDeleteModalOpen.value = false
+
+    // Show success message
+    useToast().add({
+      title: 'Success',
+      description: 'Selected registrations have been deleted',
+      icon: 'i-heroicons-check-circle',
+      color: 'success',
+    })
+  } catch (error) {
+    console.error('Error deleting registrations:', error)
+    useToast().add({
+      title: 'Error',
+      description: 'There was an error deleting the registrations',
+      icon: 'i-heroicons-exclamation-circle',
+      color: 'error',
+    })
+  } finally {
+    isDeleting.value = false
+  }
+}
+
+function updateStatus(status: string) {
+  // In a real app, this would update the status of selected registrations
+  console.log(`Updating ${selectedRegistrations.value.length} registrations to ${status}`)
+
+  // Show success message
+  useToast().add({
+    title: 'Status Updated',
+    description: `Updated ${selectedRegistrations.value.length} registration(s) to ${status}`,
+    icon: 'i-heroicons-check-circle',
+    color: 'success',
+  })
+
+  // Clear selection
+  selectedRegistrations.value = []
+}
+
+function sendPaymentReminder() {
+  // In a real app, this would send payment reminders
+  console.log(`Sending payment reminders to ${selectedRegistrations.value.length} registrations`)
+
+  // Show success message
+  useToast().add({
+    title: 'Reminders Sent',
+    description: `Payment reminders sent to ${selectedRegistrations.value.length} registration(s)`,
+    icon: 'i-heroicons-envelope',
+    color: 'success',
+  })
+
+  // Clear selection
+  selectedRegistrations.value = []
+}
+
+function sendConfirmation(id: string) {
+  // In a real app, this would send a confirmation email
+  console.log(`Sending confirmation for registration ${id}`)
+
+  // Show success message
+  useToast().add({
+    title: 'Confirmation Sent',
+    description: 'Registration confirmation has been sent',
+    icon: 'i-heroicons-check-circle',
+    color: 'success',
+  })
+}
+</script>

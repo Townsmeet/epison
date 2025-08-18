@@ -1,5 +1,11 @@
 {
   // https://nuxt.com/docs/guide/concepts/typescript
+  "compilerOptions": {
+    "paths": {
+      "~/*": ["./*"]
+    },
+    "types": ["@nuxt/types", "@pinia/nuxt", "@nuxtjs/color-mode"]
+  },
   "files": [],
   "references": [
     {
