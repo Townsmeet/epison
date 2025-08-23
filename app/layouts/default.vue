@@ -7,7 +7,7 @@
       <div class="relative">
         <!-- Announcement Bar -->
         <div
-          class="bg-gradient-to-r from-primary-600 to-primary-700 text-white text-sm text-center py-1.5 px-4"
+          class="bg-gradient-to-r from-info-600 to-info-700 text-white text-sm text-center py-1.5 px-4"
         >
           <p class="animate-pulse">
             🎉 Join us at our upcoming conference on September 15-17, 2024
@@ -367,7 +367,7 @@ const isDark = computed({
 const navLinks = [
   { label: 'Home', to: '/' },
   { label: 'About', to: '/about' },
-  { label: 'Conferences', to: '/conferences' },
+  { label: 'Events', to: '/events' },
   { label: 'Membership', to: '/membership' },
   { label: 'Resources', to: '/resources' },
   { label: 'Contact', to: '/contact' },
@@ -376,22 +376,22 @@ const navLinks = [
 const socialLinks = [
   {
     label: 'Twitter',
-    icon: 'i-simple-icons-x',
+    icon: 'i-heroicons-at-symbol',
     to: 'https://twitter.com/EPISONigeria',
   },
   {
     label: 'Facebook',
-    icon: 'i-simple-icons-facebook',
+    icon: 'i-heroicons-globe-alt',
     to: 'https://facebook.com/EPISONigeria',
   },
   {
     label: 'LinkedIn',
-    icon: 'i-simple-icons-linkedin',
+    icon: 'i-heroicons-building-office',
     to: 'https://linkedin.com/company/EPISONigeria',
   },
   {
     label: 'YouTube',
-    icon: 'i-simple-icons-youtube',
+    icon: 'i-heroicons-play',
     to: 'https://youtube.com/EPISONigeria',
   },
 ]

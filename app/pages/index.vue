@@ -1,219 +1,234 @@
 <template>
   <div class="overflow-x-hidden">
-    <!-- Animated Hero Section -->
+    <!-- Hero Section -->
     <section
-      class="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden"
+      class="relative min-h-screen flex items-center bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 overflow-hidden"
     >
-      <div class="absolute inset-0 overflow-hidden">
-        <div class="absolute inset-0 bg-grid-pattern opacity-5 dark:opacity-10" />
+      <!-- Subtle geometric background -->
+      <div class="absolute inset-0 opacity-30">
         <div
-          class="absolute -right-1/3 -top-1/3 w-full h-full bg-gradient-radial from-primary-500/5 to-transparent dark:from-primary-400/5 dark:to-transparent rounded-full"
+          class="absolute top-20 left-10 w-72 h-72 bg-primary-100 dark:bg-primary-900/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"
+        />
+        <div
+          class="absolute top-40 right-10 w-72 h-72 bg-blue-100 dark:bg-blue-900/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"
+          style="animation-delay: 2s"
+        />
+        <div
+          class="absolute -bottom-8 left-20 w-72 h-72 bg-purple-100 dark:bg-purple-900/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"
+          style="animation-delay: 4s"
         />
       </div>
 
-      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 lg:py-36">
-        <div class="grid lg:grid-cols-2 gap-12 items-center">
-          <div class="space-y-8 text-center lg:text-left">
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div class="grid lg:grid-cols-12 gap-8 items-center">
+          <!-- Content Column -->
+          <div class="lg:col-span-7 space-y-8">
+            <!-- Badge -->
             <div
-              class="inline-flex items-center px-4 py-2 rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 text-sm font-medium"
+              class="inline-flex items-center space-x-2 px-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full border border-gray-200/50 dark:border-gray-700/50 shadow-sm"
             >
-              <span class="relative flex h-2 w-2 mr-2">
-                <span
-                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"
-                />
-                <span
-                  class="relative inline-flex rounded-full h-2 w-2 bg-primary-600 dark:bg-primary-400"
-                />
-              </span>
-              Advancing Public Health in Nigeria
+              <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >Advancing Public Health in Nigeria</span
+              >
             </div>
 
-            <h1
-              class="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 dark:text-white"
-            >
-              <span class="block">Shaping the Future of</span>
-              <span class="relative inline-block">
-                <span class="relative z-10">Epidemiology</span>
+            <!-- Main Headline -->
+            <div class="space-y-4">
+              <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
+                <span class="block text-gray-900 dark:text-white leading-none">Shaping the</span>
+                <span class="block text-gray-900 dark:text-white leading-none">Future of</span>
                 <span
-                  class="absolute bottom-2 left-0 w-full h-4 bg-primary-200/60 dark:bg-primary-800/50 -z-0 transform -rotate-1"
-                />
-              </span>
-            </h1>
+                  class="block bg-gradient-to-r from-primary-600 via-primary-500 to-blue-600 bg-clip-text text-transparent leading-none"
+                >
+                  Epidemiology
+                </span>
+              </h1>
 
-            <p
-              class="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto lg:mx-0"
-            >
+              <!-- Decorative line -->
+              <div class="w-24 h-1 bg-gradient-to-r from-primary-500 to-blue-500 rounded-full" />
+            </div>
+
+            <!-- Description -->
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-xl leading-relaxed">
               Empowering health professionals through research, education, and community engagement
               to build a healthier Nigeria.
             </p>
 
-            <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <NuxtLink
-                to="/membership"
-                class="group relative inline-flex items-center justify-center px-6 py-3 md:px-8 md:py-4 text-base md:text-lg font-medium rounded-lg text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-lg hover:shadow-primary-500/20 transition-all duration-200 transform hover:-translate-y-0.5"
-              >
-                Join Our Community
-                <UIcon
-                  name="i-heroicons-arrow-right"
-                  class="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform"
-                />
-              </NuxtLink>
-
-              <NuxtLink
-                to="/about"
-                class="inline-flex items-center justify-center px-6 py-3 md:px-8 md:py-4 text-base md:text-lg font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                Learn More
-              </NuxtLink>
-            </div>
-
-            <div
-              class="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-sm text-gray-500 dark:text-gray-400"
-            >
-              <div class="flex items-center">
+            <!-- Stats -->
+            <div class="flex flex-wrap items-center gap-8 pt-4">
+              <div class="flex items-center space-x-3">
                 <div class="flex -space-x-2">
                   <div
-                    v-for="i in 5"
-                    :key="i"
-                    class="h-8 w-8 rounded-full border-2 border-white dark:border-gray-800 bg-gray-200 dark:bg-gray-700"
+                    class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 border-2 border-white dark:border-gray-900 flex items-center justify-center"
+                  >
+                    <span class="text-xs font-bold text-white">1K+</span>
+                  </div>
+                  <div
+                    class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-white dark:border-gray-900"
+                  />
+                  <div
+                    class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 border-2 border-white dark:border-gray-900"
                   />
                 </div>
-                <span class="ml-3">Join 1000+ members</span>
+                <div>
+                  <p class="text-sm font-semibold text-gray-900 dark:text-white">Active Members</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Nationwide Network</p>
+                </div>
               </div>
-              <div class="flex items-center">
-                <UIcon name="i-heroicons-map-pin" class="h-5 w-5 mr-1.5 text-primary-500" />
-                <span>Nationwide Network</span>
+
+              <div class="h-12 w-px bg-gray-200 dark:bg-gray-700" />
+
+              <div>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">25+</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Years Experience
+                </p>
+              </div>
+
+              <div>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">50+</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Research Projects
+                </p>
               </div>
             </div>
           </div>
 
-          <div class="relative">
-            <div
-              class="relative z-10 rounded-2xl overflow-hidden shadow-2xl border-8 border-white dark:border-gray-800"
-            >
-              <img
-                class="w-full h-auto"
-                src="https://images.unsplash.com/photo-1581056771107-24ca5f033842?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
-                alt="Healthcare professionals collaborating"
-              />
-            </div>
+          <!-- Visual Column -->
+          <div class="lg:col-span-5 relative">
+            <div class="relative">
+              <!-- Main image -->
+              <div
+                class="relative z-10 rounded-3xl overflow-hidden shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-700"
+              >
+                <img
+                  class="w-full h-96 object-cover"
+                  src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                  alt="Medical professionals in discussion"
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              </div>
 
-            <!-- Decorative elements -->
-            <div
-              class="absolute -bottom-6 -right-6 w-32 h-32 bg-primary-100 dark:bg-primary-900 rounded-full -z-10"
-            />
-            <div
-              class="absolute -top-6 -left-6 w-24 h-24 bg-secondary-100 dark:bg-secondary-900 rounded-full -z-10"
-            />
-            <div
-              class="absolute -bottom-8 left-1/4 w-16 h-16 bg-accent-100 dark:bg-accent-900 rounded-full -z-10"
-            />
+              <!-- Floating card -->
+              <div
+                class="absolute -bottom-6 -left-6 z-20 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-xl border border-gray-100 dark:border-gray-700 backdrop-blur-sm"
+              >
+                <div class="flex items-center space-x-3">
+                  <div
+                    class="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center"
+                  >
+                    <UIcon name="i-heroicons-chart-bar" class="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p class="text-sm font-semibold text-gray-900 dark:text-white">Health Impact</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Measurable Results</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Floating badge -->
+              <div
+                class="absolute -top-4 -right-4 z-20 bg-primary-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg"
+              >
+                Est. 1999
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-
-      <!-- Wave divider -->
-      <div class="absolute bottom-0 left-0 w-full overflow-hidden">
-        <svg
-          class="relative block w-full h-12 md:h-20 lg:h-28"
-          viewBox="0 0 1200 120"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
-            opacity="0.25"
-            class="fill-current text-gray-100 dark:text-gray-800"
-          />
-          <path
-            d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
-            opacity="0.5"
-            class="fill-current text-gray-50 dark:text-gray-900"
-          />
-          <path
-            d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"
-            class="fill-white dark:fill-gray-900"
-          />
-        </svg>
       </div>
     </section>
 
     <!-- Events Section -->
-    <section class="py-16 md:py-24 bg-white dark:bg-gray-900">
+    <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-3xl mx-auto">
-          <span
-            class="inline-block px-3 py-1 text-sm font-medium rounded-full bg-primary-100 text-primary-800 dark:bg-primary-900/50 dark:text-primary-300 mb-4"
+        <!-- Section Header -->
+        <div class="max-w-2xl mb-16">
+          <div
+            class="inline-flex items-center space-x-2 px-4 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-full border border-gray-200/50 dark:border-gray-700/50 shadow-sm mb-6"
           >
-            Upcoming Events
-          </span>
-          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
-            Join Our Next <span class="text-primary-600 dark:text-primary-400">Event</span>
+            <div class="w-2 h-2 bg-blue-500 rounded-full" />
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Upcoming Events</span
+            >
+          </div>
+          <h2
+            class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight"
+          >
+            Join Our Next
+            <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+              >Event</span
+            >
           </h2>
-          <p class="text-lg text-gray-600 dark:text-gray-300">
+          <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
             Participate in our upcoming conferences, workshops, and seminars to stay ahead in the
             field of epidemiology.
           </p>
         </div>
 
-        <div class="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <!-- Events Grid -->
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <div
             v-for="event in upcomingEvents"
             :key="event.id"
-            class="group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+            class="group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300"
           >
+            <!-- Event Type Badge -->
             <div class="absolute top-4 right-4 z-10">
-              <span
-                class="px-3 py-1 text-xs font-semibold rounded-full"
+              <div
+                class="px-3 py-1 text-xs font-semibold rounded-full backdrop-blur-sm"
                 :class="{
-                  'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300':
-                    event.type === 'Conference',
-                  'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300':
-                    event.type === 'Workshop',
-                  'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300':
-                    event.type === 'Symposium',
+                  'bg-blue-500/90 text-white': event.type === 'Conference',
+                  'bg-green-500/90 text-white': event.type === 'Workshop',
+                  'bg-purple-500/90 text-white': event.type === 'Symposium',
                 }"
               >
                 {{ event.type }}
-              </span>
+              </div>
             </div>
 
-            <div class="h-48 overflow-hidden">
+            <!-- Event Image -->
+            <div class="h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
               <img
                 :src="event.image"
                 :alt="event.title"
-                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
             </div>
 
+            <!-- Event Content -->
             <div class="p-6">
-              <div class="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-3">
-                <UIcon name="i-heroicons-calendar" class="h-4 w-4 mr-1.5" />
-                <span>{{ formatDate(event.date) }}</span>
-                <span class="mx-2">•</span>
-                <UIcon name="i-heroicons-map-pin" class="h-4 w-4 mr-1.5" />
-                <span>{{ event.location }}</span>
+              <!-- Date & Location -->
+              <div
+                class="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-4 space-x-4"
+              >
+                <div class="flex items-center">
+                  <UIcon name="i-heroicons-calendar" class="h-4 w-4 mr-1.5" />
+                  <span>{{ formatDate(event.date) }}</span>
+                </div>
+                <div class="flex items-center">
+                  <UIcon name="i-heroicons-map-pin" class="h-4 w-4 mr-1.5" />
+                  <span>{{ event.location }}</span>
+                </div>
               </div>
 
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2">
+              <!-- Title -->
+              <h3
+                class="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors"
+              >
                 {{ event.title }}
               </h3>
 
-              <p class="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
+              <!-- Description -->
+              <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed line-clamp-3">
                 {{ event.description }}
               </p>
-
-              <div
-                class="flex justify-between items-center pt-4 border-t border-gray-100 dark:border-gray-700"
-              >
-                <span class="text-sm font-medium text-primary-600 dark:text-primary-400">
-                  Learn more
-                </span>
-                <UIcon
-                  name="i-heroicons-arrow-right"
-                  class="h-5 w-5 text-gray-400 group-hover:text-primary-500 transition-colors"
-                />
-              </div>
             </div>
+
+            <!-- Hover Overlay -->
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-primary-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+            />
 
             <NuxtLink
               :to="`/conferences/${event.id}`"
@@ -223,169 +238,134 @@
           </div>
         </div>
 
-        <div class="mt-12 text-center">
+        <!-- View All Link -->
+        <div class="mt-16 text-center">
           <NuxtLink
             to="/conferences"
-            class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/50 hover:bg-primary-100 dark:hover:bg-primary-800/50 transition-colors"
+            class="inline-flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors group"
           >
-            View all events
-            <UIcon name="i-heroicons-arrow-right" class="ml-2 h-5 w-5" />
+            <span class="font-medium">View all events</span>
+            <UIcon
+              name="i-heroicons-arrow-right"
+              class="h-4 w-4 group-hover:translate-x-1 transition-transform"
+            />
           </NuxtLink>
         </div>
       </div>
     </section>
 
     <!-- Features Section -->
-    <section class="py-16 md:py-24 bg-gray-50 dark:bg-gray-800/50 relative overflow-hidden">
-      <div class="absolute inset-0 overflow-hidden">
-        <div class="absolute inset-0 bg-grid-pattern opacity-5 dark:opacity-10" />
+    <section class="py-20 md:py-32 bg-white dark:bg-gray-900 relative overflow-hidden">
+      <!-- Subtle background pattern -->
+      <div class="absolute inset-0 opacity-5">
+        <div
+          class="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-primary-500 to-blue-500 rounded-full mix-blend-multiply filter blur-3xl"
+        />
+        <div
+          class="absolute bottom-20 left-20 w-96 h-96 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mix-blend-multiply filter blur-3xl"
+        />
       </div>
 
       <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-3xl mx-auto mb-16">
-          <span
-            class="inline-block px-3 py-1 text-sm font-medium rounded-full bg-primary-100 text-primary-800 dark:bg-primary-900/50 dark:text-primary-300 mb-4"
+        <!-- Section Header -->
+        <div class="max-w-2xl mb-20">
+          <div
+            class="inline-flex items-center space-x-2 px-4 py-2 bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full border border-gray-200/50 dark:border-gray-700/50 shadow-sm mb-6"
           >
-            Our Value Proposition
-          </span>
-          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
-            Why <span class="text-primary-600 dark:text-primary-400">Join EPISON?</span>
+            <div class="w-2 h-2 bg-primary-500 rounded-full" />
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Our Value Proposition</span
+            >
+          </div>
+          <h2
+            class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight"
+          >
+            Why Join
+            <span
+              class="bg-gradient-to-r from-primary-600 to-blue-600 bg-clip-text text-transparent"
+              >EPISON?</span
+            >
           </h2>
-          <p class="text-lg text-gray-600 dark:text-gray-300">
+          <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
             We provide unparalleled opportunities for professional growth, networking, and impact in
             the field of epidemiology.
           </p>
         </div>
 
+        <!-- Features Grid -->
         <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          <div
-            v-for="(feature, index) in features"
-            :key="index"
-            class="group relative p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300"
-          >
-            <div class="flex flex-col h-full">
-              <div
-                class="flex items-center justify-center h-16 w-16 rounded-xl mb-6 bg-gradient-to-br from-primary-500 to-primary-600 text-white transform group-hover:-translate-y-1 transition-transform"
-              >
-                <UIcon :name="feature.icon" class="h-8 w-8" />
-              </div>
-
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">
-                {{ feature.title }}
-              </h3>
-
-              <p class="text-gray-600 dark:text-gray-300 mb-6 flex-grow">
-                {{ feature.description }}
-              </p>
-
-              <div class="mt-auto">
-                <span
-                  class="inline-flex items-center text-sm font-medium text-primary-600 dark:text-primary-400 group-hover:underline"
+          <div v-for="(feature, index) in features" :key="index" class="group relative">
+            <!-- Feature Card -->
+            <div
+              class="relative h-full p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300"
+            >
+              <!-- Icon with gradient background -->
+              <div class="relative mb-6">
+                <div
+                  class="absolute inset-0 bg-gradient-to-br from-primary-500/20 to-blue-500/20 rounded-2xl blur-xl"
+                />
+                <div
+                  class="relative flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-primary-500 to-blue-600 text-white shadow-lg"
                 >
-                  Learn more
-                  <UIcon
-                    name="i-heroicons-arrow-right"
-                    class="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1"
-                  />
-                </span>
+                  <UIcon :name="feature.icon" class="h-8 w-8" />
+                </div>
               </div>
+
+              <!-- Content -->
+              <div class="space-y-4">
+                <h3
+                  class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors"
+                >
+                  {{ feature.title }}
+                </h3>
+
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                  {{ feature.description }}
+                </p>
+              </div>
+
+              <!-- Subtle hover effect -->
+              <div
+                class="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-blue-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              />
             </div>
 
+            <!-- Floating number indicator -->
             <div
-              class="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-primary-200 dark:group-hover:border-primary-800 transition-all duration-300 pointer-events-none"
-            />
+              class="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-gray-800 to-gray-900 dark:from-gray-100 dark:to-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-white dark:text-gray-900 shadow-lg"
+            >
+              {{ index + 1 }}
+            </div>
           </div>
         </div>
 
-        <div class="mt-16 text-center">
-          <NuxtLink
-            to="/about"
-            class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-lg hover:shadow-primary-500/20 transition-all"
+        <!-- Bottom CTA -->
+        <div class="mt-20 text-center">
+          <div
+            class="inline-flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-primary-50 to-blue-50 dark:from-primary-900/20 dark:to-blue-900/20 rounded-full border border-primary-200/50 dark:border-primary-700/50"
           >
-            Discover More About Us
-            <UIcon name="i-heroicons-arrow-right" class="ml-2 h-5 w-5" />
-          </NuxtLink>
-        </div>
-      </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="relative overflow-hidden bg-gradient-to-r from-primary-600 to-primary-700">
-      <!-- Decorative elements -->
-      <div class="absolute inset-0 opacity-10">
-        <div class="absolute inset-0 bg-grid-pattern" />
-      </div>
-      <div class="absolute -right-32 -top-32 w-96 h-96 bg-white/5 rounded-full" />
-      <div class="absolute -left-32 -bottom-32 w-96 h-96 bg-white/5 rounded-full" />
-
-      <div class="relative max-w-4xl mx-auto px-4 py-20 sm:py-24 sm:px-6 lg:px-8 text-center">
-        <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">
-          Ready to make an impact in public health?
-        </h2>
-
-        <p class="text-xl text-primary-100 max-w-3xl mx-auto mb-8">
-          Join EPISON today and become part of Nigeria's leading network of epidemiology
-          professionals.
-        </p>
-
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <NuxtLink
-            to="/membership"
-            class="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-medium rounded-lg text-primary-700 bg-white hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
-          >
-            Join EPISON Now
-            <UIcon
-              name="i-heroicons-arrow-right"
-              class="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform"
-            />
-          </NuxtLink>
-
-          <NuxtLink
-            to="/contact"
-            class="inline-flex items-center justify-center px-8 py-4 text-lg font-medium rounded-lg text-white border-2 border-white/20 hover:border-white/40 bg-transparent hover:bg-white/5 transition-colors"
-          >
-            Contact Us
-          </NuxtLink>
-        </div>
-
-        <div class="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-white/80">
-          <div class="flex items-center">
-            <UIcon name="i-heroicons-check-circle" class="h-5 w-5 mr-2 text-white" />
-            <span>No membership fees for students</span>
-          </div>
-          <div class="flex items-center">
-            <UIcon name="i-heroicons-check-circle" class="h-5 w-5 mr-2 text-white" />
-            <span>Access to exclusive resources</span>
-          </div>
-          <div class="flex items-center">
-            <UIcon name="i-heroicons-check-circle" class="h-5 w-5 mr-2 text-white" />
-            <span>Networking opportunities</span>
+            <div class="flex -space-x-2">
+              <div
+                class="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full border-2 border-white dark:border-gray-900"
+              />
+              <div
+                class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full border-2 border-white dark:border-gray-900"
+              />
+              <div
+                class="w-8 h-8 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full border-2 border-white dark:border-gray-900"
+              />
+            </div>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Ready to make an impact?</span
+            >
+            <NuxtLink
+              to="/membership"
+              class="text-sm font-semibold text-primary-600 dark:text-primary-400 hover:underline"
+            >
+              Join us →
+            </NuxtLink>
           </div>
         </div>
-      </div>
-
-      <!-- Wave divider -->
-      <div class="absolute bottom-0 left-0 w-full overflow-hidden transform rotate-180">
-        <svg
-          class="relative block w-full h-12 md:h-20 lg:h-28"
-          viewBox="0 0 1200 120"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
-            opacity="0.25"
-            class="fill-current text-white"
-          />
-          <path
-            d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
-            opacity="0.5"
-            class="fill-current text-white"
-          />
-          <path
-            d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"
-            class="fill-current text-white"
-          />
-        </svg>
       </div>
     </section>
   </div>

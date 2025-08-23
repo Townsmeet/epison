@@ -1,120 +1,168 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <!-- Hero -->
-    <div class="relative bg-primary-700">
+  <div
+    class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-teal-900/20"
+  >
+    <!-- Hero Section -->
+    <section class="relative overflow-hidden pt-20 pb-16">
+      <!-- Background Elements -->
       <div class="absolute inset-0">
-        <img
-          class="w-full h-full object-cover opacity-10"
-          src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1950&q=80"
-          alt="Office building"
+        <div
+          class="absolute top-0 left-1/4 w-72 h-72 bg-gradient-to-br from-teal-400/20 to-cyan-500/20 rounded-full blur-3xl"
+        />
+        <div
+          class="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-amber-400/15 to-orange-500/15 rounded-full blur-3xl"
         />
       </div>
-      <div class="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
-        <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-          Contact Us
+
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+          <span
+            class="bg-gradient-to-r from-teal-600 to-cyan-600 dark:from-teal-400 dark:to-cyan-400 bg-clip-text text-transparent"
+          >
+            Contact Us
+          </span>
         </h1>
-        <p class="mt-6 text-xl text-primary-100 max-w-3xl">
+        <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
           We'd love to hear from you. Get in touch with the EPISON team.
         </p>
       </div>
-    </div>
+    </section>
 
-    <!-- Contact Info -->
-    <div class="bg-white dark:bg-gray-900">
-      <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-        <div class="lg:grid lg:grid-cols-3 lg:gap-8">
+    <!-- Contact Info & Form -->
+    <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="lg:grid lg:grid-cols-3 lg:gap-12">
+          <!-- Contact Information -->
           <div class="space-y-8">
-            <div>
-              <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">
+            <div
+              class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm p-8"
+            >
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                 Contact Information
               </h2>
-              <p class="mt-4 text-lg text-gray-500 dark:text-gray-400">
+              <p class="text-gray-600 dark:text-gray-300 leading-relaxed mb-8">
                 Have questions or need more information? Reach out to us through any of these
                 channels.
               </p>
-            </div>
 
-            <div class="space-y-6">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <UIcon name="i-heroicons-map-pin" class="h-6 w-6 text-primary-500" />
+              <div class="space-y-6">
+                <div class="flex items-start">
+                  <div class="flex-shrink-0 mt-1">
+                    <div
+                      class="flex items-center justify-center h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white"
+                    >
+                      <UIcon name="i-heroicons-map-pin" class="h-5 w-5" />
+                    </div>
+                  </div>
+                  <div class="ml-4 text-gray-600 dark:text-gray-300">
+                    <p class="font-semibold text-gray-900 dark:text-white">EPISON Secretariat</p>
+                    <p class="mt-1 text-sm leading-relaxed">
+                      Department of Epidemiology and Medical Statistics,<br />
+                      Faculty of Public Health,<br />
+                      University of Ibadan,<br />
+                      Ibadan, Nigeria
+                    </p>
+                  </div>
                 </div>
-                <div class="ml-3 text-base text-gray-500 dark:text-gray-400">
-                  <p>EPISON Secretariat</p>
-                  <p class="mt-1">
-                    Department of Epidemiology and Medical Statistics,<br />
-                    Faculty of Public Health,<br />
-                    University of Ibadan,<br />
-                    Ibadan, Nigeria
-                  </p>
+
+                <div class="flex items-start">
+                  <div class="flex-shrink-0 mt-1">
+                    <div
+                      class="flex items-center justify-center h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white"
+                    >
+                      <UIcon name="i-heroicons-phone" class="h-5 w-5" />
+                    </div>
+                  </div>
+                  <div class="ml-4 text-gray-600 dark:text-gray-300">
+                    <p class="font-semibold text-gray-900 dark:text-white">+234 812 345 6789</p>
+                    <p class="mt-1 text-sm">Mon - Fri, 9am - 5pm WAT</p>
+                  </div>
+                </div>
+
+                <div class="flex items-start">
+                  <div class="flex-shrink-0 mt-1">
+                    <div
+                      class="flex items-center justify-center h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white"
+                    >
+                      <UIcon name="i-heroicons-envelope" class="h-5 w-5" />
+                    </div>
+                  </div>
+                  <div class="ml-4 text-gray-600 dark:text-gray-300">
+                    <p class="font-semibold text-gray-900 dark:text-white">info@epison.org.ng</p>
+                    <p class="mt-1 text-sm">For general inquiries</p>
+                  </div>
+                </div>
+
+                <div class="flex items-start">
+                  <div class="flex-shrink-0 mt-1">
+                    <div
+                      class="flex items-center justify-center h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white"
+                    >
+                      <UIcon name="i-heroicons-user-group" class="h-5 w-5" />
+                    </div>
+                  </div>
+                  <div class="ml-4 text-gray-600 dark:text-gray-300">
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      membership@epison.org.ng
+                    </p>
+                    <p class="mt-1 text-sm">For membership inquiries</p>
+                  </div>
+                </div>
+
+                <div class="flex items-start">
+                  <div class="flex-shrink-0 mt-1">
+                    <div
+                      class="flex items-center justify-center h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white"
+                    >
+                      <UIcon name="i-heroicons-calendar" class="h-5 w-5" />
+                    </div>
+                  </div>
+                  <div class="ml-4 text-gray-600 dark:text-gray-300">
+                    <p class="font-semibold text-gray-900 dark:text-white">events@epison.org.ng</p>
+                    <p class="mt-1 text-sm">For event and conference inquiries</p>
+                  </div>
                 </div>
               </div>
 
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <UIcon name="i-heroicons-phone" class="h-6 w-6 text-primary-500" />
-                </div>
-                <div class="ml-3 text-base text-gray-500 dark:text-gray-400">
-                  <p>+234 812 345 6789</p>
-                  <p class="mt-1">Mon - Fri, 9am - 5pm WAT</p>
-                </div>
+              <div class="flex space-x-4 mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors"
+                >
+                  <span class="sr-only">Facebook</span>
+                  <UIcon name="i-heroicons-globe-alt" class="h-6 w-6" />
+                </a>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors"
+                >
+                  <span class="sr-only">Twitter</span>
+                  <UIcon name="i-heroicons-at-symbol" class="h-6 w-6" />
+                </a>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors"
+                >
+                  <span class="sr-only">LinkedIn</span>
+                  <UIcon name="i-heroicons-building-office" class="h-6 w-6" />
+                </a>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors"
+                >
+                  <span class="sr-only">YouTube</span>
+                  <UIcon name="i-heroicons-play" class="h-6 w-6" />
+                </a>
               </div>
-
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <UIcon name="i-heroicons-envelope" class="h-6 w-6 text-primary-500" />
-                </div>
-                <div class="ml-3 text-base text-gray-500 dark:text-gray-400">
-                  <p>info@epison.org.ng</p>
-                  <p class="mt-1">For general inquiries</p>
-                </div>
-              </div>
-
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <UIcon name="i-heroicons-user-group" class="h-6 w-6 text-primary-500" />
-                </div>
-                <div class="ml-3 text-base text-gray-500 dark:text-gray-400">
-                  <p>membership@epison.org.ng</p>
-                  <p class="mt-1">For membership inquiries</p>
-                </div>
-              </div>
-
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <UIcon name="i-heroicons-calendar" class="h-6 w-6 text-primary-500" />
-                </div>
-                <div class="ml-3 text-base text-gray-500 dark:text-gray-400">
-                  <p>events@epison.org.ng</p>
-                  <p class="mt-1">For event and conference inquiries</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="flex space-x-6">
-              <a href="#" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
-                <span class="sr-only">Facebook</span>
-                <UIcon name="i-simple-icons-facebook" class="h-6 w-6" />
-              </a>
-              <a href="#" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
-                <span class="sr-only">Twitter</span>
-                <UIcon name="i-simple-icons-x" class="h-6 w-6" />
-              </a>
-              <a href="#" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
-                <span class="sr-only">LinkedIn</span>
-                <UIcon name="i-simple-icons-linkedin" class="h-6 w-6" />
-              </a>
-              <a href="#" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
-                <span class="sr-only">YouTube</span>
-                <UIcon name="i-simple-icons-youtube" class="h-6 w-6" />
-              </a>
             </div>
           </div>
 
           <!-- Contact Form -->
           <div class="mt-12 lg:mt-0 lg:col-span-2">
-            <div class="bg-white dark:bg-gray-800 py-8 px-6 shadow rounded-lg sm:px-10">
-              <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white mb-6">
+            <div
+              class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm p-8"
+            >
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                 Send us a message
               </h2>
 
@@ -183,87 +231,37 @@
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- Map -->
-    <div class="bg-white dark:bg-gray-900">
-      <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-        <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white mb-8">Our Location</h2>
-        <div class="rounded-lg overflow-hidden h-96 bg-gray-100 dark:bg-gray-800">
-          <!-- Replace with your actual map embed code -->
-          <div class="h-full w-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+    <section class="py-20 md:py-32 bg-white dark:bg-gray-900">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+          Our Location
+        </h2>
+        <div
+          class="rounded-2xl overflow-hidden h-96 bg-gray-100 dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700"
+        >
+          <div
+            class="h-full w-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800"
+          >
             <div class="text-center p-6">
-              <UIcon name="i-heroicons-map" class="h-12 w-12 mx-auto text-gray-400" />
-              <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-white">Map Location</h3>
-              <p class="mt-1 text-gray-500 dark:text-gray-400">
+              <div
+                class="flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white mx-auto mb-4"
+              >
+                <UIcon name="i-heroicons-map" class="h-8 w-8" />
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                University of Ibadan
+              </h3>
+              <p class="mt-1 text-gray-600 dark:text-gray-400">
                 Interactive map would be embedded here
               </p>
             </div>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- FAQ -->
-    <div class="bg-gray-50 dark:bg-gray-800 py-16">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="lg:text-center mb-12">
-          <h2
-            class="text-base text-primary-600 dark:text-primary-400 font-semibold tracking-wide uppercase"
-          >
-            FAQs
-          </h2>
-          <p
-            class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl"
-          >
-            Frequently Asked Questions
-          </p>
-          <p class="mt-4 max-w-2xl text-xl text-gray-500 dark:text-gray-300 lg:mx-auto">
-            Find answers to common questions about EPISON
-          </p>
-        </div>
-
-        <div class="max-w-3xl mx-auto">
-          <div class="space-y-6">
-            <UDivider />
-            <UAccordion :items="faqs" :ui="{ wrapper: 'space-y-6' }" class="space-y-6">
-              <template #default="{ item, open }">
-                <UButton
-                  color="gray"
-                  variant="ghost"
-                  class="flex items-center justify-between w-full px-0 py-4 font-normal"
-                >
-                  <span class="text-left text-base font-medium text-gray-900 dark:text-white">{{
-                    item.label
-                  }}</span>
-                  <UIcon
-                    name="i-heroicons-chevron-down"
-                    class="w-5 h-5 text-gray-500 dark:text-gray-400 transform transition-transform duration-200"
-                    :class="[open ? 'rotate-180' : '']"
-                  />
-                </UButton>
-                <div class="pb-4 text-gray-600 dark:text-gray-300 text-sm">
-                  {{ item.content }}
-                </div>
-              </template>
-            </UAccordion>
-
-            <div class="mt-10 text-center">
-              <p class="text-base text-gray-500 dark:text-gray-400">
-                Still have questions?{' '}
-                <a
-                  href="#contact-form"
-                  class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300"
-                >
-                  Contact our support team
-                </a>
-                .
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -290,49 +288,6 @@ const subjectOptions = [
   'Other',
 ]
 
-const faqs = [
-  {
-    label: 'How can I become a member of EPISON?',
-    content:
-      'To become a member of EPISON, please visit our Membership page and follow the application process. You can choose from different membership categories based on your professional status.',
-  },
-  {
-    label: 'When is the next EPISON conference?',
-    content:
-      'Information about upcoming conferences is available on our Conferences page. You can also subscribe to our newsletter to receive updates about future events.',
-  },
-  {
-    label: 'How can I submit a research paper to EPISON?',
-    content:
-      'EPISON accepts research paper submissions for our annual conference and journal. Please check the Calls for Papers section on our website for submission guidelines and deadlines.',
-  },
-  {
-    label: 'Does EPISON offer training programs?',
-    content:
-      'Yes, EPISON organizes various training programs, workshops, and webinars throughout the year. Visit our Events page or subscribe to our newsletter to stay updated on upcoming training opportunities.',
-  },
-  {
-    label: 'How can I advertise a job opening on the EPISON website?',
-    content:
-      'EPISON members can post job openings on our website. Please contact us at info@epison.org.ng for more information about job postings and advertising rates.',
-  },
-  {
-    label: 'How can I update my member profile?',
-    content:
-      'You can update your member profile by logging into your account on the EPISON website. If you encounter any issues, please contact our membership team at membership@epison.org.ng.',
-  },
-  {
-    label: 'How can I volunteer for EPISON?',
-    content:
-      'EPISON welcomes volunteers to contribute to our various committees and activities. Please fill out the contact form with your areas of interest and expertise, and our volunteer coordinator will get in touch with you.',
-  },
-  {
-    label: 'How can I make a donation to EPISON?',
-    content:
-      'EPISON appreciates donations to support our mission. Please contact us at info@epison.org.ng for information on how to make a contribution.',
-  },
-]
-
 async function onSubmit() {
   try {
     isSubmitting.value = true
@@ -344,7 +299,7 @@ async function onSubmit() {
       title: 'Message sent',
       description: 'Thank you for contacting us. We will get back to you soon!',
       icon: 'i-heroicons-check-circle',
-      color: 'green',
+      color: 'success',
     })
 
     // Reset form
@@ -363,7 +318,7 @@ async function onSubmit() {
       title: 'Error',
       description: 'There was an error sending your message. Please try again later.',
       icon: 'i-heroicons-exclamation-circle',
-      color: 'red',
+      color: 'error',
     })
   } finally {
     isSubmitting.value = false

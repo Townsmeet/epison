@@ -8,7 +8,7 @@
             <div class="flex items-center">
               <UButton
                 to="/admin/registrations"
-                color="gray"
+                color="neutral"
                 variant="ghost"
                 icon="i-heroicons-arrow-left"
                 class="mr-2"
@@ -35,7 +35,7 @@
           </div>
           <div class="mt-4 flex md:mt-0 md:ml-4 space-x-2">
             <UButton
-              color="gray"
+              color="neutral"
               variant="outline"
               icon="i-heroicons-printer"
               @click="printRegistration"
@@ -189,7 +189,7 @@
 
                   <UButton
                     v-if="registration.paymentStatus === 'Pending'"
-                    color="green"
+                    color="success"
                     size="sm"
                     icon="i-heroicons-check-circle"
                     :loading="isUpdatingPayment"
@@ -258,7 +258,7 @@
                     </p>
                   </div>
                   <UButton
-                    color="gray"
+                    color="neutral"
                     variant="ghost"
                     size="xs"
                     class="ml-auto"
@@ -318,6 +318,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+definePageMeta({
+  layout: 'admin',
+})
 
 const route = useRoute()
 const registrationId = route.params.id as string
@@ -465,7 +468,7 @@ async function markAsPaid() {
       title: 'Payment status updated',
       description: 'Registration has been marked as paid',
       icon: 'i-heroicons-check-circle',
-      color: 'green',
+      color: 'success',
     })
   } catch (error) {
     console.error('Error updating payment status:', error)
@@ -473,7 +476,7 @@ async function markAsPaid() {
       title: 'Error',
       description: 'Failed to update payment status',
       icon: 'i-heroicons-exclamation-circle',
-      color: 'red',
+      color: 'error',
     })
   } finally {
     isUpdatingPayment.value = false
@@ -498,7 +501,7 @@ async function updateStatus() {
     useToast().add({
       title: 'Status updated',
       icon: 'i-heroicons-check-circle',
-      color: 'green',
+      color: 'success',
     })
   } catch (error) {
     console.error('Error updating status:', error)
@@ -506,7 +509,7 @@ async function updateStatus() {
       title: 'Error',
       description: 'Failed to update status',
       icon: 'i-heroicons-exclamation-circle',
-      color: 'red',
+      color: 'error',
     })
   } finally {
     isUpdating.value = false
@@ -519,14 +522,14 @@ function assignToMe() {
     useToast().add({
       title: 'Assignment removed',
       icon: 'i-heroicons-check-circle',
-      color: 'green',
+      color: 'success',
     })
   } else {
     registration.value.assignedTo = 'You'
     useToast().add({
       title: 'Assigned to you',
       icon: 'i-heroicons-check-circle',
-      color: 'green',
+      color: 'success',
     })
   }
 }
@@ -546,7 +549,7 @@ onMounted(async () => {
       title: 'Error',
       description: 'Failed to load registration details',
       icon: 'i-heroicons-exclamation-circle',
-      color: 'red',
+      color: 'error',
     })
   }
 })

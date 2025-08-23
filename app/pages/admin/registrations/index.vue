@@ -1,256 +1,238 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <!-- Page header -->
-    <div class="bg-white dark:bg-gray-800 shadow">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div class="md:flex md:items-center md:justify-between">
-          <div class="flex-1 min-w-0">
-            <h1
-              class="text-2xl font-bold leading-7 text-gray-900 dark:text-white sm:text-3xl sm:truncate"
-            >
-              Registrations
-            </h1>
+  <div>
+    <!-- Action buttons -->
+    <div class="flex justify-end space-x-3 mb-6">
+      <UButton
+        icon="i-heroicons-funnel"
+        color="neutral"
+        variant="outline"
+        @click="showFilters = !showFilters"
+      >
+        {{ showFilters ? 'Hide Filters' : 'Filters' }}
+      </UButton>
+      <UButton icon="i-heroicons-plus" color="primary" to="/admin/registrations/new">
+        New Registration
+      </UButton>
+    </div>
+    <!-- Stats -->
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+      <StatCard
+        title="Total Registrations"
+        :value="stats.total"
+        :change="stats.change"
+        icon="i-heroicons-user-group"
+        color="blue"
+      />
+      <StatCard title="Paid" :value="stats.paid" icon="i-heroicons-banknotes" color="green" />
+      <StatCard title="Pending" :value="stats.pending" icon="i-heroicons-clock" color="yellow" />
+      <StatCard
+        title="Cancelled"
+        :value="stats.cancelled"
+        icon="i-heroicons-x-circle"
+        color="red"
+      />
+    </div>
+
+    <!-- Registrations table -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+      <div
+        class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between"
+      >
+        <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-2 sm:mb-0">
+          All Registrations
+        </h3>
+        <div class="flex items-center">
+          <UInput
+            v-model="searchQuery"
+            placeholder="Search registrations..."
+            icon="i-heroicons-magnifying-glass"
+            autocomplete="off"
+            class="w-full sm:w-64"
+          />
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-700">
+            <tr>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              >
+                <UCheckbox v-model="selectAll" />
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              >
+                Name
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              >
+                Event
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              >
+                Type
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              >
+                Date
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              >
+                Amount
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              >
+                Status
+              </th>
+              <th scope="col" class="relative px-6 py-3">
+                <span class="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tr v-for="registration in paginatedRegistrations" :key="registration.id">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <UCheckbox
+                  :model-value="selectedRegistrations.includes(registration.id)"
+                  @update:model-value="
+                    (checked: boolean | 'indeterminate') => {
+                      if (typeof checked === 'boolean') {
+                        toggleRegistration(registration.id, checked)
+                      }
+                    }
+                  "
+                />
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <div
+                      class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
+                    >
+                      <span class="text-gray-600 dark:text-gray-300 font-medium">{{
+                        getInitials(registration.name)
+                      }}</span>
+                    </div>
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900 dark:text-white">
+                      {{ registration.name }}
+                    </div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                      {{ registration.email }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900 dark:text-white">{{ registration.event }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ formatDate(registration.eventDate) }}
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                  :class="getTypeBadgeClass(registration.type)"
+                >
+                  {{ registration.type }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                {{ formatDate(registration.date) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                ₦{{ registration.amount.toLocaleString() }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                  :class="getStatusBadgeClass(registration.status)"
+                >
+                  {{ registration.status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <UDropdown :items="getActionItems(registration)">
+                  <UButton
+                    color="neutral"
+                    variant="ghost"
+                    size="xs"
+                    icon="i-heroicons-ellipsis-horizontal"
+                    class="rounded-full"
+                  />
+                </UDropdown>
+              </td>
+            </tr>
+            <tr v-if="paginatedRegistrations.length === 0">
+              <td colspan="8" class="px-6 py-12 text-center">
+                <UIcon name="i-heroicons-inbox" class="mx-auto h-12 w-12 text-gray-400" />
+                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">
+                  No registrations found
+                </h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {{
+                    searchQuery
+                      ? 'No registrations match your search.'
+                      : 'Get started by creating a new registration.'
+                  }}
+                </p>
+                <div class="mt-6">
+                  <UButton to="/admin/registrations/new" color="primary" icon="i-heroicons-plus">
+                    New Registration
+                  </UButton>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div
+        class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between"
+      >
+        <div class="flex-1 flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-700 dark:text-gray-300">
+              Showing <span class="font-medium">{{ pagination.from }}</span> to
+              <span class="font-medium">{{ pagination.to }}</span> of
+              <span class="font-medium">{{ pagination.total }}</span> results
+            </p>
           </div>
-          <div class="mt-4 flex md:mt-0 md:ml-4">
+          <div class="flex space-x-2">
             <UButton
-              icon="i-heroicons-funnel"
               color="neutral"
-              variant="outline"
-              class="mr-2"
-              @click="showFilters = !showFilters"
-            >
-              {{ showFilters ? 'Hide Filters' : 'Filters' }}
-            </UButton>
-            <UButton icon="i-heroicons-plus" color="primary" to="/admin/registrations/new">
-              New Registration
-            </UButton>
+              variant="ghost"
+              :disabled="pagination.currentPage === 1"
+              icon="i-heroicons-chevron-left"
+              @click="pagination.currentPage--"
+            />
+            <UButton
+              color="neutral"
+              variant="ghost"
+              :disabled="pagination.currentPage * pagination.perPage >= pagination.total"
+              icon="i-heroicons-chevron-right"
+              @click="pagination.currentPage++"
+            />
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Main content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <!-- Stats -->
-      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-        <StatCard
-          title="Total Registrations"
-          :value="stats.total"
-          :change="stats.change"
-          icon="i-heroicons-user-group"
-          color="blue"
-        />
-        <StatCard title="Paid" :value="stats.paid" icon="i-heroicons-banknotes" color="green" />
-        <StatCard title="Pending" :value="stats.pending" icon="i-heroicons-clock" color="yellow" />
-        <StatCard
-          title="Cancelled"
-          :value="stats.cancelled"
-          icon="i-heroicons-x-circle"
-          color="red"
-        />
-      </div>
-
-      <!-- Registrations table -->
-      <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-        <div
-          class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between"
-        >
-          <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-2 sm:mb-0">
-            All Registrations
-          </h3>
-          <div class="flex items-center">
-            <UInput
-              v-model="searchQuery"
-              placeholder="Search registrations..."
-              icon="i-heroicons-magnifying-glass"
-              autocomplete="off"
-              class="w-full sm:w-64"
-            />
-          </div>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-700">
-              <tr>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                >
-                  <UCheckbox v-model="selectAll" />
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                >
-                  Name
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                >
-                  Event
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                >
-                  Type
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                >
-                  Date
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                >
-                  Amount
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                >
-                  Status
-                </th>
-                <th scope="col" class="relative px-6 py-3">
-                  <span class="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              <tr v-for="registration in paginatedRegistrations" :key="registration.id">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <UCheckbox
-                    :model-value="selectedRegistrations.includes(registration.id)"
-                    @update:model-value="
-                      (checked: boolean | 'indeterminate') => {
-                        if (typeof checked === 'boolean') {
-                          toggleRegistration(registration.id, checked)
-                        }
-                      }
-                    "
-                  />
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div class="flex-shrink-0 h-10 w-10">
-                      <div
-                        class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
-                      >
-                        <span class="text-gray-600 dark:text-gray-300 font-medium">{{
-                          getInitials(registration.name)
-                        }}</span>
-                      </div>
-                    </div>
-                    <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900 dark:text-white">
-                        {{ registration.name }}
-                      </div>
-                      <div class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ registration.email }}
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900 dark:text-white">{{ registration.event }}</div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ formatDate(registration.eventDate) }}
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                    :class="getTypeBadgeClass(registration.type)"
-                  >
-                    {{ registration.type }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  {{ formatDate(registration.date) }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  ₦{{ registration.amount.toLocaleString() }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                    :class="getStatusBadgeClass(registration.status)"
-                  >
-                    {{ registration.status }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <UDropdown :items="getActionItems(registration)">
-                    <UButton
-                      color="neutral"
-                      variant="ghost"
-                      size="xs"
-                      icon="i-heroicons-ellipsis-horizontal"
-                      class="rounded-full"
-                    />
-                  </UDropdown>
-                </td>
-              </tr>
-              <tr v-if="paginatedRegistrations.length === 0">
-                <td colspan="8" class="px-6 py-12 text-center">
-                  <UIcon name="i-heroicons-inbox" class="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-                    No registrations found
-                  </h3>
-                  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    {{
-                      searchQuery
-                        ? 'No registrations match your search.'
-                        : 'Get started by creating a new registration.'
-                    }}
-                  </p>
-                  <div class="mt-6">
-                    <UButton to="/admin/registrations/new" color="primary" icon="i-heroicons-plus">
-                      New Registration
-                    </UButton>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination -->
-        <div
-          class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between"
-        >
-          <div class="flex-1 flex items-center justify-between">
-            <div>
-              <p class="text-sm text-gray-700 dark:text-gray-300">
-                Showing <span class="font-medium">{{ pagination.from }}</span> to
-                <span class="font-medium">{{ pagination.to }}</span> of
-                <span class="font-medium">{{ pagination.total }}</span> results
-              </p>
-            </div>
-            <div class="flex space-x-2">
-              <UButton
-                color="neutral"
-                variant="ghost"
-                :disabled="pagination.currentPage === 1"
-                icon="i-heroicons-chevron-left"
-                @click="pagination.currentPage--"
-              />
-              <UButton
-                color="neutral"
-                variant="ghost"
-                :disabled="pagination.currentPage * pagination.perPage >= pagination.total"
-                icon="i-heroicons-chevron-right"
-                @click="pagination.currentPage++"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
 
     <!-- Bulk Actions -->
     <div
@@ -289,49 +271,54 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <UModal v-model="isDeleteModalOpen">
-      <UCard>
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold">
-              {{
-                selectedRegistrations.length > 1
-                  ? `Delete ${selectedRegistrations.length} registrations`
-                  : 'Delete Registration'
-              }}
-            </h3>
-            <UButton
-              color="neutral"
-              variant="ghost"
-              icon="i-heroicons-x-mark"
-              @click="isDeleteModalOpen = false"
-            />
-          </div>
-        </template>
+    <UModal v-model:open="isDeleteModalOpen">
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold">
+                {{
+                  selectedRegistrations.length > 1
+                    ? `Delete ${selectedRegistrations.length} registrations`
+                    : 'Delete Registration'
+                }}
+              </h3>
+              <UButton
+                color="neutral"
+                variant="ghost"
+                icon="i-heroicons-x-mark"
+                @click="isDeleteModalOpen = false"
+              />
+            </div>
+          </template>
 
-        <p class="text-gray-600 dark:text-gray-300">
-          Are you sure you want to delete
-          {{ selectedRegistrations.length > 1 ? 'these registrations' : 'this registration' }}? This
-          action cannot be undone.
-        </p>
+          <p class="text-gray-600 dark:text-gray-300">
+            Are you sure you want to delete
+            {{ selectedRegistrations.length > 1 ? 'these registrations' : 'this registration' }}?
+            This action cannot be undone.
+          </p>
 
-        <template #footer>
-          <div class="flex justify-end space-x-3">
-            <UButton color="neutral" variant="ghost" @click="isDeleteModalOpen = false">
-              Cancel
-            </UButton>
-            <UButton color="error" :loading="isDeleting" @click="deleteRegistrations">
-              Delete
-            </UButton>
-          </div>
-        </template>
-      </UCard>
+          <template #footer>
+            <div class="flex justify-end space-x-3">
+              <UButton color="neutral" variant="ghost" @click="isDeleteModalOpen = false">
+                Cancel
+              </UButton>
+              <UButton color="error" :loading="isDeleting" @click="deleteRegistrations">
+                Delete
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
     </UModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+definePageMeta({
+  layout: 'admin',
+})
 
 // Data
 const selectedRegistrations = ref<string[]>([])

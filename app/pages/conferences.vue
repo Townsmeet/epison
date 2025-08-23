@@ -1,234 +1,315 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <!-- Hero -->
-    <div class="relative bg-primary-700">
+  <div
+    class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-teal-900/20"
+  >
+    <!-- Hero Section -->
+    <section class="relative overflow-hidden pt-20 pb-16">
+      <!-- Background Elements -->
       <div class="absolute inset-0">
-        <img
-          class="w-full h-full object-cover opacity-10"
-          src="https://images.unsplash.com/photo-1531482615713-2afd69097998?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1950&q=80"
-          alt="Conference attendees"
+        <div
+          class="absolute top-0 left-1/4 w-72 h-72 bg-gradient-to-br from-teal-400/20 to-cyan-500/20 rounded-full blur-3xl"
+        />
+        <div
+          class="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-amber-400/15 to-orange-500/15 rounded-full blur-3xl"
         />
       </div>
-      <div class="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
-        <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-          Conferences & Events
+
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+          <span
+            class="bg-gradient-to-r from-teal-600 to-cyan-600 dark:from-teal-400 dark:to-cyan-400 bg-clip-text text-transparent"
+          >
+            Conferences
+          </span>
         </h1>
-        <p class="mt-6 text-xl text-primary-100 max-w-3xl">
-          Join us for our upcoming conferences, workshops, and training programs.
+        <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
+          Discover upcoming conferences, past events, and opportunities to share your research
         </p>
       </div>
-    </div>
+    </section>
 
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <!-- Tabs -->
-      <div class="border-b border-gray-200 dark:border-gray-700">
-        <nav class="-mb-px flex space-x-8">
-          <button
-            v-for="tab in tabs"
-            :key="tab.name"
-            :class="[
-              tab.name === currentTab
-                ? 'border-primary-500 text-primary-600 dark:text-primary-400 dark:border-primary-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200',
-              'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm',
-            ]"
-            @click="currentTab = tab.name"
+    <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Tabs -->
+        <div class="mb-12">
+          <div
+            class="flex flex-wrap justify-center gap-2 p-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm"
           >
-            {{ tab.name }}
-            <span
-              v-if="tab.count"
-              class="ml-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium px-2.5 py-0.5 rounded-full"
+            <button
+              v-for="tab in tabs"
+              :key="tab.name"
+              :class="[
+                tab.name === currentTab
+                  ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700',
+                'px-6 py-3 rounded-xl font-medium text-sm transition-all duration-200 flex items-center space-x-2',
+              ]"
+              @click="currentTab = tab.name"
             >
-              {{ tab.count }}
-            </span>
-          </button>
-        </nav>
-      </div>
-
-      <!-- Events Grid -->
-      <div class="mt-8">
-        <!-- Upcoming Events -->
-        <div v-if="currentTab === 'Upcoming'" class="space-y-8">
-          <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <div
-              v-for="conference in upcomingConferences"
-              :key="conference.id"
-              class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col"
-            >
-              <img
-                class="h-48 w-full object-cover"
-                :src="conference.image"
-                :alt="conference.title"
-              />
-              <div class="p-6 flex-1 flex flex-col">
-                <div class="flex items-center">
-                  <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="conference.badgeClass"
-                  >
-                    {{ conference.type }}
-                  </span>
-                  <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">{{
-                    formatDate(conference.date)
-                  }}</span>
-                </div>
-                <h3 class="mt-2 text-xl font-semibold text-gray-900 dark:text-white">
-                  {{ conference.title }}
-                </h3>
-                <p class="mt-3 text-base text-gray-500 dark:text-gray-400 line-clamp-2">
-                  {{ conference.description }}
-                </p>
-                <div
-                  class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between"
-                >
-                  <UButton :to="`/conferences/${conference.id}`" variant="ghost" color="neutral">
-                    View Details
-                  </UButton>
-                  <UButton :to="`/conferences/${conference.id}#register`" color="primary" size="sm">
-                    Register Now
-                  </UButton>
-                </div>
-              </div>
-            </div>
+              <span>{{ tab.name }}</span>
+              <span
+                v-if="tab.count"
+                :class="[
+                  tab.name === currentTab
+                    ? 'bg-white/20 text-white'
+                    : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300',
+                  'text-xs font-semibold px-2 py-1 rounded-full min-w-[1.5rem] text-center',
+                ]"
+              >
+                {{ tab.count }}
+              </span>
+            </button>
           </div>
         </div>
 
-        <!-- Past Events -->
-        <div v-else-if="currentTab === 'Past'" class="space-y-8">
-          <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div
-              v-for="conference in pastConferences"
-              :key="conference.id"
-              class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col"
-            >
-              <img
-                class="h-48 w-full object-cover"
-                :src="conference.image"
-                :alt="conference.title"
-              />
-              <div class="p-6 flex-1 flex flex-col">
-                <div class="flex items-center">
-                  <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="conference.badgeClass"
+        <!-- Events Grid -->
+        <div>
+          <!-- Upcoming Events -->
+          <div v-if="currentTab === 'Upcoming'">
+            <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              <div
+                v-for="conference in upcomingConferences"
+                :key="conference.id"
+                class="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+              >
+                <div class="relative h-48 overflow-hidden">
+                  <img
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    :src="conference.image"
+                    :alt="conference.title"
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                </div>
+
+                <div class="p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <span
+                      class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
+                      :class="conference.badgeClass"
+                    >
+                      {{ conference.type }}
+                    </span>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">{{
+                      formatDate(conference.date)
+                    }}</span>
+                  </div>
+
+                  <h3
+                    class="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors"
                   >
-                    {{ conference.type }}
-                  </span>
-                  <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">{{
-                    formatDate(conference.date)
-                  }}</span>
+                    {{ conference.title }}
+                  </h3>
+
+                  <p
+                    class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed line-clamp-3 mb-6"
+                  >
+                    {{ conference.description }}
+                  </p>
+
+                  <div class="flex items-center justify-between">
+                    <UButton
+                      :to="`/conferences/${conference.id}`"
+                      variant="ghost"
+                      color="neutral"
+                      size="sm"
+                    >
+                      View Details
+                    </UButton>
+                    <UButton
+                      :to="`/conferences/${conference.id}#register`"
+                      color="primary"
+                      size="sm"
+                    >
+                      Register Now
+                    </UButton>
+                  </div>
                 </div>
-                <h3 class="mt-2 text-xl font-semibold text-gray-900 dark:text-white">
-                  {{ conference.title }}
-                </h3>
-                <p class="mt-3 text-base text-gray-500 dark:text-gray-400 line-clamp-2">
-                  {{ conference.description }}
-                </p>
+
                 <div
-                  class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between"
-                >
-                  <UButton :to="`/conferences/${conference.id}`" variant="ghost" color="neutral">
-                    View Details
-                  </UButton>
-                </div>
+                  class="absolute inset-0 bg-gradient-to-t from-purple-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                />
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Call for Abstracts -->
-        <div v-else-if="currentTab === 'Call for Abstracts'" class="space-y-8">
-          <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div
-              v-for="conference in upcomingConferences"
-              :key="conference.id"
-              class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col"
-            >
-              <img
-                class="h-48 w-full object-cover"
-                :src="conference.image"
-                :alt="conference.title"
-              />
-              <div class="p-6 flex-1 flex flex-col">
-                <div class="flex items-center">
-                  <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="conference.badgeClass"
-                  >
-                    {{ conference.type }}
-                  </span>
-                  <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">{{
-                    formatDate(conference.date)
-                  }}</span>
+          <!-- Past Events -->
+          <div v-else-if="currentTab === 'Past'">
+            <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              <div
+                v-for="conference in pastConferences"
+                :key="conference.id"
+                class="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+              >
+                <div class="relative h-48 overflow-hidden">
+                  <img
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    :src="conference.image"
+                    :alt="conference.title"
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                 </div>
-                <h3 class="mt-2 text-xl font-semibold text-gray-900 dark:text-white">
-                  {{ conference.title }}
-                </h3>
-                <p class="mt-3 text-base text-gray-500 dark:text-gray-400 line-clamp-2">
-                  {{ conference.description }}
-                </p>
-                <div
-                  class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between"
-                >
-                  <UButton :to="`/conferences/${conference.id}`" variant="ghost" color="neutral">
-                    View Details
-                  </UButton>
+
+                <div class="p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <span
+                      class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
+                      :class="conference.badgeClass"
+                    >
+                      {{ conference.type }}
+                    </span>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">{{
+                      formatDate(conference.date)
+                    }}</span>
+                  </div>
+
+                  <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                    {{ conference.title }}
+                  </h3>
+
+                  <p
+                    class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed line-clamp-3 mb-6"
+                  >
+                    {{ conference.description }}
+                  </p>
+
                   <UButton
-                    :to="`/conferences/${conference.id}#submit-abstract`"
-                    color="primary"
+                    :to="`/conferences/${conference.id}`"
+                    variant="ghost"
+                    color="neutral"
                     size="sm"
+                    class="w-full"
                   >
-                    Submit Abstract
+                    View Details
                   </UButton>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Call for Abstracts -->
+          <div v-else-if="currentTab === 'Call for Abstracts'">
+            <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              <div
+                v-for="conference in upcomingConferences"
+                :key="conference.id"
+                class="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+              >
+                <div class="relative h-48 overflow-hidden">
+                  <img
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    :src="conference.image"
+                    :alt="conference.title"
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                </div>
+
+                <div class="p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <span
+                      class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
+                      :class="conference.badgeClass"
+                    >
+                      {{ conference.type }}
+                    </span>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">{{
+                      formatDate(conference.date)
+                    }}</span>
+                  </div>
+
+                  <h3
+                    class="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors"
+                  >
+                    {{ conference.title }}
+                  </h3>
+
+                  <p
+                    class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed line-clamp-3 mb-6"
+                  >
+                    {{ conference.description }}
+                  </p>
+
+                  <div class="flex items-center justify-between">
+                    <UButton
+                      :to="`/conferences/${conference.id}`"
+                      variant="ghost"
+                      color="neutral"
+                      size="sm"
+                    >
+                      View Details
+                    </UButton>
+                    <UButton
+                      :to="`/conferences/${conference.id}#submit-abstract`"
+                      color="primary"
+                      size="sm"
+                    >
+                      Submit Abstract
+                    </UButton>
+                  </div>
+                </div>
+
+                <div
+                  class="absolute inset-0 bg-gradient-to-t from-purple-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Sponsors -->
+          <div v-else-if="currentTab === 'Sponsors'">
+            <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              <div
+                v-for="sponsor in sponsors"
+                :key="sponsor.id"
+                class="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+              >
+                <div
+                  class="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
+                >
+                  <img
+                    class="max-w-full max-h-full object-contain"
+                    :src="sponsor.image"
+                    :alt="sponsor.name"
+                  />
+                </div>
+
+                <div class="p-6">
+                  <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                    {{ sponsor.name }}
+                  </h3>
+
+                  <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                    {{ sponsor.description }}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Sponsors -->
-        <div v-else-if="currentTab === 'Sponsors'" class="space-y-8">
-          <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div
-              v-for="sponsor in sponsors"
-              :key="sponsor.id"
-              class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col"
-            >
-              <img class="h-48 w-full object-cover" :src="sponsor.image" :alt="sponsor.name" />
-              <div class="p-6 flex-1 flex flex-col">
-                <h3 class="mt-2 text-xl font-semibold text-gray-900 dark:text-white">
-                  {{ sponsor.name }}
-                </h3>
-                <p class="mt-3 text-base text-gray-500 dark:text-gray-400 line-clamp-2">
-                  {{ sponsor.description }}
-                </p>
-              </div>
+        <!-- Call to Action -->
+        <div
+          class="mt-16 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm p-8"
+        >
+          <div class="md:flex md:items-center md:justify-between">
+            <div class="md:w-2/3">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                Host an Event with EPISON
+              </h2>
+              <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                Interested in organizing a conference, workshop, or training program in
+                collaboration with EPISON? Contact us to discuss partnership opportunities.
+              </p>
+            </div>
+            <div class="mt-6 md:mt-0">
+              <UButton to="/contact" color="primary" size="lg" class="w-full md:w-auto">
+                Contact Us
+              </UButton>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Call to Action -->
-      <div class="mt-16 bg-white dark:bg-gray-800 shadow rounded-lg p-6 md:p-8">
-        <div class="md:flex md:items-center md:justify-between">
-          <div class="md:w-2/3">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-              Host an Event with EPISON
-            </h2>
-            <p class="mt-2 text-gray-600 dark:text-gray-300">
-              Interested in organizing a conference, workshop, or training program in collaboration
-              with EPISON? Contact us to discuss partnership opportunities.
-            </p>
-          </div>
-          <div class="mt-4 md:mt-0">
-            <UButton to="/contact" color="primary" size="lg" class="w-full md:w-auto">
-              Contact Us
-            </UButton>
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
   </div>
 </template>
 

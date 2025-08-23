@@ -13,7 +13,7 @@
           :key="link.label"
           :icon="link.icon"
           :to="link.to"
-          color="gray"
+          color="neutral"
           variant="ghost"
           :aria-label="link.label"
         />
@@ -26,17 +26,17 @@
 const socialLinks = [
   {
     label: 'Twitter',
-    icon: 'i-simple-icons-x',
+    icon: 'i-heroicons-at-symbol',
     to: 'https://twitter.com/EPISONigeria',
   },
   {
     label: 'Facebook',
-    icon: 'i-simple-icons-facebook',
+    icon: 'i-heroicons-globe-alt',
     to: 'https://facebook.com/EPISONigeria',
   },
   {
     label: 'LinkedIn',
-    icon: 'i-simple-icons-linkedin',
+    icon: 'i-heroicons-building-office',
     to: 'https://linkedin.com/company/EPISONigeria',
   },
 ]

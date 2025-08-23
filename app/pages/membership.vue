@@ -1,91 +1,125 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <!-- Hero -->
-    <div class="relative bg-primary-700">
+  <div
+    class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-teal-900/20"
+  >
+    <!-- Hero Section -->
+    <section class="relative overflow-hidden pt-20 pb-16">
+      <!-- Background Elements -->
       <div class="absolute inset-0">
-        <img
-          class="w-full h-full object-cover opacity-10"
-          src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1950&q=80"
-          alt="Group of professionals"
+        <div
+          class="absolute top-0 left-1/4 w-72 h-72 bg-gradient-to-br from-teal-400/20 to-cyan-500/20 rounded-full blur-3xl"
+        />
+        <div
+          class="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-amber-400/15 to-orange-500/15 rounded-full blur-3xl"
         />
       </div>
-      <div class="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
-        <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-          Become a Member
+
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+          <span
+            class="bg-gradient-to-r from-teal-600 to-cyan-600 dark:from-teal-400 dark:to-cyan-400 bg-clip-text text-transparent"
+          >
+            Membership
+          </span>
         </h1>
-        <p class="mt-6 text-xl text-primary-100 max-w-3xl">
-          Join EPISON and become part of Nigeria's leading network of epidemiology professionals.
+        <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
+          Join a community of dedicated epidemiologists committed to advancing public health in
+          Nigeria and beyond
         </p>
       </div>
-    </div>
+    </section>
 
     <!-- Membership Benefits -->
-    <div class="py-16 bg-white dark:bg-gray-900">
+    <section class="py-20 md:py-32 bg-white dark:bg-gray-900">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="lg:text-center mb-16">
-          <h2
-            class="text-base text-primary-600 dark:text-primary-400 font-semibold tracking-wide uppercase"
+        <div class="text-center mb-16">
+          <div
+            class="inline-flex items-center space-x-2 px-4 py-2 bg-amber-100/50 dark:bg-amber-900/20 rounded-full border border-amber-200/50 dark:border-amber-700/50 mb-6"
           >
-            Benefits
+            <div class="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+            <span class="text-sm font-medium text-amber-700 dark:text-amber-300"
+              >Member Benefits</span
+            >
+          </div>
+
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+            Why Join
+            <span
+              class="bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent"
+              >EPISON?</span
+            >
           </h2>
-          <p
-            class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl"
-          >
-            Why Join EPISON?
-          </p>
-          <p class="mt-4 max-w-2xl text-xl text-gray-500 dark:text-gray-300 lg:mx-auto">
+
+          <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
             As an EPISON member, you'll enjoy these exclusive benefits and more
           </p>
         </div>
 
-        <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           <div
             v-for="(benefit, index) in benefits"
             :key="index"
-            class="group relative bg-white dark:bg-gray-800 p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-primary-500 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+            class="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300 p-8"
           >
-            <div>
-              <span
-                class="rounded-lg inline-flex p-3 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-200 ring-4 ring-white dark:ring-gray-800"
+            <div class="relative mb-6">
+              <div
+                class="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-yellow-500/20 rounded-2xl blur-xl"
+              />
+              <div
+                class="relative flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-600 text-white shadow-lg"
               >
-                <UIcon :name="benefit.icon" class="h-6 w-6" />
-              </span>
+                <UIcon :name="benefit.icon" class="h-8 w-8" />
+              </div>
             </div>
-            <div class="mt-8">
-              <h3 class="text-lg font-medium">
-                <span class="absolute inset-0" aria-hidden="true" />
+
+            <div class="space-y-4">
+              <h3
+                class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors"
+              >
                 {{ benefit.title }}
               </h3>
-              <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+
+              <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
                 {{ benefit.description }}
               </p>
             </div>
-            <span
-              class="pointer-events-none absolute top-6 right-6 text-gray-300 dark:text-gray-600 group-hover:text-primary-400"
-              aria-hidden="true"
+
+            <div
+              class="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-yellow-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            />
+
+            <div
+              class="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-gray-800 to-gray-900 dark:from-gray-100 dark:to-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-white dark:text-gray-900 shadow-lg"
             >
-              <UIcon name="i-heroicons-arrow-right" class="h-6 w-6" />
-            </span>
+              {{ index + 1 }}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- Membership Types -->
-    <div class="py-16 bg-gray-50 dark:bg-gray-800">
+    <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="lg:text-center mb-16">
-          <h2
-            class="text-base text-primary-600 dark:text-primary-400 font-semibold tracking-wide uppercase"
+        <div class="text-center mb-16">
+          <div
+            class="inline-flex items-center space-x-2 px-4 py-2 bg-amber-100/50 dark:bg-amber-900/20 rounded-full border border-amber-200/50 dark:border-amber-700/50 mb-6"
           >
-            Membership
+            <div class="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+            <span class="text-sm font-medium text-amber-700 dark:text-amber-300"
+              >Membership Options</span
+            >
+          </div>
+
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+            Choose Your
+            <span
+              class="bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent"
+              >Membership</span
+            >
           </h2>
-          <p
-            class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl"
-          >
-            Choose Your Membership
-          </p>
-          <p class="mt-4 max-w-2xl text-xl text-gray-500 dark:text-gray-300 lg:mx-auto">
+
+          <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
             Select the membership category that best fits your professional status
           </p>
         </div>
@@ -95,119 +129,129 @@
             v-for="(type, index) in membershipTypes"
             :key="index"
             :class="[
-              'rounded-2xl border border-gray-200 dark:border-gray-700 p-8',
-              type.popular
-                ? 'ring-2 ring-primary-500 bg-white dark:bg-gray-800 shadow-xl'
-                : 'bg-white dark:bg-gray-800 shadow-sm',
+              'relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300 p-8',
+              type.popular ? 'ring-2 ring-amber-500 shadow-xl' : '',
             ]"
           >
-            <div class="flex items-center justify-between">
-              <h3
-                :class="[
-                  'text-lg font-medium',
-                  type.popular
-                    ? 'text-primary-600 dark:text-primary-400'
-                    : 'text-gray-900 dark:text-white',
-                ]"
-              >
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-bold text-gray-900 dark:text-white">
                 {{ type.name }}
               </h3>
 
               <span
                 v-if="type.popular"
-                class="rounded-full bg-primary-100 dark:bg-primary-900 px-3 py-1 text-xs font-semibold leading-5 text-primary-800 dark:text-primary-100"
+                class="rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 px-3 py-1 text-xs font-semibold text-white shadow-sm"
               >
                 Most Popular
               </span>
             </div>
 
-            <p class="mt-4 flex items-baseline text-gray-900 dark:text-white">
-              <span class="text-4xl font-extrabold tracking-tight">
-                {{ type.price === 0 ? 'Free' : `₦${type.price.toLocaleString()}` }}
-              </span>
-              <span
-                v-if="type.price > 0"
-                class="ml-1 text-lg font-semibold text-gray-500 dark:text-gray-400"
-              >
-                /year
-              </span>
-            </p>
+            <div class="mb-6">
+              <p class="flex items-baseline text-gray-900 dark:text-white">
+                <span class="text-4xl font-bold tracking-tight">
+                  {{ type.price === 0 ? 'Free' : `₦${type.price.toLocaleString()}` }}
+                </span>
+                <span
+                  v-if="type.price > 0"
+                  class="ml-1 text-lg font-semibold text-gray-500 dark:text-gray-400"
+                >
+                  /year
+                </span>
+              </p>
 
-            <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
-              {{ type.description }}
-            </p>
+              <p class="mt-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                {{ type.description }}
+              </p>
+            </div>
 
-            <ul role="list" class="mt-6 space-y-4">
-              <li v-for="(feature, i) in type.features" :key="i" class="flex">
-                <UIcon name="i-heroicons-check" class="h-6 w-6 flex-shrink-0 text-green-500" />
+            <ul role="list" class="space-y-3 mb-8">
+              <li v-for="(feature, i) in type.features" :key="i" class="flex items-start">
+                <UIcon
+                  name="i-heroicons-check"
+                  class="h-5 w-5 flex-shrink-0 text-green-500 mt-0.5"
+                />
                 <span class="ml-3 text-sm text-gray-700 dark:text-gray-300">{{ feature }}</span>
               </li>
             </ul>
 
-            <div class="mt-8">
-              <UButton
-                :to="type.cta.to"
-                :color="type.popular ? 'primary' : 'gray'"
-                :variant="type.popular ? 'solid' : 'outline'"
-                class="w-full"
-              >
-                {{ type.cta.text }}
-              </UButton>
-            </div>
+            <UButton
+              :to="type.cta.to"
+              :color="type.popular ? 'primary' : 'neutral'"
+              :variant="type.popular ? 'solid' : 'outline'"
+              class="w-full"
+            >
+              {{ type.cta.text }}
+            </UButton>
+
+            <div
+              v-if="type.popular"
+              class="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-yellow-500/5 rounded-2xl pointer-events-none"
+            />
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- How to Join -->
-    <div class="py-16 bg-white dark:bg-gray-900">
+    <section class="py-20 md:py-32 bg-white dark:bg-gray-900">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="lg:text-center mb-16">
-          <h2
-            class="text-base text-primary-600 dark:text-primary-400 font-semibold tracking-wide uppercase"
+        <div class="text-center mb-16">
+          <div
+            class="inline-flex items-center space-x-2 px-4 py-2 bg-amber-100/50 dark:bg-amber-900/20 rounded-full border border-amber-200/50 dark:border-amber-700/50 mb-6"
           >
-            Process
+            <div class="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+            <span class="text-sm font-medium text-amber-700 dark:text-amber-300"
+              >Application Process</span
+            >
+          </div>
+
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+            How to Join
+            <span
+              class="bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent"
+              >EPISON</span
+            >
           </h2>
-          <p
-            class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl"
-          >
-            How to Join EPISON
-          </p>
-          <p class="mt-4 max-w-2xl text-xl text-gray-500 dark:text-gray-300 lg:mx-auto">
+
+          <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
             Follow these simple steps to become a member
           </p>
         </div>
 
-        <div class="relative">
+        <div class="relative max-w-4xl mx-auto">
           <div
-            class="absolute left-4 h-full w-0.5 bg-gray-200 dark:bg-gray-700"
+            class="absolute left-8 top-8 bottom-8 w-0.5 bg-gradient-to-b from-amber-500 to-yellow-500 rounded-full"
             aria-hidden="true"
           />
 
-          <ul class="space-y-12">
-            <li v-for="(step, index) in steps" :key="index" class="relative">
-              <div class="flex items-start">
-                <div class="flex-shrink-0">
-                  <div
-                    class="flex items-center justify-center h-8 w-8 rounded-full bg-primary-500 text-white"
-                  >
-                    {{ index + 1 }}
-                  </div>
+          <div class="space-y-12">
+            <div v-for="(step, index) in steps" :key="index" class="relative flex items-start">
+              <div class="flex-shrink-0">
+                <div
+                  class="flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-600 text-white shadow-lg"
+                >
+                  <span class="text-lg font-bold">{{ index + 1 }}</span>
                 </div>
-                <div class="ml-6">
-                  <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+              </div>
+
+              <div class="ml-8 flex-1">
+                <div
+                  class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm p-6"
+                >
+                  <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">
                     {{ step.title }}
                   </h3>
-                  <p class="mt-2 text-gray-600 dark:text-gray-300">
+                  <p class="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
                     {{ step.description }}
                   </p>
-                  <div v-if="step.details" class="mt-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                    <p class="text-sm text-gray-600 dark:text-gray-300">{{ step.details }}</p>
-                    <ul v-if="step.items" class="mt-2 space-y-2">
+
+                  <div v-if="step.details" class="bg-gray-50/80 dark:bg-gray-700/50 rounded-xl p-4">
+                    <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">{{ step.details }}</p>
+                    <ul v-if="step.items" class="space-y-2">
                       <li v-for="(item, i) in step.items" :key="i" class="flex items-start">
                         <UIcon
                           name="i-heroicons-check-circle"
-                          class="h-5 w-5 text-green-500 mt-0.5 mr-2 flex-shrink-0"
+                          class="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0"
                         />
                         <span class="text-sm text-gray-600 dark:text-gray-300">{{ item }}</span>
                       </li>
@@ -215,96 +259,66 @@
                     <UButton
                       v-if="step.button"
                       :to="step.button.to"
-                      :color="step.button.color || 'primary'"
+                      color="primary"
                       size="sm"
-                      class="mt-3"
+                      class="mt-4"
                     >
                       {{ step.button.text }}
                     </UButton>
                   </div>
                 </div>
               </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- FAQ -->
-    <div class="py-16 bg-gray-50 dark:bg-gray-800">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="lg:text-center mb-12">
-          <h2
-            class="text-base text-primary-600 dark:text-primary-400 font-semibold tracking-wide uppercase"
-          >
-            FAQs
-          </h2>
-          <p
-            class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl"
-          >
-            Frequently Asked Questions
-          </p>
-          <p class="mt-4 max-w-2xl text-xl text-gray-500 dark:text-gray-300 lg:mx-auto">
-            Find answers to common questions about EPISON membership
-          </p>
-        </div>
-
-        <div class="max-w-3xl mx-auto">
-          <div class="space-y-6">
-            <UDivider />
-            <UAccordion :items="faqs" :ui="{ wrapper: 'space-y-6' }" class="space-y-6">
-              <template #default="{ item, open }">
-                <UButton
-                  color="gray"
-                  variant="ghost"
-                  class="flex items-center justify-between w-full px-0 py-4 font-normal"
-                >
-                  <span class="text-left text-base font-medium text-gray-900 dark:text-white">{{
-                    item.label
-                  }}</span>
-                  <UIcon
-                    name="i-heroicons-chevron-down"
-                    class="w-5 h-5 text-gray-500 dark:text-gray-400 transform transition-transform duration-200"
-                    :class="[open ? 'rotate-180' : '']"
-                  />
-                </UButton>
-                <div class="pb-4 text-gray-600 dark:text-gray-300 text-sm">
-                  {{ item.content }}
-                </div>
-              </template>
-            </UAccordion>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- CTA -->
-    <div class="bg-primary-700">
-      <div class="max-w-2xl mx-auto text-center py-16 px-4 sm:py-20 sm:px-6 lg:px-8">
-        <h2 class="text-3xl font-extrabold text-white sm:text-4xl">
-          <span class="block">Ready to join EPISON?</span>
-          <span class="block">Start your application today.</span>
-        </h2>
-        <p class="mt-4 text-lg leading-6 text-primary-100">
+    <section class="py-20 md:py-32 bg-gradient-to-br from-amber-600 via-amber-500 to-yellow-600">
+      <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+        <h2 class="text-4xl md:text-5xl font-bold text-white mb-6">Ready to join EPISON?</h2>
+        <p class="text-xl text-amber-100 mb-8 leading-relaxed">
           Become part of Nigeria's leading network of epidemiology professionals and advance your
           career.
         </p>
-        <div class="mt-8 flex justify-center space-x-4">
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <UButton
             to="/membership/apply"
             size="xl"
-            class="bg-white text-primary-600 hover:bg-gray-100"
+            class="bg-white text-amber-600 hover:bg-gray-100 font-semibold"
           >
             Apply Now
           </UButton>
-          <UButton to="/contact" size="xl" color="white" variant="outline"> Contact Us </UButton>
+          <UButton
+            to="/contact"
+            size="xl"
+            color="neutral"
+            variant="outline"
+            class="border-white text-white hover:bg-white hover:text-amber-600"
+          >
+            Contact Us
+          </UButton>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
+interface StepButton {
+  text: string
+  to: string
+}
+
+interface ApplicationStep {
+  title: string
+  description: string
+  details?: string
+  items?: string[]
+  button?: StepButton
+}
+
 const benefits = [
   {
     icon: 'i-heroicons-academic-cap',
@@ -415,7 +429,7 @@ const membershipTypes = [
   },
 ]
 
-const steps = [
+const steps: ApplicationStep[] = [
   {
     title: 'Check Eligibility',
     description:
@@ -442,7 +456,6 @@ const steps = [
     button: {
       text: 'Start Application',
       to: '/membership/apply',
-      color: 'primary',
     },
   },
   {
@@ -466,7 +479,7 @@ const steps = [
   },
 ]
 
-const faqs = [
+const _faqs = [
   {
     label: 'What are the benefits of joining EPISON?',
     content:

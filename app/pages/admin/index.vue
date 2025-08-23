@@ -1,321 +1,255 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <!-- Page header -->
-    <div class="bg-white dark:bg-gray-800 shadow">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div class="md:flex md:items-center md:justify-between">
-          <div class="flex-1 min-w-0">
-            <h1
-              class="text-2xl font-bold leading-7 text-gray-900 dark:text-white sm:text-3xl sm:truncate"
-            >
-              Dashboard
-            </h1>
-          </div>
-          <div class="mt-4 flex md:mt-0 md:ml-4">
+  <div>
+    <!-- Stats -->
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+      <StatCard
+        title="Total Registrations"
+        :value="stats.totalRegistrations"
+        :change="stats.registrationChange"
+        icon="i-heroicons-user-group"
+        color="blue"
+      />
+      <StatCard
+        title="Upcoming Events"
+        :value="stats.upcomingEvents"
+        :change="stats.eventsChange"
+        icon="i-heroicons-calendar"
+        color="green"
+      />
+      <StatCard
+        title="Total Revenue"
+        :value="`₦${stats.totalRevenue.toLocaleString()}`"
+        :change="stats.revenueChange"
+        icon="i-heroicons-currency-dollar"
+        color="purple"
+      />
+      <StatCard
+        title="Active Members"
+        :value="stats.activeMembers"
+        :change="stats.membersChange"
+        icon="i-heroicons-users"
+        color="yellow"
+      />
+    </div>
+
+    <!-- Recent Activity and Upcoming Events -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <!-- Recent Activity -->
+      <div class="lg:col-span-2">
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+          <div
+            class="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between"
+          >
+            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+              Recent Activity
+            </h3>
             <UButton
-              icon="i-heroicons-plus"
-              color="primary"
-              label="New Event"
-              @click="isCreateEventOpen = true"
-            />
+              to="/admin/activities"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              trailing-icon="i-heroicons-arrow-right"
+            >
+              View All
+            </UButton>
+          </div>
+          <div class="divide-y divide-gray-200 dark:divide-gray-700">
+            <div v-for="(activity, index) in recentActivities" :key="index" class="px-6 py-4">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <UIcon :name="activity.icon" class="h-6 w-6" :class="activity.iconColor" />
+                </div>
+                <div class="ml-4">
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">
+                    {{ activity.title }}
+                  </p>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ activity.description }}
+                  </p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    {{ formatTimeAgo(activity.timestamp) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming Events -->
+      <div>
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+          <div
+            class="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between"
+          >
+            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+              Upcoming Events
+            </h3>
+            <UButton
+              to="/admin/events"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              trailing-icon="i-heroicons-arrow-right"
+            >
+              View All
+            </UButton>
+          </div>
+          <div class="divide-y divide-gray-200 dark:divide-gray-700">
+            <div v-for="event in upcomingEvents" :key="event.id" class="px-6 py-4">
+              <div class="flex items-start">
+                <div class="flex-shrink-0 bg-blue-100 dark:bg-blue-900 rounded-md p-2">
+                  <UIcon
+                    name="i-heroicons-calendar"
+                    class="h-5 w-5 text-blue-600 dark:text-blue-300"
+                  />
+                </div>
+                <div class="ml-4">
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">
+                    {{ event.title }}
+                  </p>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ formatDate(event.date) }}
+                  </p>
+                  <div class="mt-2">
+                    <span
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                      :class="getStatusBadgeClass(event.status)"
+                    >
+                      {{ event.status }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Main content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <!-- Stats -->
-      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        <StatCard
-          title="Total Registrations"
-          :value="stats.totalRegistrations"
-          :change="stats.registrationChange"
-          icon="i-heroicons-user-group"
-          color="blue"
-        />
-        <StatCard
-          title="Upcoming Events"
-          :value="stats.upcomingEvents"
-          :change="stats.eventsChange"
-          icon="i-heroicons-calendar"
-          color="green"
-        />
-        <StatCard
-          title="Total Revenue"
-          :value="`₦${stats.totalRevenue.toLocaleString()}`"
-          :change="stats.revenueChange"
-          icon="i-heroicons-currency-dollar"
-          color="purple"
-        />
-        <StatCard
-          title="Active Members"
-          :value="stats.activeMembers"
-          :change="stats.membersChange"
-          icon="i-heroicons-users"
-          color="yellow"
-        />
-      </div>
-
-      <!-- Recent Activity and Upcoming Events -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <!-- Recent Activity -->
-        <div class="lg:col-span-2">
-          <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-            <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
-              <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-                Recent Activity
-              </h3>
-            </div>
-            <div class="divide-y divide-gray-200 dark:divide-gray-700">
-              <div v-for="(activity, index) in recentActivities" :key="index" class="px-6 py-4">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0">
-                    <UIcon :name="activity.icon" class="h-6 w-6" :class="activity.iconColor" />
-                  </div>
-                  <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">
-                      {{ activity.title }}
-                    </p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                      {{ activity.description }}
-                    </p>
-                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                      {{ formatTimeAgo(activity.timestamp) }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Upcoming Events -->
-        <div>
-          <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-            <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
-              <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-                Upcoming Events
-              </h3>
-            </div>
-            <div class="divide-y divide-gray-200 dark:divide-gray-700">
-              <div v-for="event in upcomingEvents" :key="event.id" class="px-6 py-4">
-                <div class="flex items-start">
-                  <div class="flex-shrink-0 bg-blue-100 dark:bg-blue-900 rounded-md p-2">
-                    <UIcon
-                      name="i-heroicons-calendar"
-                      class="h-5 w-5 text-blue-600 dark:text-blue-300"
-                    />
-                  </div>
-                  <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">
-                      {{ event.title }}
-                    </p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                      {{ formatDate(event.date) }}
-                    </p>
-                    <div class="mt-2">
-                      <span
-                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                        :class="getStatusBadgeClass(event.status)"
-                      >
-                        {{ event.status }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Recent Registrations -->
-      <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-        <div
-          class="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between"
+    <!-- Recent Registrations -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+      <div
+        class="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between"
+      >
+        <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+          Recent Registrations
+        </h3>
+        <UButton
+          to="/admin/registrations"
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          trailing-icon="i-heroicons-arrow-right"
         >
-          <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-            Recent Registrations
-          </h3>
-          <UButton
-            to="/admin/registrations"
-            color="gray"
-            variant="ghost"
-            size="sm"
-            trailing-icon="i-heroicons-arrow-right"
-          >
-            View All
-          </UButton>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-700">
-              <tr>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                >
-                  Name
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                >
-                  Event
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                >
-                  Type
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                >
-                  Date
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                >
-                  Status
-                </th>
-                <th scope="col" class="relative px-6 py-3">
-                  <span class="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              <tr v-for="registration in recentRegistrations" :key="registration.id">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div class="flex-shrink-0 h-10 w-10">
-                      <div
-                        class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
-                      >
-                        <span class="text-gray-600 dark:text-gray-300 font-medium">{{
-                          getInitials(registration.name)
-                        }}</span>
-                      </div>
-                    </div>
-                    <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900 dark:text-white">
-                        {{ registration.name }}
-                      </div>
-                      <div class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ registration.email }}
-                      </div>
+          View All
+        </UButton>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-700">
+            <tr>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              >
+                Name
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              >
+                Event
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              >
+                Type
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              >
+                Date
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              >
+                Status
+              </th>
+              <th scope="col" class="relative px-6 py-3">
+                <span class="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tr v-for="registration in recentRegistrations" :key="registration.id">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <div
+                      class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
+                    >
+                      <span class="text-gray-600 dark:text-gray-300 font-medium">{{
+                        getInitials(registration.name)
+                      }}</span>
                     </div>
                   </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900 dark:text-white">{{ registration.event }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                    :class="getTypeBadgeClass(registration.type)"
-                  >
-                    {{ registration.type }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  {{ formatDate(registration.date) }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                    :class="getStatusBadgeClass(registration.status)"
-                  >
-                    {{ registration.status }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <UButton
-                    color="gray"
-                    variant="ghost"
-                    size="xs"
-                    icon="i-heroicons-eye"
-                    :to="`/admin/registrations/${registration.id}`"
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900 dark:text-white">
+                      {{ registration.name }}
+                    </div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                      {{ registration.email }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900 dark:text-white">{{ registration.event }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                  :class="getTypeBadgeClass(registration.type)"
+                >
+                  {{ registration.type }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                {{ formatDate(registration.date) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                  :class="getStatusBadgeClass(registration.status)"
+                >
+                  {{ registration.status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  size="xs"
+                  icon="i-heroicons-eye"
+                  :to="`/admin/registrations/${registration.id}`"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </main>
-
-    <!-- Create Event Modal -->
-    <UModal v-model="isCreateEventOpen">
-      <UCard>
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold">Create New Event</h3>
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-x-mark"
-              @click="isCreateEventOpen = false"
-            />
-          </div>
-        </template>
-
-        <UForm :state="newEvent" class="space-y-4">
-          <UFormGroup label="Event Title" name="title" required>
-            <UInput v-model="newEvent.title" />
-          </UFormGroup>
-
-          <UFormGroup label="Event Type" name="type" required>
-            <USelect
-              v-model="newEvent.type"
-              :options="eventTypes"
-              placeholder="Select event type"
-            />
-          </UFormGroup>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <UFormGroup label="Start Date" name="startDate" required>
-              <UInput v-model="newEvent.startDate" type="date" />
-            </UFormGroup>
-
-            <UFormGroup label="End Date" name="endDate">
-              <UInput v-model="newEvent.endDate" type="date" />
-            </UFormGroup>
-          </div>
-
-          <UFormGroup label="Location" name="location">
-            <UInput v-model="newEvent.location" />
-          </UFormGroup>
-
-          <UFormGroup label="Description" name="description">
-            <UTextarea v-model="newEvent.description" />
-          </UFormGroup>
-        </UForm>
-
-        <template #footer>
-          <div class="flex justify-end space-x-3">
-            <UButton color="gray" variant="ghost" @click="isCreateEventOpen = false">
-              Cancel
-            </UButton>
-            <UButton color="primary" :loading="isCreating" @click="createEvent">
-              Create Event
-            </UButton>
-          </div>
-        </template>
-      </UCard>
-    </UModal>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-
-// State
-const isCreateEventOpen = ref(false)
-const isCreating = ref(false)
+definePageMeta({
+  layout: 'admin',
+})
 
 // Stats data
 const stats = {
@@ -452,17 +386,7 @@ const recentRegistrations = [
   },
 ]
 
-// New event form
-const eventTypes = ['Conference', 'Workshop', 'Webinar', 'Seminar', 'Symposium']
-
-const newEvent = ref({
-  title: '',
-  type: '',
-  startDate: '',
-  endDate: '',
-  location: '',
-  description: '',
-})
+// New event UI was removed from dashboard
 
 // Methods
 function formatDate(dateString: string): string {
@@ -525,42 +449,5 @@ function getInitials(name: string): string {
     .substring(0, 2)
 }
 
-async function createEvent() {
-  isCreating.value = true
-  try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    // Reset form
-    newEvent.value = {
-      title: '',
-      type: '',
-      startDate: '',
-      endDate: '',
-      location: '',
-      description: '',
-    }
-
-    // Close modal
-    isCreateEventOpen.value = false
-
-    // Show success message
-    useToast().add({
-      title: 'Event created',
-      description: 'The event has been created successfully',
-      icon: 'i-heroicons-check-circle',
-      color: 'green',
-    })
-  } catch (error) {
-    console.error('Error creating event:', error)
-    useToast().add({
-      title: 'Error',
-      description: 'There was an error creating the event',
-      icon: 'i-heroicons-exclamation-circle',
-      color: 'red',
-    })
-  } finally {
-    isCreating.value = false
-  }
-}
+// Create event logic removed from dashboard
 </script>
