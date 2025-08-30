@@ -12,6 +12,21 @@ export type EventItem = {
   registrations: number
   revenue: number
   description: string
+  // New: optional sponsors list for the event
+  sponsors?: Array<{
+    id: number
+    name: string
+    tier?: 'platinum' | 'gold' | 'silver' | 'bronze' | 'partner' | string
+    logoUrl: string
+    website?: string
+  }>
+  // New: optional gallery/media list for the event
+  gallery?: Array<{
+    id: number
+    url: string
+    caption?: string
+    type?: 'image' | 'video'
+  }>
 }
 
 export function useEvents() {
@@ -30,6 +45,23 @@ export function useEvents() {
       revenue: 12250000,
       description:
         'Join us for the biggest epidemiological conference in Nigeria featuring international speakers and cutting-edge research presentations.',
+      sponsors: [
+        {
+          id: 1001,
+          name: 'Federal Ministry of Health',
+          tier: 'platinum',
+          logoUrl: 'https://via.placeholder.com/160x80?text=MoH',
+          website: 'https://health.gov.ng',
+        },
+      ],
+      gallery: [
+        {
+          id: 2001,
+          url: 'https://images.unsplash.com/photo-1533174072775-26d83692aa5d?auto=format&fit=crop&w=800&q=80',
+          caption: 'Keynote session',
+          type: 'image',
+        },
+      ],
     },
     {
       id: 2,
@@ -44,6 +76,8 @@ export function useEvents() {
       revenue: 2250000,
       description:
         'Hands-on workshop covering statistical analysis methods for epidemiological research using R and SPSS.',
+      sponsors: [],
+      gallery: [],
     },
     {
       id: 3,
@@ -58,6 +92,16 @@ export function useEvents() {
       revenue: 6000000,
       description:
         'Forum discussing current public health challenges and policy recommendations for Nigeria.',
+      sponsors: [
+        {
+          id: 1002,
+          name: 'WHO Nigeria',
+          tier: 'gold',
+          logoUrl: 'https://via.placeholder.com/160x80?text=WHO',
+          website: 'https://www.who.int',
+        },
+      ],
+      gallery: [],
     },
     {
       id: 4,
@@ -72,6 +116,8 @@ export function useEvents() {
       revenue: 0,
       description:
         'Online presentation of latest COVID-19 research findings and their implications for public health policy.',
+      sponsors: [],
+      gallery: [],
     },
   ])
 

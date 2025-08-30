@@ -6,21 +6,22 @@
           <div class="text-center">
             <h1 class="text-2xl font-bold">Forgot Password</h1>
             <p class="text-gray-500 dark:text-gray-400 mt-1">
-              Enter your email and we'll send you a link to reset your password
+              We'll send you a link to reset your password
             </p>
           </div>
         </template>
 
-        <UForm :state="state" class="space-y-4" @submit="onSubmit">
-          <UFormGroup label="Email" name="email">
+        <UForm :state="state" :schema="schema" class="space-y-4" @submit="onSubmit">
+          <UFormField label="Email" name="email">
             <UInput
               v-model="state.email"
               type="email"
               placeholder="you@example.com"
               icon="i-heroicons-envelope"
+              class="w-full"
               required
             />
-          </UFormGroup>
+          </UFormField>
 
           <UButton type="submit" color="primary" class="w-full justify-center" :loading="isLoading">
             Send Reset Link
@@ -37,9 +38,9 @@
       </UCard>
     </div>
     <div class="hidden lg:flex-1 lg:flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <div class="max-w-md p-8">
+      <div class="max-w-md p-8 text-center">
         <UIcon name="i-heroicons-lock-closed" class="w-16 h-16 text-primary mx-auto mb-6" />
-        <h2 class="text-3xl font-bold text-center mb-4">Reset Password</h2>
+        <h2 class="text-3xl font-bold mb-4">Reset Password</h2>
         <p class="text-center text-gray-500 dark:text-gray-400">
           Enter your email address and we'll send you a link to reset your password
         </p>
@@ -49,13 +50,23 @@
 </template>
 
 <script setup lang="ts">
+import * as z from 'zod'
+import type { FormSubmitEvent } from '#ui/types'
+
 const isLoading = ref(false)
 
-const state = reactive({
+const schema = z.object({
+  email: z.string().email('Invalid email'),
+})
+
+type Schema = z.output<typeof schema>
+
+const state = reactive<Partial<Schema>>({
   email: '',
 })
 
-async function onSubmit() {
+async function onSubmit(event: FormSubmitEvent<Schema>) {
+  event.preventDefault() // added to resolve unused var error
   try {
     isLoading.value = true
     // Simulate API call
@@ -65,12 +76,19 @@ async function onSubmit() {
       title: 'Email sent',
       description: 'Check your email for a link to reset your password.',
       icon: 'i-heroicons-envelope',
+      color: 'success',
     })
     // Navigate back to login
-    return navigateTo('/auth/login')
+    await navigateTo('/auth/login')
   } catch (error) {
     // Handle error
     console.error(error)
+    useToast().add({
+      title: 'Error',
+      description: 'Failed to send reset link',
+      icon: 'i-heroicons-exclamation-circle',
+      color: 'error',
+    })
   } finally {
     isLoading.value = false
   }
