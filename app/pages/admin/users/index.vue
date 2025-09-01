@@ -174,33 +174,33 @@
 
           <UForm :state="newUser" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormGroup label="First Name" name="firstName" required>
+              <UFormField label="First Name" name="firstName" required>
                 <UInput v-model="newUser.firstName" />
-              </UFormGroup>
-              <UFormGroup label="Last Name" name="lastName" required>
+              </UFormField>
+              <UFormField label="Last Name" name="lastName" required>
                 <UInput v-model="newUser.lastName" />
-              </UFormGroup>
+              </UFormField>
             </div>
 
-            <UFormGroup label="Email" name="email" required>
+            <UFormField label="Email" name="email" required>
               <UInput v-model="newUser.email" type="email" />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="Role" name="role" required>
+            <UFormField label="Role" name="role" required>
               <USelect
                 v-model="newUser.role"
                 :options="roleOptions.filter(r => r.value !== 'all')"
                 placeholder="Select role"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="Phone" name="phone">
+            <UFormField label="Phone" name="phone">
               <UInput v-model="newUser.phone" />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="Organization" name="organization">
+            <UFormField label="Organization" name="organization">
               <UInput v-model="newUser.organization" />
-            </UFormGroup>
+            </UFormField>
           </UForm>
 
           <template #footer>

@@ -151,7 +151,7 @@ const navigation = [
     badgeColor: 'success' as const,
   },
   { name: 'Analytics', to: '/admin/analytics', icon: 'i-heroicons-chart-bar' },
-  { name: 'Settings', to: '/admin/settings', icon: 'i-heroicons-cog-6-tooth' },
+  // Settings temporarily hidden until page is defined
 ]
 
 const userMenuItems = [
@@ -180,7 +180,6 @@ const pageDescription = computed(() => {
     '/admin/events': 'Create and manage events and conferences',
     '/admin/registrations': 'View and manage event registrations',
     '/admin/analytics': 'View detailed analytics and reports',
-    '/admin/settings': 'Configure system settings and preferences',
   }
   if (route.path.startsWith('/admin/events')) return descriptions['/admin/events']
   return descriptions[route.path] || 'Admin panel'

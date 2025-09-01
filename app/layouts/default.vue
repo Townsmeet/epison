@@ -64,7 +64,7 @@
               </NuxtLink>
 
               <UButton
-                to="/membership/apply"
+                to="/membership"
                 color="primary"
                 variant="solid"
                 class="ml-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
@@ -238,10 +238,6 @@
                   :to="link.to"
                   class="flex items-center text-sm text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors group"
                 >
-                  <UIcon
-                    name="i-heroicons-chevron-right"
-                    class="h-3.5 w-3.5 mr-2 text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                  />
                   {{ link.label }}
                 </NuxtLink>
               </li>
@@ -264,10 +260,6 @@
                   :to="link.to"
                   class="flex items-center text-sm text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors group"
                 >
-                  <UIcon
-                    name="i-heroicons-chevron-right"
-                    class="h-3.5 w-3.5 mr-2 text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                  />
                   {{ link.label }}
                 </NuxtLink>
               </li>

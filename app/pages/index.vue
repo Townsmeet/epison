@@ -230,18 +230,14 @@
               class="absolute inset-0 bg-gradient-to-t from-primary-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
             />
 
-            <NuxtLink
-              :to="`/conferences/${event.id}`"
-              class="absolute inset-0 z-0"
-              aria-label="View event"
-            />
+            <NuxtLink to="/events" class="absolute inset-0 z-0" aria-label="View event" />
           </div>
         </div>
 
         <!-- View All Link -->
         <div class="mt-16 text-center">
           <NuxtLink
-            to="/conferences"
+            to="/events"
             class="inline-flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors group"
           >
             <span class="font-medium">View all events</span>

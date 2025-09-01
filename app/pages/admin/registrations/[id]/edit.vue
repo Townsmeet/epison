@@ -49,62 +49,62 @@
           <div class="px-6 py-5">
             <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
               <div class="sm:col-span-3">
-                <UFormGroup :error="errors.firstName" label="First Name" name="firstName" required>
+                <UFormField :error="errors.firstName" label="First Name" name="firstName" required>
                   <UInput v-model="form.firstName" />
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-3">
-                <UFormGroup :error="errors.lastName" label="Last Name" name="lastName" required>
+                <UFormField :error="errors.lastName" label="Last Name" name="lastName" required>
                   <UInput v-model="form.lastName" />
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-4">
-                <UFormGroup :error="errors.email" label="Email Address" name="email" required>
+                <UFormField :error="errors.email" label="Email Address" name="email" required>
                   <UInput v-model="form.email" type="email" />
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-2">
-                <UFormGroup :error="errors.phone" label="Phone Number" name="phone">
+                <UFormField :error="errors.phone" label="Phone Number" name="phone">
                   <UInput v-model="form.phone" type="tel" />
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-3">
-                <UFormGroup :error="errors.organization" label="Organization" name="organization">
+                <UFormField :error="errors.organization" label="Organization" name="organization">
                   <UInput v-model="form.organization" />
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-3">
-                <UFormGroup :error="errors.profession" label="Profession" name="profession">
+                <UFormField :error="errors.profession" label="Profession" name="profession">
                   <UInput v-model="form.profession" />
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-3">
-                <UFormGroup :error="errors.type" label="Registration Type" name="type" required>
+                <UFormField :error="errors.type" label="Registration Type" name="type" required>
                   <USelect v-model="form.type" :options="registrationTypes" />
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-3">
-                <UFormGroup
+                <UFormField
                   :error="errors.status"
                   label="Registration Status"
                   name="status"
                   required
                 >
                   <USelect v-model="form.status" :options="statusOptions" />
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-3">
-                <UFormGroup
+                <UFormField
                   :error="errors.paymentStatus"
                   label="Payment Status"
                   name="paymentStatus"
                   required
                 >
                   <USelect v-model="form.paymentStatus" :options="paymentStatusOptions" />
-                </UFormGroup>
+                </UFormField>
               </div>
               <div v-if="form.paymentStatus === 'Paid'" class="sm:col-span-3">
-                <UFormGroup
+                <UFormField
                   :error="errors.paymentDate"
                   label="Payment Date"
                   name="paymentDate"
@@ -120,24 +120,24 @@
                       <DatePicker v-model="form.paymentDate" />
                     </template>
                   </UPopover>
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-3">
-                <UFormGroup
+                <UFormField
                   :error="errors.paymentMethod"
                   label="Payment Method"
                   name="paymentMethod"
                 >
                   <UInput v-model="form.paymentMethod" />
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-3">
-                <UFormGroup :error="errors.reference" label="Reference Number" name="reference">
+                <UFormField :error="errors.reference" label="Reference Number" name="reference">
                   <UInput v-model="form.reference" />
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-3">
-                <UFormGroup :error="errors.amount" label="Registration Fee" name="amount" required>
+                <UFormField :error="errors.amount" label="Registration Fee" name="amount" required>
                   <UInputGroup>
                     <span
                       class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-sm"
@@ -152,10 +152,10 @@
                       @update:model-value="val => (form.amount = Number(val))"
                     />
                   </UInputGroup>
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-3">
-                <UFormGroup :error="errors.discount" label="Discount (%)" name="discount">
+                <UFormField :error="errors.discount" label="Discount (%)" name="discount">
                   <UInput
                     :model-value="form.discount"
                     type="number"
@@ -163,10 +163,10 @@
                     max="100"
                     @update:model-value="val => (form.discount = Number(val))"
                   />
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-3">
-                <UFormGroup
+                <UFormField
                   :error="errors.finalAmount"
                   label="Final Amount"
                   name="finalAmount"
@@ -180,35 +180,35 @@
                     </span>
                     <UInput :value="finalAmount.toLocaleString()" disabled />
                   </UInputGroup>
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-6">
-                <UFormGroup
+                <UFormField
                   :error="errors.dietaryRequirements"
                   label="Dietary Requirements"
                   name="dietaryRequirements"
                 >
                   <UTextarea v-model="form.dietaryRequirements" />
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-6">
-                <UFormGroup
+                <UFormField
                   :error="errors.specialRequirements"
                   label="Special Requirements"
                   name="specialRequirements"
                 >
                   <UTextarea v-model="form.specialRequirements" />
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-6">
-                <UFormGroup :error="errors.notes" label="Admin Notes" name="notes">
-                  <UTextarea v-model="form.notes" rows="4" />
+                <UFormField :error="errors.notes" label="Admin Notes" name="notes">
+                  <UTextarea v-model="form.notes" />
                   <template #description>
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       Internal notes about this registration (not visible to attendee)
                     </p>
                   </template>
-                </UFormGroup>
+                </UFormField>
               </div>
             </div>
           </div>
@@ -224,17 +224,17 @@
           <div class="px-6 py-5">
             <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
               <div class="sm:col-span-6">
-                <UFormGroup :error="errors.event" label="Event" name="event" required>
+                <UFormField :error="errors.event" label="Event" name="event" required>
                   <USelect
                     v-model="form.event"
                     :options="eventOptions"
                     option-attribute="name"
                     value-attribute="id"
                   />
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-3">
-                <UFormGroup :error="errors.date" label="Registration Date" name="date" required>
+                <UFormField :error="errors.date" label="Registration Date" name="date" required>
                   <UPopover>
                     <UButton
                       variant="outline"
@@ -245,31 +245,29 @@
                       <DatePicker v-model="form.date" />
                     </template>
                   </UPopover>
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-3">
-                <UFormGroup :error="errors.assignedTo" label="Assigned To" name="assignedTo">
+                <UFormField :error="errors.assignedTo" label="Assigned To" name="assignedTo">
                   <USelect
                     v-model="form.assignedTo"
                     :options="adminUsers"
                     placeholder="Unassigned"
                   />
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-6">
-                <UFormGroup :error="errors.tags" label="Tags" name="tags">
+                <UFormField :error="errors.tags" label="Tags" name="tags">
                   <USelectMenu
                     v-model="form.tags"
                     :options="tagOptions"
                     multiple
                     placeholder="Add tags..."
                   >
-                    <template #label>
-                      <span v-if="form.tags.length === 0" class="text-gray-400">Add tags...</span>
-                      <span v-else class="truncate">{{ form.tags.join(', ') }}</span>
-                    </template>
+                    <span v-if="form.tags.length === 0" class="text-gray-400">Add tags...</span>
+                    <span v-else class="truncate">{{ form.tags.join(', ') }}</span>
                   </USelectMenu>
-                </UFormGroup>
+                </UFormField>
               </div>
             </div>
           </div>
@@ -381,6 +379,7 @@ const isSaving = ref(false)
 
 // Form data
 const form = ref<FormData>({
+  id: '',
   firstName: '',
   lastName: '',
   email: '',
@@ -454,10 +453,14 @@ async function saveChanges() {
     errors.value = {}
     let isValid = true
 
-    Object.keys(registrationSchema).forEach(key => {
-      const error = registrationSchema[key as keyof typeof registrationSchema](
-        form.value[key as keyof FormData]
-      )
+    ;(Object.keys(registrationSchema) as Array<keyof typeof registrationSchema>).forEach(key => {
+      // The schema contains validators with different input types per field.
+      // We cast locally to avoid a broad type that would cause "never" inference.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const validate = registrationSchema[key] as (v: any) => string
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const value = form.value[key as keyof FormData] as any
+      const error = validate(value)
       if (error) {
         errors.value[key as keyof FormData] = error
         isValid = false

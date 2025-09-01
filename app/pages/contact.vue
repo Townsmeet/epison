@@ -88,38 +88,8 @@
                     </div>
                   </div>
                   <div class="ml-4 text-gray-600 dark:text-gray-300">
-                    <p class="font-semibold text-gray-900 dark:text-white">info@epison.org.ng</p>
+                    <p class="font-semibold text-gray-900 dark:text-white">info@epison.ng</p>
                     <p class="mt-1 text-sm">For general inquiries</p>
-                  </div>
-                </div>
-
-                <div class="flex items-start">
-                  <div class="flex-shrink-0 mt-1">
-                    <div
-                      class="flex items-center justify-center h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white"
-                    >
-                      <UIcon name="i-heroicons-user-group" class="h-5 w-5" />
-                    </div>
-                  </div>
-                  <div class="ml-4 text-gray-600 dark:text-gray-300">
-                    <p class="font-semibold text-gray-900 dark:text-white">
-                      membership@epison.org.ng
-                    </p>
-                    <p class="mt-1 text-sm">For membership inquiries</p>
-                  </div>
-                </div>
-
-                <div class="flex items-start">
-                  <div class="flex-shrink-0 mt-1">
-                    <div
-                      class="flex items-center justify-center h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white"
-                    >
-                      <UIcon name="i-heroicons-calendar" class="h-5 w-5" />
-                    </div>
-                  </div>
-                  <div class="ml-4 text-gray-600 dark:text-gray-300">
-                    <p class="font-semibold text-gray-900 dark:text-white">events@epison.org.ng</p>
-                    <p class="mt-1 text-sm">For event and conference inquiries</p>
                   </div>
                 </div>
               </div>
@@ -168,37 +138,49 @@
 
               <UForm :state="form" class="space-y-6" @submit="onSubmit">
                 <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-                  <UFormGroup label="First name" name="firstName" required>
-                    <UInput v-model="form.firstName" placeholder="John" />
-                  </UFormGroup>
+                  <UFormField label="First name" name="firstName" required>
+                    <UInput v-model="form.firstName" placeholder="John" class="w-full" />
+                  </UFormField>
 
-                  <UFormGroup label="Last name" name="lastName" required>
-                    <UInput v-model="form.lastName" placeholder="Doe" />
-                  </UFormGroup>
+                  <UFormField label="Last name" name="lastName" required>
+                    <UInput v-model="form.lastName" placeholder="Doe" class="w-full" />
+                  </UFormField>
 
-                  <UFormGroup label="Email" name="email" class="sm:col-span-2" required>
-                    <UInput v-model="form.email" type="email" placeholder="you@example.com" />
-                  </UFormGroup>
+                  <UFormField label="Email" name="email" required>
+                    <UInput
+                      v-model="form.email"
+                      type="email"
+                      placeholder="you@example.com"
+                      class="w-full"
+                    />
+                  </UFormField>
 
-                  <UFormGroup label="Phone" name="phone" class="sm:col-span-2">
-                    <UInput v-model="form.phone" type="tel" placeholder="+234 800 000 0000" />
-                  </UFormGroup>
+                  <UFormField label="Phone" name="phone" required>
+                    <UInput
+                      v-model="form.phone"
+                      type="tel"
+                      placeholder="+234 800 000 0000"
+                      class="w-full"
+                    />
+                  </UFormField>
 
-                  <UFormGroup label="Subject" name="subject" class="sm:col-span-2" required>
+                  <UFormField label="Subject" name="subject" class="sm:col-span-2" required>
                     <USelect
                       v-model="form.subject"
-                      :options="subjectOptions"
+                      :items="subjectOptions"
                       placeholder="Select a subject"
+                      class="w-full"
                     />
-                  </UFormGroup>
+                  </UFormField>
 
-                  <UFormGroup label="Message" name="message" class="sm:col-span-2" required>
+                  <UFormField label="Message" name="message" class="sm:col-span-2" required>
                     <UTextarea
                       v-model="form.message"
                       :rows="6"
                       placeholder="How can we help you?"
+                      class="w-full"
                     />
-                  </UFormGroup>
+                  </UFormField>
 
                   <div class="sm:col-span-2">
                     <div class="flex items-start">
@@ -273,7 +255,7 @@ const form = reactive({
   lastName: '',
   email: '',
   phone: '',
-  subject: null,
+  subject: undefined,
   message: '',
   newsletter: false,
 })
@@ -308,7 +290,7 @@ async function onSubmit() {
       lastName: '',
       email: '',
       phone: '',
-      subject: null,
+      subject: undefined,
       message: '',
       newsletter: false,
     })

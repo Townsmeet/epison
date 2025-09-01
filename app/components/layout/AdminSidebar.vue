@@ -13,7 +13,7 @@
 
     <template #footer>
       <div class="p-4 pt-0">
-        <UButton block color="gray" variant="ghost" icon="i-heroicons-arrow-left" to="/">
+        <UButton block color="neutral" variant="ghost" icon="i-heroicons-arrow-left" to="/">
           Back to Site
         </UButton>
       </div>
@@ -44,10 +44,6 @@ const links = [
     icon: 'i-heroicons-users',
     to: '/admin/members',
   },
-  {
-    label: 'Settings',
-    icon: 'i-heroicons-cog-6-tooth',
-    to: '/admin/settings',
-  },
+  // Settings temporarily hidden until page is defined
 ]
 </script>

@@ -30,25 +30,25 @@
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">General Settings</h3>
           </div>
           <div class="p-6 space-y-6">
-            <UFormGroup label="Organization Name" name="orgName">
+            <UFormField label="Organization Name" name="orgName">
               <UInput v-model="settings.general.orgName" />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="Contact Email" name="contactEmail">
+            <UFormField label="Contact Email" name="contactEmail">
               <UInput v-model="settings.general.contactEmail" type="email" />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="Phone Number" name="phone">
+            <UFormField label="Phone Number" name="phone">
               <UInput v-model="settings.general.phone" />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="Address" name="address">
+            <UFormField label="Address" name="address">
               <UTextarea v-model="settings.general.address" />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="Website" name="website">
+            <UFormField label="Website" name="website">
               <UInput v-model="settings.general.website" />
-            </UFormGroup>
+            </UFormField>
 
             <div class="flex justify-end">
               <UButton color="primary" @click="saveSettings('general')"> Save Changes </UButton>
@@ -62,16 +62,16 @@
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Email Settings</h3>
           </div>
           <div class="p-6 space-y-6">
-            <UFormGroup label="SMTP Server" name="smtpServer">
+            <UFormField label="SMTP Server" name="smtpServer">
               <UInput v-model="settings.email.smtpServer" />
-            </UFormGroup>
+            </UFormField>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormGroup label="SMTP Port" name="smtpPort">
+              <UFormField label="SMTP Port" name="smtpPort">
                 <UInput v-model="settings.email.smtpPort" type="number" />
-              </UFormGroup>
+              </UFormField>
 
-              <UFormGroup label="Encryption" name="encryption">
+              <UFormField label="Encryption" name="encryption">
                 <USelect
                   v-model="settings.email.encryption"
                   :options="[
@@ -80,24 +80,24 @@
                     { label: 'SSL', value: 'ssl' },
                   ]"
                 />
-              </UFormGroup>
+              </UFormField>
             </div>
 
-            <UFormGroup label="Username" name="smtpUsername">
+            <UFormField label="Username" name="smtpUsername">
               <UInput v-model="settings.email.smtpUsername" />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="Password" name="smtpPassword">
+            <UFormField label="Password" name="smtpPassword">
               <UInput v-model="settings.email.smtpPassword" type="password" />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="From Email" name="fromEmail">
+            <UFormField label="From Email" name="fromEmail">
               <UInput v-model="settings.email.fromEmail" type="email" />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="From Name" name="fromName">
+            <UFormField label="From Name" name="fromName">
               <UInput v-model="settings.email.fromName" />
-            </UFormGroup>
+            </UFormField>
 
             <div class="flex justify-between">
               <UButton color="neutral" variant="outline" @click="testEmailConnection">
@@ -122,12 +122,12 @@
                   <UToggle v-model="settings.payment.paystack.enabled" />
                 </div>
                 <div class="space-y-4">
-                  <UFormGroup label="Public Key" name="paystackPublicKey">
+                  <UFormField label="Public Key" name="paystackPublicKey">
                     <UInput v-model="settings.payment.paystack.publicKey" />
-                  </UFormGroup>
-                  <UFormGroup label="Secret Key" name="paystackSecretKey">
+                  </UFormField>
+                  <UFormField label="Secret Key" name="paystackSecretKey">
                     <UInput v-model="settings.payment.paystack.secretKey" type="password" />
-                  </UFormGroup>
+                  </UFormField>
                 </div>
               </div>
 
@@ -138,17 +138,17 @@
                   <UToggle v-model="settings.payment.flutterwave.enabled" />
                 </div>
                 <div class="space-y-4">
-                  <UFormGroup label="Public Key" name="flutterwavePublicKey">
+                  <UFormField label="Public Key" name="flutterwavePublicKey">
                     <UInput v-model="settings.payment.flutterwave.publicKey" />
-                  </UFormGroup>
-                  <UFormGroup label="Secret Key" name="flutterwaveSecretKey">
+                  </UFormField>
+                  <UFormField label="Secret Key" name="flutterwaveSecretKey">
                     <UInput v-model="settings.payment.flutterwave.secretKey" type="password" />
-                  </UFormGroup>
+                  </UFormField>
                 </div>
               </div>
             </div>
 
-            <UFormGroup label="Default Currency" name="currency">
+            <UFormField label="Default Currency" name="currency">
               <USelect
                 v-model="settings.payment.currency"
                 :options="[
@@ -157,7 +157,7 @@
                   { label: 'British Pound (GBP)', value: 'GBP' },
                 ]"
               />
-            </UFormGroup>
+            </UFormField>
 
             <div class="flex justify-end">
               <UButton color="primary" @click="saveSettings('payment')"> Save Changes </UButton>
@@ -194,13 +194,13 @@
               <UToggle v-model="settings.security.forcePasswordReset" />
             </div>
 
-            <UFormGroup label="Session Timeout (minutes)" name="sessionTimeout">
+            <UFormField label="Session Timeout (minutes)" name="sessionTimeout">
               <UInput v-model="settings.security.sessionTimeout" type="number" />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="Maximum Login Attempts" name="maxLoginAttempts">
+            <UFormField label="Maximum Login Attempts" name="maxLoginAttempts">
               <UInput v-model="settings.security.maxLoginAttempts" type="number" />
-            </UFormGroup>
+            </UFormField>
 
             <div class="flex justify-end">
               <UButton color="primary" @click="saveSettings('security')"> Save Changes </UButton>

@@ -191,7 +191,9 @@
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <UBadge :color="getTypeColor(member.type)" size="sm">{{ member.type }}</UBadge>
+                <UBadge :color="getTypeColor(member.type)" size="sm">{{
+                  typeLabelFromValue(typeValueFromLabel(member.type))
+                }}</UBadge>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <UBadge :color="getStatusColor(member.status)" size="sm">{{
@@ -499,11 +501,10 @@ const genderItems = ref<RadioGroupItem[]>([
 
 const membershipTypeOptions = [
   { label: 'All Types', value: 'all' },
-  { label: 'Full Member', value: 'full' },
-  { label: 'Associate Member', value: 'associate' },
-  { label: 'Student Member', value: 'student' },
-  { label: 'Honorary Member', value: 'honorary' },
-  { label: 'Institutional Member', value: 'institutional' },
+  { label: 'Regular Membership (Joint IEA - EPiSON)', value: 'regular+iea' },
+  { label: 'Regular Membership (EPiSON only)', value: 'regular' },
+  { label: 'Early Career Membership (Joint IEA - EPiSON)', value: 'early-career+iea' },
+  { label: 'Early Career Membership (EPiSON only)', value: 'early-career' },
 ]
 
 const statusOptions = [
@@ -552,29 +553,29 @@ const memberships = ref<Member[]>([
     id: 1,
     name: 'Dr. John Doe',
     email: 'john.doe@example.com',
-    type: 'full',
+    type: 'Regular Membership (EPiSON only)',
     status: 'active',
     joinedDate: '2023-01-15',
     expiryDate: '2024-01-15',
-    fees: 50000,
+    fees: 30000,
     organization: 'Lagos University Teaching Hospital',
   },
   {
     id: 2,
     name: 'Dr. Jane Smith',
     email: 'jane.smith@example.com',
-    type: 'associate',
+    type: 'Regular Membership (Joint IEA - EPiSON)',
     status: 'active',
     joinedDate: '2023-03-20',
     expiryDate: '2024-03-20',
-    fees: 35000,
+    fees: 50000,
     organization: 'University of Ibadan',
   },
   {
     id: 3,
     name: 'Michael Brown',
     email: 'michael.brown@student.edu',
-    type: 'student',
+    type: 'Early Career Membership (EPiSON only)',
     status: 'pending',
     joinedDate: '2024-08-01',
     expiryDate: '2025-08-01',
@@ -585,6 +586,16 @@ const memberships = ref<Member[]>([
 
 const selectedTypeValue = computed(() => selectedTypeItem.value?.value ?? 'all')
 const selectedStatusValue = computed(() => selectedStatusItem.value?.value ?? 'all')
+
+function typeValueFromLabel(label: string): string {
+  const found = membershipTypeOptions.find(o => o.label === label)
+  return found ? found.value : label
+}
+
+function typeLabelFromValue(value: string): string {
+  const found = membershipTypeOptions.find(o => o.value === value)
+  return found ? found.label : value
+}
 
 const filteredMemberships = computed(() => {
   let filtered = memberships.value
@@ -600,7 +611,9 @@ const filteredMemberships = computed(() => {
   }
 
   if (selectedTypeValue.value !== 'all') {
-    filtered = filtered.filter(member => member.type === selectedTypeValue.value)
+    filtered = filtered.filter(
+      member => typeValueFromLabel(member.type) === selectedTypeValue.value
+    )
   }
 
   if (selectedStatusValue.value !== 'all') {
@@ -621,17 +634,17 @@ function getInitials(name: string): string {
 function getTypeColor(
   type: string
 ): 'neutral' | 'info' | 'primary' | 'secondary' | 'success' | 'warning' | 'error' {
+  const value = typeValueFromLabel(type)
   const colors: Record<
     string,
     'neutral' | 'info' | 'primary' | 'secondary' | 'success' | 'warning' | 'error'
   > = {
-    full: 'primary',
-    associate: 'success',
-    student: 'warning',
-    honorary: 'secondary',
-    institutional: 'info',
+    'regular+iea': 'primary',
+    regular: 'success',
+    'early-career+iea': 'info',
+    'early-career': 'warning',
   }
-  return colors[type] || 'neutral'
+  return colors[value] || 'neutral'
 }
 
 function getStatusColor(

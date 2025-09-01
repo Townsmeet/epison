@@ -1,34 +1,61 @@
 <template>
-  <div class="py-12 bg-white dark:bg-gray-900">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center">
-        <h1 class="text-4xl font-bold text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
-          Membership
+  <div
+    class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-teal-900/20"
+  >
+    <!-- Hero Section -->
+    <section class="relative overflow-hidden pt-20 pb-16">
+      <!-- Background Elements -->
+      <div class="absolute inset-0">
+        <div
+          class="absolute top-0 left-1/4 w-72 h-72 bg-gradient-to-br from-teal-400/20 to-cyan-500/20 rounded-full blur-3xl"
+        />
+        <div
+          class="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-amber-400/15 to-orange-500/15 rounded-full blur-3xl"
+        />
+      </div>
+
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+          <span
+            class="bg-gradient-to-r from-teal-600 to-cyan-600 dark:from-teal-400 dark:to-cyan-400 bg-clip-text text-transparent"
+          >
+            Membership
+          </span>
         </h1>
-        <p
-          class="mt-3 max-w-md mx-auto text-base text-gray-500 dark:text-gray-400 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl"
-        >
+        <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
           Join EPISON and become part of Nigeria's leading epidemiological community.
         </p>
       </div>
+    </section>
 
-      <!-- Membership Types -->
-      <div class="mt-16">
-        <div class="grid grid-cols-1 gap-8 mt-8 xl:mt-12 lg:grid-cols-3">
-          <!-- Regular Member -->
+    <!-- Membership Types -->
+    <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div
+          class="mb-6 p-4 bg-primary-50 dark:bg-gray-800/60 rounded-lg text-sm text-gray-700 dark:text-gray-300"
+        >
+          <p>
+            We recommend the <span class="font-semibold">+IEA</span> options for broader
+            professional benefits. IEA stands for
+            <span class="italic">International Epidemiological Association</span>.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-8 mt-8 xl:mt-12 lg:grid-cols-4">
+          <!-- Regular (EPiSON only) -->
           <div
             class="overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm"
           >
             <div class="p-8">
               <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
-                Regular Member
+                Regular Membership
               </h2>
               <p class="mt-4 text-gray-500 dark:text-gray-400">
                 For professionals in the field of epidemiology and public health.
               </p>
 
               <div class="mt-8">
-                <span class="text-4xl font-bold text-gray-900 dark:text-white">₦25,000</span>
+                <span class="text-4xl font-bold text-gray-900 dark:text-white">₦30,000</span>
                 <span class="text-gray-500 dark:text-gray-400">/year</span>
               </div>
 
@@ -61,111 +88,144 @@
             </div>
           </div>
 
-          <!-- Student Member -->
+          <!-- Regular (Joint IEA & EPiSON) - Recommended -->
           <div
             class="overflow-hidden bg-white dark:bg-gray-800 border-2 border-primary-500 dark:border-primary-400 rounded-lg shadow-lg transform scale-105 z-10"
           >
             <div class="p-8">
               <div class="flex justify-between items-center">
                 <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
-                  Student Member
+                  Regular Membership (+IEA)
                 </h2>
-                <span class="px-3 py-1 text-sm font-medium text-white bg-primary-500 rounded-full"
-                  >Popular</span
-                >
               </div>
               <p class="mt-4 text-gray-500 dark:text-gray-400">
-                For students pursuing degrees in epidemiology or related fields.
+                Combined EPiSON membership with IEA for enhanced international benefits.
               </p>
 
               <div class="mt-8">
-                <span class="text-4xl font-bold text-gray-900 dark:text-white">₦10,000</span>
+                <span class="text-4xl font-bold text-gray-900 dark:text-white">₦50,000</span>
                 <span class="text-gray-500 dark:text-gray-400">/year</span>
               </div>
 
               <ul class="mt-8 space-y-4">
                 <li class="flex items-center">
                   <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-green-500" />
+                  <span class="mx-4 text-gray-700 dark:text-gray-300">All EPiSON benefits</span>
+                </li>
+                <li class="flex items-center">
+                  <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-green-500" />
                   <span class="mx-4 text-gray-700 dark:text-gray-300"
-                    >Discounted conference rates</span
+                    >IEA membership inclusion</span
                   >
                 </li>
                 <li class="flex items-center">
                   <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-green-500" />
                   <span class="mx-4 text-gray-700 dark:text-gray-300"
-                    >Access to mentorship program</span
-                  >
-                </li>
-                <li class="flex items-center">
-                  <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-green-500" />
-                  <span class="mx-4 text-gray-700 dark:text-gray-300"
-                    >Student research opportunities</span
-                  >
-                </li>
-                <li class="flex items-center">
-                  <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-green-500" />
-                  <span class="mx-4 text-gray-700 dark:text-gray-300"
-                    >Access to all EPISON events</span
+                    >International networking</span
                   >
                 </li>
               </ul>
             </div>
 
             <div class="p-4 bg-gray-50 dark:bg-gray-700">
-              <UButton to="/membership/apply?type=student" block color="primary" size="lg">
+              <UButton to="/membership/apply?type=regular+iea" block color="primary" size="lg">
                 Join Now
               </UButton>
             </div>
           </div>
 
-          <!-- Institutional Member -->
+          <!-- Early Career (Joint IEA & EPiSON) - Recommended -->
           <div
-            class="overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm"
+            class="overflow-hidden bg-white dark:bg-gray-800 border-2 border-primary-500/70 dark:border-primary-400/70 rounded-lg shadow-lg"
           >
             <div class="p-8">
               <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
-                Institutional Member
+                Early Career Membership (+IEA)
               </h2>
               <p class="mt-4 text-gray-500 dark:text-gray-400">
-                For organizations supporting epidemiology and public health.
+                Ideal for early career professionals seeking both EPiSON and IEA access.
               </p>
 
               <div class="mt-8">
-                <span class="text-4xl font-bold text-gray-900 dark:text-white">₦100,000</span>
+                <span class="text-4xl font-bold text-gray-900 dark:text-white">₦20,000</span>
                 <span class="text-gray-500 dark:text-gray-400">/year</span>
               </div>
 
               <ul class="mt-8 space-y-4">
                 <li class="flex items-center">
                   <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-green-500" />
-                  <span class="mx-4 text-gray-700 dark:text-gray-300">Up to 5 staff members</span>
+                  <span class="mx-4 text-gray-700 dark:text-gray-300">All EPiSON benefits</span>
                 </li>
                 <li class="flex items-center">
                   <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-green-500" />
                   <span class="mx-4 text-gray-700 dark:text-gray-300"
-                    >Organization profile on our website</span
+                    >IEA membership inclusion</span
                   >
                 </li>
                 <li class="flex items-center">
                   <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-green-500" />
                   <span class="mx-4 text-gray-700 dark:text-gray-300"
-                    >Event sponsorship opportunities</span
+                    >International networking</span
                   >
                 </li>
               </ul>
             </div>
 
             <div class="p-4 bg-gray-50 dark:bg-gray-700">
-              <UButton to="/membership/apply?type=institutional" block color="primary" size="lg">
+              <UButton to="/membership/apply?type=early-career+iea" block color="primary" size="lg">
+                Join Now
+              </UButton>
+            </div>
+          </div>
+
+          <!-- Early Career (EPiSON only) -->
+          <div
+            class="overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm"
+          >
+            <div class="p-8">
+              <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+                Early Career Membership
+              </h2>
+              <p class="mt-4 text-gray-500 dark:text-gray-400">
+                For early career professionals in epidemiology and public health.
+              </p>
+
+              <div class="mt-8">
+                <span class="text-4xl font-bold text-gray-900 dark:text-white">₦15,000</span>
+                <span class="text-gray-500 dark:text-gray-400">/year</span>
+              </div>
+
+              <ul class="mt-8 space-y-4">
+                <li class="flex items-center">
+                  <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-green-500" />
+                  <span class="mx-4 text-gray-700 dark:text-gray-300">Access to EPiSON events</span>
+                </li>
+                <li class="flex items-center">
+                  <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-green-500" />
+                  <span class="mx-4 text-gray-700 dark:text-gray-300"
+                    >Mentorship opportunities</span
+                  >
+                </li>
+                <li class="flex items-center">
+                  <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-green-500" />
+                  <span class="mx-4 text-gray-700 dark:text-gray-300">Networking</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="p-4 bg-gray-50 dark:bg-gray-700">
+              <UButton to="/membership/apply?type=early-career" block color="primary" size="lg">
                 Join Now
               </UButton>
             </div>
           </div>
         </div>
       </div>
+    </section>
 
-      <!-- Benefits Section -->
-      <div class="mt-24">
+    <!-- Benefits Section -->
+    <section class="py-20 md:py-32">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center">
           <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl">
             Benefits of Membership
@@ -227,30 +287,7 @@
           </div>
         </div>
       </div>
-
-      <!-- CTA Section -->
-      <div class="mt-24 bg-primary-50 dark:bg-gray-800 rounded-2xl p-8 sm:p-12">
-        <div class="max-w-3xl mx-auto text-center">
-          <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl">
-            Ready to join EPISON?
-          </h2>
-          <p class="mt-4 text-xl text-gray-600 dark:text-gray-300">
-            Become a member today and start enjoying the benefits of being part of Nigeria's leading
-            epidemiological society.
-          </p>
-          <div class="mt-8 flex justify-center">
-            <UButton
-              to="/membership/apply"
-              size="xl"
-              color="primary"
-              class="px-8 py-3 text-base font-medium"
-            >
-              Apply for Membership
-            </UButton>
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
   </div>
 </template>
 

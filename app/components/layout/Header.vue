@@ -11,7 +11,7 @@
       <UButton
         v-if="!isAdminRoute"
         to="/admin"
-        color="gray"
+        color="neutral"
         variant="ghost"
         icon="i-heroicons-cog-6-tooth"
         aria-label="Admin"
@@ -27,7 +27,7 @@ const route = useRoute()
 const links = [
   { label: 'Home', to: '/' },
   { label: 'About', to: '/about' },
-  { label: 'Conferences', to: '/conferences' },
+  { label: 'Events', to: '/events' },
   { label: 'Membership', to: '/membership' },
   { label: 'Contact', to: '/contact' },
 ]

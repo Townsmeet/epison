@@ -23,8 +23,8 @@
           placeholder="Search events..."
           icon="i-heroicons-magnifying-glass"
         />
-        <USelect v-model="selectedStatus" :options="statusOptions" placeholder="Filter by status" />
-        <USelect v-model="selectedType" :options="typeOptions" placeholder="Filter by type" />
+        <USelect v-model="selectedStatus" :items="statusOptions" placeholder="Filter by status" />
+        <USelect v-model="selectedType" :items="typeOptions" placeholder="Filter by type" />
         <UButton color="neutral" variant="outline" icon="i-heroicons-funnel" @click="clearFilters">
           Clear Filters
         </UButton>
@@ -115,60 +115,71 @@
           </template>
 
           <UForm :state="newEvent" class="space-y-6">
-            <UFormGroup label="Event Title" name="title" required>
-              <UInput v-model="newEvent.title" placeholder="Enter event title" />
-            </UFormGroup>
+            <UFormField label="Event Title" name="title" required>
+              <UInput v-model="newEvent.title" placeholder="Enter event title" class="w-full" />
+            </UFormField>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormGroup label="Event Type" name="type" required>
+              <UFormField label="Event Type" name="type" required>
                 <USelect
                   v-model="newEvent.type"
-                  :options="typeOptions.filter(t => t.value !== 'all')"
+                  :items="typeOptions.filter(t => t.value !== 'all')"
                   placeholder="Select event type"
+                  class="w-full"
                 />
-              </UFormGroup>
+              </UFormField>
 
-              <UFormGroup label="Status" name="status" required>
+              <UFormField label="Status" name="status" required>
                 <USelect
                   v-model="newEvent.status"
-                  :options="statusOptions.filter(s => s.value !== 'all')"
+                  :items="statusOptions.filter(s => s.value !== 'all')"
                   placeholder="Select status"
+                  class="w-full"
                 />
-              </UFormGroup>
+              </UFormField>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormGroup label="Start Date" name="startDate" required>
-                <UInput v-model="newEvent.startDate" type="datetime-local" />
-              </UFormGroup>
+              <UFormField label="Start Date" name="startDate" required>
+                <UInput v-model="newEvent.startDate" type="datetime-local" class="w-full" />
+              </UFormField>
 
-              <UFormGroup label="End Date" name="endDate">
-                <UInput v-model="newEvent.endDate" type="datetime-local" />
-              </UFormGroup>
+              <UFormField label="End Date" name="endDate">
+                <UInput v-model="newEvent.endDate" type="datetime-local" class="w-full" />
+              </UFormField>
             </div>
 
-            <UFormGroup label="Location" name="location" required>
-              <UInput v-model="newEvent.location" placeholder="Event location" />
-            </UFormGroup>
+            <UFormField label="Location" name="location" required>
+              <UInput v-model="newEvent.location" placeholder="Event location" class="w-full" />
+            </UFormField>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormGroup label="Capacity" name="capacity">
-                <UInput v-model="newEvent.capacity" type="number" placeholder="Maximum attendees" />
-              </UFormGroup>
+              <UFormField label="Capacity" name="capacity">
+                <UInput
+                  v-model="newEvent.capacity"
+                  type="number"
+                  placeholder="Maximum attendees"
+                  class="w-full"
+                />
+              </UFormField>
 
-              <UFormGroup label="Registration Fee (₦)" name="fee">
-                <UInput v-model="newEvent.fee" type="number" placeholder="0" />
-              </UFormGroup>
+              <UFormField label="Registration Fee (₦)" name="fee">
+                <UInput v-model="newEvent.fee" type="number" placeholder="0" class="w-full" />
+              </UFormField>
             </div>
 
-            <UFormGroup label="Description" name="description">
-              <UTextarea v-model="newEvent.description" placeholder="Event description" :rows="4" />
-            </UFormGroup>
+            <UFormField label="Description" name="description">
+              <UTextarea
+                v-model="newEvent.description"
+                placeholder="Event description"
+                :rows="4"
+                class="w-full"
+              />
+            </UFormField>
 
             <div class="flex items-center space-x-4">
               <UCheckbox v-model="newEvent.isPublic" label="Public Event" />
-              <UCheckbox v-model="newEvent.requiresApproval" label="Requires Approval" />
-              <UCheckbox v-model="newEvent.allowWaitlist" label="Allow Waitlist" />
+              <UCheckbox v-model="newEvent.membersOnly" label="Members Only" />
             </div>
           </UForm>
 
@@ -229,7 +240,7 @@ const typeOptions = [
 
 const newEvent = ref({
   title: '',
-  type: '',
+  type: 'webinar',
   status: 'draft',
   startDate: '',
   endDate: '',
@@ -238,8 +249,7 @@ const newEvent = ref({
   fee: '',
   description: '',
   isPublic: true,
-  requiresApproval: false,
-  allowWaitlist: true,
+  membersOnly: false,
 })
 
 const filteredEvents = computed<EventItem[]>(() => {
@@ -398,8 +408,7 @@ async function createEvent() {
       fee: '',
       description: '',
       isPublic: true,
-      requiresApproval: false,
-      allowWaitlist: true,
+      membersOnly: false,
     }
 
     isCreateEventOpen.value = false

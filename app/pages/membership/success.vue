@@ -33,10 +33,10 @@
             <span>Our team will review your application within 3-5 business days.</span>
           </li>
           <li class="flex items-start">
-            <UIcon name="i-heroicons-credit-card" class="h-5 w-5 mt-0.5 mr-2 flex-shrink-0" />
+            <UIcon name="i-heroicons-check-circle" class="h-5 w-5 mt-0.5 mr-2 flex-shrink-0" />
             <span
-              >If approved, you'll receive payment instructions to complete your membership
-              registration.</span
+              >If approved, you'll receive a confirmation email else our team will contact
+              you.</span
             >
           </li>
         </ul>
