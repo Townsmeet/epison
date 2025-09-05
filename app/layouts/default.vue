@@ -249,7 +249,7 @@
             <h3
               class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-5 relative inline-block"
             >
-              Resources
+              Legal
               <span
                 class="absolute -bottom-2 left-0 w-8 h-0.5 bg-primary-600 dark:bg-primary-400 rounded-full"
               />
@@ -361,7 +361,7 @@ const navLinks = [
   { label: 'About', to: '/about' },
   { label: 'Events', to: '/events' },
   { label: 'Membership', to: '/membership' },
-  { label: 'Resources', to: '/resources' },
+  { label: 'Blog', to: '/blog' },
   { label: 'Contact', to: '/contact' },
 ]
 
@@ -391,17 +391,13 @@ const socialLinks = [
 const footerLinks = {
   quickLinks: [
     { label: 'About Us', to: '/about' },
-    { label: 'Our Team', to: '/team' },
     { label: 'Events', to: '/events' },
-    { label: 'News & Updates', to: '/news' },
-    { label: 'Gallery', to: '/gallery' },
+    { label: 'Membership', to: '/membership' },
+    { label: 'Blog', to: '/blog' },
   ],
   resources: [
-    { label: 'Publications', to: '/publications' },
-    { label: 'Research', to: '/research' },
-    { label: 'Guidelines', to: '/guidelines' },
-    { label: 'FAQs', to: '/faqs' },
-    { label: 'Blog', to: '/blog' },
+    { label: 'Terms', to: '/terms' },
+    { label: 'Privacy', to: '/privacy' },
   ],
 }
 

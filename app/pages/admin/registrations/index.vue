@@ -52,6 +52,43 @@
         </div>
       </div>
 
+      <!-- Filters Panel -->
+      <div v-if="showFilters" class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <USelectMenu
+            v-model="selectedStatusItem"
+            :items="statusOptions"
+            option-attribute="label"
+            value-attribute="value"
+            placeholder="Filter by status"
+            :popper="{ strategy: 'fixed', placement: 'bottom-start' }"
+          />
+          <USelectMenu
+            v-model="selectedTypeItem"
+            :items="typeOptions"
+            option-attribute="label"
+            value-attribute="value"
+            placeholder="Filter by type"
+            :popper="{ strategy: 'fixed', placement: 'bottom-start' }"
+          />
+          <UInput v-model="eventFilter" placeholder="Filter by event" />
+          <div class="grid grid-cols-2 gap-2">
+            <UInput v-model="dateFrom" type="date" placeholder="From" />
+            <UInput v-model="dateTo" type="date" placeholder="To" />
+          </div>
+        </div>
+        <div class="mt-3 flex justify-end">
+          <UButton
+            color="neutral"
+            variant="outline"
+            icon="i-heroicons-funnel"
+            @click="clearFilters"
+          >
+            Clear Filters
+          </UButton>
+        </div>
+      </div>
+
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-700">
@@ -167,7 +204,7 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <UDropdown :items="getActionItems(registration)">
+                <UDropdownMenu :items="getActionItems(registration)">
                   <UButton
                     color="neutral"
                     variant="ghost"
@@ -175,7 +212,7 @@
                     icon="i-heroicons-ellipsis-horizontal"
                     class="rounded-full"
                   />
-                </UDropdown>
+                </UDropdownMenu>
               </td>
             </tr>
             <tr v-if="paginatedRegistrations.length === 0">
@@ -257,11 +294,11 @@
             </UButton>
           </div>
           <div class="flex space-x-2">
-            <UDropdown :items="bulkActions">
+            <UDropdownMenu :items="bulkActions">
               <UButton color="neutral" variant="outline" trailing-icon="i-heroicons-chevron-down">
                 Update Status
               </UButton>
-            </UDropdown>
+            </UDropdownMenu>
             <UButton color="error" variant="outline" @click="confirmDeleteMultiple">
               Delete
             </UButton>
@@ -315,7 +352,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 definePageMeta({
   layout: 'admin',
 })
@@ -347,6 +384,26 @@ const selectAll = computed({
 })
 
 const showFilters = ref(false)
+const selectedStatusItem = ref<{ label: string; value: string } | undefined>(undefined)
+const selectedTypeItem = ref<{ label: string; value: string } | undefined>(undefined)
+const statusOptions = [
+  { label: 'All Status', value: 'all' },
+  { label: 'Paid', value: 'Paid' },
+  { label: 'Pending', value: 'Pending' },
+  { label: 'Cancelled', value: 'Cancelled' },
+  { label: 'Refunded', value: 'Refunded' },
+]
+const typeOptions = [
+  { label: 'All Types', value: 'all' },
+  { label: 'Member', value: 'Member' },
+  { label: 'Non-Member', value: 'Non-Member' },
+  { label: 'Student', value: 'Student' },
+  { label: 'Speaker', value: 'Speaker' },
+  { label: 'Sponsor', value: 'Sponsor' },
+]
+const eventFilter = ref('')
+const dateFrom = ref('') // yyyy-MM-dd
+const dateTo = ref('') // yyyy-MM-dd
 const isDeleteModalOpen = ref(false)
 const isDeleting = ref(false)
 const searchQuery = ref('')
@@ -511,7 +568,7 @@ const registrations = ref([
 const filteredRegistrations = computed(() => {
   let result = [...registrations.value]
 
-  // Apply search
+  // Text search
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     result = result.filter(
@@ -521,6 +578,36 @@ const filteredRegistrations = computed(() => {
         reg.event.toLowerCase().includes(query) ||
         reg.reference.toLowerCase().includes(query)
     )
+  }
+
+  // Status filter
+  const statusVal = selectedStatusItem.value?.value ?? 'all'
+  if (statusVal !== 'all') {
+    result = result.filter(reg => reg.status === statusVal)
+  }
+
+  // Type filter
+  const typeVal = selectedTypeItem.value?.value ?? 'all'
+  if (typeVal !== 'all') {
+    result = result.filter(reg => reg.type === typeVal)
+  }
+
+  // Event filter
+  if (eventFilter.value) {
+    const q = eventFilter.value.toLowerCase()
+    result = result.filter(reg => reg.event.toLowerCase().includes(q))
+  }
+
+  // Date range filter (registration date)
+  if (dateFrom.value) {
+    const from = new Date(dateFrom.value)
+    result = result.filter(reg => new Date(reg.date) >= from)
+  }
+  if (dateTo.value) {
+    const to = new Date(dateTo.value)
+    // Include the whole end day
+    to.setHours(23, 59, 59, 999)
+    result = result.filter(reg => new Date(reg.date) <= to)
   }
 
   return result
@@ -662,6 +749,14 @@ function getActionItems(registration: Registration) {
       },
     ],
   ]
+}
+
+function clearFilters() {
+  selectedStatusItem.value = statusOptions.find(o => o.value === 'all')
+  selectedTypeItem.value = typeOptions.find(o => o.value === 'all')
+  eventFilter.value = ''
+  dateFrom.value = ''
+  dateTo.value = ''
 }
 
 function confirmDelete(registration: Registration) {

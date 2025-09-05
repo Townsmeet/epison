@@ -54,7 +54,7 @@
                 {{ event.location }}
               </div>
             </div>
-            <UDropdown :items="getEventActions(event)">
+            <UDropdownMenu :items="getEventActions(event)">
               <UButton
                 color="neutral"
                 variant="ghost"
@@ -62,7 +62,7 @@
                 size="sm"
                 @click.stop
               />
-            </UDropdown>
+            </UDropdownMenu>
           </div>
 
           <div class="flex items-center justify-between mb-4">
@@ -101,99 +101,123 @@
     <!-- Create Event Modal -->
     <UModal v-model:open="isCreateEventOpen">
       <template #content>
-        <UCard>
-          <template #header>
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold">Create New Event</h3>
-              <UButton
-                color="neutral"
-                variant="ghost"
-                icon="i-heroicons-x-mark"
-                @click="isCreateEventOpen = false"
-              />
-            </div>
-          </template>
+        <div class="h-[85vh] max-h-[85vh] flex flex-col">
+          <UCard
+            class="h-full flex flex-col"
+            :ui="{
+              body: 'flex-1 overflow-y-auto',
+              header: 'sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur',
+              footer: 'sticky bottom-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur',
+            }"
+          >
+            <template #header>
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold">Create New Event</h3>
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-heroicons-x-mark"
+                  @click="isCreateEventOpen = false"
+                />
+              </div>
+            </template>
 
-          <UForm :state="newEvent" class="space-y-6">
-            <UFormField label="Event Title" name="title" required>
-              <UInput v-model="newEvent.title" placeholder="Enter event title" class="w-full" />
-            </UFormField>
+            <UForm :state="newEvent" class="space-y-6">
+              <UFormField label="Event Title" name="title" required>
+                <UInput v-model="newEvent.title" placeholder="Enter event title" class="w-full" />
+              </UFormField>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormField label="Event Type" name="type" required>
-                <USelect
-                  v-model="newEvent.type"
-                  :items="typeOptions.filter(t => t.value !== 'all')"
-                  placeholder="Select event type"
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <UFormField label="Event Type" name="type" required>
+                  <USelect
+                    v-model="newEvent.type"
+                    :items="typeOptions.filter(t => t.value !== 'all')"
+                    placeholder="Select event type"
+                    class="w-full"
+                  />
+                </UFormField>
+
+                <UFormField label="Status" name="status" required>
+                  <USelect
+                    v-model="newEvent.status"
+                    :items="statusOptions.filter(s => s.value !== 'all')"
+                    placeholder="Select status"
+                    class="w-full"
+                  />
+                </UFormField>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <UFormField label="Start Date" name="startDate" required>
+                  <UInput v-model="newEvent.startDate" type="datetime-local" class="w-full" />
+                </UFormField>
+
+                <UFormField label="End Date" name="endDate">
+                  <UInput v-model="newEvent.endDate" type="datetime-local" class="w-full" />
+                </UFormField>
+              </div>
+
+              <UFormField label="Location" name="location" required>
+                <UInput v-model="newEvent.location" placeholder="Event location" class="w-full" />
+              </UFormField>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <UFormField label="Capacity" name="capacity">
+                  <UInput
+                    v-model="newEvent.capacity"
+                    type="number"
+                    placeholder="Maximum attendees"
+                    class="w-full"
+                  />
+                </UFormField>
+              </div>
+
+              <UFormField label="Description" name="description">
+                <UTextarea
+                  v-model="newEvent.description"
+                  placeholder="Event description"
+                  :rows="4"
                   class="w-full"
                 />
               </UFormField>
 
-              <UFormField label="Status" name="status" required>
-                <USelect
-                  v-model="newEvent.status"
-                  :items="statusOptions.filter(s => s.value !== 'all')"
-                  placeholder="Select status"
-                  class="w-full"
+              <UFormField label="Event Banner Image" name="bannerImage">
+                <input
+                  type="file"
+                  accept="image/*"
+                  class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:text-gray-300 dark:file:bg-primary-900/20 dark:file:text-primary-300"
+                  @change="onBannerSelected"
                 />
-              </UFormField>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormField label="Start Date" name="startDate" required>
-                <UInput v-model="newEvent.startDate" type="datetime-local" class="w-full" />
-              </UFormField>
-
-              <UFormField label="End Date" name="endDate">
-                <UInput v-model="newEvent.endDate" type="datetime-local" class="w-full" />
-              </UFormField>
-            </div>
-
-            <UFormField label="Location" name="location" required>
-              <UInput v-model="newEvent.location" placeholder="Event location" class="w-full" />
-            </UFormField>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormField label="Capacity" name="capacity">
-                <UInput
-                  v-model="newEvent.capacity"
-                  type="number"
-                  placeholder="Maximum attendees"
-                  class="w-full"
-                />
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Upload a JPG/PNG banner. Recommended aspect ratio ~3:2. Max ~2MB.
+                </p>
+                <div v-if="newEvent.bannerImage" class="mt-3">
+                  <img
+                    :src="newEvent.bannerImage"
+                    alt="Banner preview"
+                    class="w-full h-40 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                  />
+                </div>
               </UFormField>
 
-              <UFormField label="Registration Fee (₦)" name="fee">
-                <UInput v-model="newEvent.fee" type="number" placeholder="0" class="w-full" />
-              </UFormField>
-            </div>
+              <div class="flex items-center space-x-4">
+                <UCheckbox v-model="newEvent.isPublic" label="Public Event" />
+                <UCheckbox v-model="newEvent.membersOnly" label="Members Only" />
+              </div>
+            </UForm>
 
-            <UFormField label="Description" name="description">
-              <UTextarea
-                v-model="newEvent.description"
-                placeholder="Event description"
-                :rows="4"
-                class="w-full"
-              />
-            </UFormField>
-
-            <div class="flex items-center space-x-4">
-              <UCheckbox v-model="newEvent.isPublic" label="Public Event" />
-              <UCheckbox v-model="newEvent.membersOnly" label="Members Only" />
-            </div>
-          </UForm>
-
-          <template #footer>
-            <div class="flex justify-end space-x-3">
-              <UButton color="neutral" variant="ghost" @click="isCreateEventOpen = false">
-                Cancel
-              </UButton>
-              <UButton color="primary" :loading="isCreating" @click="createEvent">
-                Create Event
-              </UButton>
-            </div>
-          </template>
-        </UCard>
+            <template #footer>
+              <div class="flex justify-end space-x-3">
+                <UButton color="neutral" variant="ghost" @click="isCreateEventOpen = false">
+                  Cancel
+                </UButton>
+                <UButton color="primary" :loading="isCreating" @click="createEvent">
+                  Create Event
+                </UButton>
+              </div>
+            </template>
+          </UCard>
+        </div>
       </template>
     </UModal>
   </div>
@@ -246,8 +270,8 @@ const newEvent = ref({
   endDate: '',
   location: '',
   capacity: '',
-  fee: '',
   description: '',
+  bannerImage: '',
   isPublic: true,
   membersOnly: false,
 })
@@ -275,6 +299,18 @@ const filteredEvents = computed<EventItem[]>(() => {
 
   return filtered
 })
+
+function onBannerSelected(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = () => {
+    const result = reader.result as string
+    newEvent.value.bannerImage = result
+  }
+  reader.readAsDataURL(file)
+}
 
 function getStatusColor(
   status: string
@@ -405,8 +441,8 @@ async function createEvent() {
       endDate: '',
       location: '',
       capacity: '',
-      fee: '',
       description: '',
+      bannerImage: '',
       isPublic: true,
       membersOnly: false,
     }

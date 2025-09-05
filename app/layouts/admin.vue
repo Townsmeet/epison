@@ -61,7 +61,7 @@
 
         <!-- User menu -->
         <div class="px-4 py-4 border-t border-gray-200 dark:border-gray-700">
-          <UDropdown :items="userMenuItems" :popper="{ placement: 'top-start' }">
+          <UDropdownMenu :items="userMenuItems" :popper="{ placement: 'top-start' }">
             <div
               class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
             >
@@ -76,7 +76,7 @@
               </div>
               <UIcon name="i-heroicons-chevron-up" class="w-4 h-4" />
             </div>
-          </UDropdown>
+          </UDropdownMenu>
         </div>
       </div>
     </div>

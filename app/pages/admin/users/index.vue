@@ -111,14 +111,14 @@
                 {{ formatDate(user.createdAt) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <UDropdown :items="getUserActions(user)">
+                <UDropdownMenu :items="getUserActions(user)">
                   <UButton
                     color="neutral"
                     variant="ghost"
                     icon="i-heroicons-ellipsis-horizontal"
                     size="sm"
                   />
-                </UDropdown>
+                </UDropdownMenu>
               </td>
             </tr>
           </tbody>

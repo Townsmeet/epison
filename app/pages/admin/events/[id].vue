@@ -80,6 +80,17 @@
             </template>
 
             <div class="space-y-4">
+              <div
+                v-if="imageUrl"
+                class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
+              >
+                <img
+                  :src="imageUrl"
+                  :alt="`${event.title} cover image`"
+                  class="w-full h-64 object-cover"
+                  @error="onImgError"
+                />
+              </div>
               <div class="flex items-center text-gray-600 dark:text-gray-300">
                 <UIcon name="i-heroicons-calendar-days" class="w-5 h-5 mr-2" />
                 <span>{{ formatDateRange(event.startDate, event.endDate) }}</span>
@@ -361,7 +372,7 @@
                           </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <UDropdown :items="getRegActionItems(reg)">
+                          <UDropdownMenu :items="getRegActionItems(reg)">
                             <UButton
                               color="neutral"
                               variant="ghost"
@@ -369,7 +380,7 @@
                               icon="i-heroicons-ellipsis-horizontal"
                               class="rounded-full"
                             />
-                          </UDropdown>
+                          </UDropdownMenu>
                         </td>
                       </tr>
                       <tr v-if="paginatedEventRegistrations.length === 0">
@@ -473,7 +484,7 @@
                   <UInput v-model="newSponsor.name" placeholder="Sponsor name" />
                   <USelect
                     v-model="newSponsor.tier"
-                    :options="sponsorTierOptions"
+                    :items="sponsorTierOptions"
                     placeholder="Tier (optional)"
                   />
                   <UInput v-model="newSponsor.logoUrl" placeholder="Logo URL" />
@@ -617,6 +628,14 @@ const id = computed(() => Number(route.params.id))
 const { events }: { events: Ref<EventItem[]> } = useEvents()
 const event = computed(() => events.value.find(e => e.id === id.value))
 
+// Derive a reasonable image for the event: first gallery image or a title-seeded placeholder
+const imageUrl = computed(() => {
+  const e = event.value
+  if (!e) return ''
+  const galleryImage = e.gallery?.find(g => (g.type ?? 'image') !== 'video')?.url
+  return galleryImage || `https://picsum.photos/seed/${slugify(e.title)}/1200/800`
+})
+
 // Tabs
 const tabs = ['Details', 'Tickets', 'Sponsors', 'Registrations', 'Gallery']
 const currentTab = ref<'Details' | 'Tickets' | 'Registrations' | 'Sponsors' | 'Gallery'>('Details')
@@ -655,6 +674,34 @@ function formatDateRange(startDate: string, endDate?: string): string {
     return start.toLocaleDateString('en-US', options)
   }
   return `${start.toLocaleDateString('en-US', options)} - ${end.toLocaleDateString('en-US', options)}`
+}
+
+function slugify(s: string) {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+}
+
+function onImgError(e: Event) {
+  const el = e.target as HTMLImageElement | null
+  if (!el) return
+  let idx = parseInt(el.dataset?.fallbackIdx ?? '0', 10)
+  if (Number.isNaN(idx) || idx < 0) idx = 0
+  const fallbacks: string[] = [
+    'https://picsum.photos/seed/episonadmin1/1200/800',
+    'https://picsum.photos/seed/episonadmin2/1200/800',
+    'https://placehold.co/1200x800/png',
+  ]
+  if (idx >= fallbacks.length) return
+  const fb = (fallbacks[idx] ?? fallbacks[0]) as string
+  try {
+    el.src = fb
+  } catch {
+    el.setAttribute('src', fb)
+  }
+  if (el.dataset) el.dataset.fallbackIdx = String(idx + 1)
 }
 
 function goBack() {
