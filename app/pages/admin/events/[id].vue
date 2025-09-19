@@ -16,6 +16,7 @@
           color="neutral"
           variant="outline"
           icon="i-heroicons-users"
+          :class="[_getStatusBadgeClass('Registrations')]"
           @click="currentTab = 'Registrations' as any"
           >Registrations</UButton
         >
@@ -39,7 +40,7 @@
               : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700',
             'px-4 py-2 rounded-lg text-sm font-medium transition',
           ]"
-          @click="currentTab = tab as any"
+          @click="switchTab(tab)"
         >
           {{ tab }}
         </button>
@@ -61,612 +62,79 @@
       <!-- Main -->
       <div class="lg:col-span-2 space-y-6">
         <!-- Details Tab -->
-        <template v-if="currentTab === 'Details'">
-          <UCard>
-            <template #header>
-              <div class="flex items-start justify-between">
-                <div>
-                  <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
-                    {{ event.title }}
-                  </h1>
-                  <div
-                    class="mt-2 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    <UBadge :color="statusColor(event.status)" size="sm">{{ event.status }}</UBadge>
-                    <UBadge color="neutral" variant="outline" size="sm">{{ event.type }}</UBadge>
-                  </div>
-                </div>
-              </div>
-            </template>
-
-            <div class="space-y-4">
-              <div
-                v-if="imageUrl"
-                class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
-              >
-                <img
-                  :src="imageUrl"
-                  :alt="`${event.title} cover image`"
-                  class="w-full h-64 object-cover"
-                  @error="onImgError"
-                />
-              </div>
-              <div class="flex items-center text-gray-600 dark:text-gray-300">
-                <UIcon name="i-heroicons-calendar-days" class="w-5 h-5 mr-2" />
-                <span>{{ formatDateRange(event.startDate, event.endDate) }}</span>
-              </div>
-              <div class="flex items-center text-gray-600 dark:text-gray-300">
-                <UIcon name="i-heroicons-map-pin" class="w-5 h-5 mr-2" />
-                <span>{{ event.location }}</span>
-              </div>
-
-              <div class="prose dark:prose-invert max-w-none">
-                <h3 class="mt-6">Description</h3>
-                <p>{{ event.description }}</p>
-              </div>
-            </div>
-          </UCard>
-
-          <UCard>
-            <template #header>
-              <h3 class="text-lg font-semibold">Performance</h3>
-            </template>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div>
-                <div class="text-2xl font-semibold text-gray-900 dark:text-white">
-                  {{ event.registrations }}
-                </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">Registered</div>
-              </div>
-              <div>
-                <div class="text-2xl font-semibold text-gray-900 dark:text-white">
-                  {{ event.capacity }}
-                </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">Capacity</div>
-              </div>
-              <div>
-                <div class="text-2xl font-semibold text-gray-900 dark:text-white">
-                  ₦{{ (event.revenue / 1000).toFixed(0) }}k
-                </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">Revenue</div>
-              </div>
-              <div>
-                <div class="text-2xl font-semibold text-gray-900 dark:text-white">
-                  {{ occupancy }}%
-                </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">Occupancy</div>
-              </div>
-            </div>
-          </UCard>
-        </template>
+        <AdminEventsDetailsTab v-if="event" v-show="currentTab === 'Details'" :event="event" />
 
         <!-- Tickets Tab -->
-        <template v-else-if="currentTab === 'Tickets'">
-          <UCard>
-            <template #header>
-              <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold">Tickets</h3>
-                <UBadge v-if="tickets.length" color="neutral" variant="subtle"
-                  >{{ tickets.length }} total</UBadge
-                >
-              </div>
-            </template>
-            <div class="space-y-6">
-              <!-- Existing Tickets -->
-              <div v-if="tickets.length" class="grid gap-4">
-                <div
-                  v-for="t in tickets"
-                  :key="t.id"
-                  class="flex items-start justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                >
-                  <div class="min-w-0">
-                    <p class="font-medium text-gray-900 dark:text-white truncate">{{ t.name }}</p>
-                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                      ₦{{ Number(t.price).toLocaleString() }} • Qty {{ t.quantity }}
-                      <span
-                        v-if="t.salesStart || t.salesEnd"
-                        class="ml-2 text-xs text-gray-500 dark:text-gray-400"
-                      >
-                        ({{ t.salesStart ? formatDate(t.salesStart) : '—' }} →
-                        {{ t.salesEnd ? formatDate(t.salesEnd) : '—' }})
-                      </span>
-                    </p>
-                    <p
-                      v-if="t.description"
-                      class="mt-2 text-sm text-gray-500 dark:text-gray-400 line-clamp-2"
-                    >
-                      {{ t.description }}
-                    </p>
-                  </div>
-                  <div class="flex items-center gap-2 ml-4">
-                    <UBadge
-                      size="xs"
-                      :color="t.isPublic ? 'success' : 'neutral'"
-                      variant="subtle"
-                      >{{ t.isPublic ? 'Public' : 'Hidden' }}</UBadge
-                    >
-                    <UButton
-                      size="xs"
-                      color="error"
-                      variant="ghost"
-                      icon="i-heroicons-trash"
-                      @click="removeTicket(t.id)"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
-                <h4 class="text-sm font-semibold mb-3">Create Ticket</h4>
-                <div class="grid md:grid-cols-2 gap-3">
-                  <UInput v-model="newTicket.name" placeholder="Ticket name (e.g., Member)" />
-                  <UInput v-model="newTicket.price" type="number" placeholder="Price (₦)" />
-                  <UInput
-                    v-model="newTicket.quantity"
-                    type="number"
-                    placeholder="Quantity (optional)"
-                  />
-                  <div class="grid grid-cols-2 gap-3">
-                    <UInput
-                      v-model="newTicket.salesStart"
-                      type="date"
-                      placeholder="Sales start (optional)"
-                    />
-                    <UInput
-                      v-model="newTicket.salesEnd"
-                      type="date"
-                      placeholder="Sales end (optional)"
-                    />
-                  </div>
-                  <div class="md:col-span-2">
-                    <UTextarea
-                      v-model="newTicket.description"
-                      placeholder="Description (optional)"
-                      :rows="3"
-                      class="w-full"
-                    />
-                  </div>
-                </div>
-                <div class="mt-3 flex justify-end">
-                  <UButton :disabled="!canAddTicket" icon="i-heroicons-plus" @click="addTicket"
-                    >Add Ticket</UButton
-                  >
-                </div>
-              </div>
-            </div>
-          </UCard>
-        </template>
+        <AdminEventsTicketsTab v-if="event" v-show="currentTab === 'Tickets'" :event="event" />
 
         <!-- Registrations Tab -->
-        <template v-else-if="currentTab === 'Registrations'">
-          <UCard>
-            <template #header>
-              <h3 class="text-lg font-semibold">Registrations</h3>
-            </template>
-            <div class="space-y-4">
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div>
-                  <div class="text-2xl font-semibold text-gray-900 dark:text-white">
-                    {{ event.registrations }}
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Registered</div>
-                </div>
-                <div>
-                  <div class="text-2xl font-semibold text-gray-900 dark:text-white">
-                    {{ event.capacity }}
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Capacity</div>
-                </div>
-                <div>
-                  <div class="text-2xl font-semibold text-gray-900 dark:text-white">
-                    {{ occupancy }}%
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Occupancy</div>
-                </div>
-              </div>
+        <AdminEventsRegistrationsTab
+          v-show="currentTab === 'Registrations'"
+          :event-title="event.title"
+          :rows="allRegistrations"
+          :format-date="_formatDate"
+          :get-status-badge-class="_getStatusBadgeClass"
+          :get-type-badge-class="_getTypeBadgeClass"
+          :get-reg-action-items="_getRegActionItems"
+        />
 
-              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <UInput
-                  v-model="regSearch"
-                  placeholder="Search by name, email, reference..."
-                  icon="i-heroicons-magnifying-glass"
-                  autocomplete="off"
-                  class="w-full sm:w-72"
-                />
-                <div class="flex gap-2">
-                  <UBadge color="neutral" variant="subtle"
-                    >{{ filteredEventRegistrations.length }} result(s)</UBadge
-                  >
-                  <UButton
-                    color="neutral"
-                    variant="soft"
-                    icon="i-heroicons-arrow-down-tray"
-                    @click="exportEvent"
-                    >Export CSV</UButton
-                  >
-                </div>
-              </div>
-
-              <div
-                class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
-              >
-                <div class="overflow-x-auto">
-                  <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
-                      <tr>
-                        <th
-                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                        >
-                          Name
-                        </th>
-                        <th
-                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                        >
-                          Email
-                        </th>
-                        <th
-                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                        >
-                          Type
-                        </th>
-                        <th
-                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                        >
-                          Date
-                        </th>
-                        <th
-                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                        >
-                          Amount
-                        </th>
-                        <th
-                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                        >
-                          Status
-                        </th>
-                        <th
-                          class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                        >
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody
-                      class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
-                    >
-                      <tr v-for="reg in paginatedEventRegistrations" :key="reg.id">
-                        <td
-                          class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white"
-                        >
-                          {{ reg.name }}
-                        </td>
-                        <td
-                          class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300"
-                        >
-                          {{ reg.email }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                          <span
-                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                            :class="getTypeBadgeClass(reg.type)"
-                          >
-                            {{ reg.type }}
-                          </span>
-                        </td>
-                        <td
-                          class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300"
-                        >
-                          {{ formatDate(reg.date) }}
-                        </td>
-                        <td
-                          class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white"
-                        >
-                          ₦{{ reg.amount.toLocaleString() }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                          <span
-                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                            :class="getStatusBadgeClass(reg.status)"
-                          >
-                            {{ reg.status }}
-                          </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <UDropdownMenu :items="getRegActionItems(reg)">
-                            <UButton
-                              color="neutral"
-                              variant="ghost"
-                              size="xs"
-                              icon="i-heroicons-ellipsis-horizontal"
-                              class="rounded-full"
-                            />
-                          </UDropdownMenu>
-                        </td>
-                      </tr>
-                      <tr v-if="paginatedEventRegistrations.length === 0">
-                        <td
-                          colspan="7"
-                          class="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400"
-                        >
-                          No registrations for this event.
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                <div
-                  class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between"
-                >
-                  <p class="text-sm text-gray-700 dark:text-gray-300">
-                    Showing <span class="font-medium">{{ regPagination.from }}</span> to
-                    <span class="font-medium">{{ regPagination.to }}</span> of
-                    <span class="font-medium">{{ regPagination.total }}</span> results
-                  </p>
-                  <div class="flex space-x-2">
-                    <UButton
-                      color="neutral"
-                      variant="ghost"
-                      :disabled="regPagination.currentPage === 1"
-                      icon="i-heroicons-chevron-left"
-                      @click="regPagination.currentPage--"
-                    />
-                    <UButton
-                      color="neutral"
-                      variant="ghost"
-                      :disabled="
-                        regPagination.currentPage * regPagination.perPage >= regPagination.total
-                      "
-                      icon="i-heroicons-chevron-right"
-                      @click="regPagination.currentPage++"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </UCard>
-        </template>
+        <!-- Submissions Tab -->
+        <AdminEventsSubmissionsTab
+          v-if="event"
+          v-show="currentTab === 'Submissions'"
+          :event-id="event.id"
+        />
 
         <!-- Sponsors Tab -->
-        <template v-else-if="currentTab === 'Sponsors'">
-          <UCard>
-            <template #header>
-              <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold">Sponsors</h3>
-                <UBadge v-if="event?.sponsors?.length" color="neutral" variant="subtle"
-                  >{{ event?.sponsors?.length }} total</UBadge
-                >
-              </div>
-            </template>
-            <div class="space-y-6">
-              <div
-                v-if="event?.sponsors && event.sponsors.length"
-                class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
-              >
-                <div
-                  v-for="s in event.sponsors"
-                  :key="s.id"
-                  class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700"
-                >
-                  <img
-                    :src="s.logoUrl"
-                    :alt="s.name"
-                    class="w-16 h-10 object-contain bg-white rounded"
-                  />
-                  <div class="min-w-0">
-                    <div class="flex items-center gap-2">
-                      <p class="font-medium truncate">{{ s.name }}</p>
-                      <UBadge v-if="s.tier" size="xs" color="primary" variant="subtle">{{
-                        s.tier
-                      }}</UBadge>
-                    </div>
-                    <p
-                      v-if="s.website"
-                      class="text-xs text-primary-600 dark:text-primary-400 truncate"
-                    >
-                      {{ s.website }}
-                    </p>
-                  </div>
-                  <div class="flex-1" />
-                  <UButton
-                    size="xs"
-                    color="error"
-                    variant="ghost"
-                    icon="i-heroicons-trash"
-                    @click="removeSponsor(s.id)"
-                  />
-                </div>
-              </div>
-
-              <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
-                <h4 class="text-sm font-semibold mb-3">Add Sponsor</h4>
-                <div class="grid md:grid-cols-2 gap-3">
-                  <UInput v-model="newSponsor.name" placeholder="Sponsor name" />
-                  <USelect
-                    v-model="newSponsor.tier"
-                    :items="sponsorTierOptions"
-                    placeholder="Tier (optional)"
-                  />
-                  <UInput v-model="newSponsor.logoUrl" placeholder="Logo URL" />
-                  <UInput v-model="newSponsor.website" placeholder="Website (optional)" />
-                </div>
-                <div class="mt-3 flex justify-end">
-                  <UButton
-                    :disabled="!newSponsor.name || !newSponsor.logoUrl"
-                    icon="i-heroicons-plus"
-                    @click="addSponsor"
-                  >
-                    Add Sponsor
-                  </UButton>
-                </div>
-              </div>
-            </div>
-          </UCard>
-        </template>
+        <AdminEventsSponsorsTab v-if="event" v-show="currentTab === 'Sponsors'" :event="event" />
 
         <!-- Gallery Tab -->
-        <template v-else-if="currentTab === 'Gallery'">
-          <UCard>
-            <template #header>
-              <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold">Gallery</h3>
-                <UBadge v-if="event?.gallery?.length" color="neutral" variant="subtle"
-                  >{{ event?.gallery?.length }} items</UBadge
-                >
-              </div>
-            </template>
-            <div class="space-y-6">
-              <div
-                v-if="event?.gallery && event.gallery.length"
-                class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
-              >
-                <div
-                  v-for="m in event.gallery"
-                  :key="m.id"
-                  class="group relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
-                >
-                  <img
-                    v-if="m.type !== 'video'"
-                    :src="m.url"
-                    :alt="m.caption || 'Media'"
-                    class="w-full h-40 object-cover"
-                  />
-                  <div class="p-2 text-sm flex items-center justify-between">
-                    <p class="truncate">{{ m.caption || '—' }}</p>
-                    <UButton
-                      size="xs"
-                      color="error"
-                      variant="ghost"
-                      icon="i-heroicons-trash"
-                      @click="removeMedia(m.id)"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
-                <h4 class="text-sm font-semibold mb-3">Add Media</h4>
-                <div class="grid md:grid-cols-3 gap-3">
-                  <USelect v-model="newMedia.type" :options="mediaTypeOptions" />
-                  <UInput v-model="newMedia.url" placeholder="Media URL" />
-                  <UInput v-model="newMedia.caption" placeholder="Caption (optional)" />
-                </div>
-                <div class="mt-3 flex justify-end">
-                  <UButton :disabled="!newMedia.url" icon="i-heroicons-plus" @click="addMedia">
-                    Add Media
-                  </UButton>
-                </div>
-              </div>
-            </div>
-          </UCard>
-        </template>
+        <AdminEventsGalleryTab v-if="event" v-show="currentTab === 'Gallery'" :event="event" />
       </div>
 
       <!-- Sidebar -->
       <div class="space-y-6">
-        <UCard>
-          <template #header>
-            <h3 class="text-lg font-semibold">Actions</h3>
-          </template>
-          <div class="space-y-3">
-            <UButton block color="primary" icon="i-heroicons-share" variant="soft">Share</UButton>
-            <UButton
-              block
-              color="neutral"
-              icon="i-heroicons-document-duplicate"
-              variant="soft"
-              @click="duplicateEvent"
-              >Duplicate</UButton
-            >
-            <UButton
-              block
-              color="neutral"
-              icon="i-heroicons-arrow-down-tray"
-              variant="soft"
-              @click="exportEvent"
-              >Export</UButton
-            >
-            <UButton
-              block
-              color="warning"
-              icon="i-heroicons-x-circle"
-              variant="soft"
-              @click="cancelEvent"
-              >Cancel</UButton
-            >
-          </div>
-        </UCard>
+        <AdminEventsSidebarActions
+          v-if="event"
+          :event="event"
+          @share="shareEvent"
+          @duplicate="duplicateEvent"
+          @export="exportEvent"
+          @cancel="cancelEvent"
+        />
 
-        <UCard>
-          <template #header>
-            <h3 class="text-lg font-semibold">Meta</h3>
-          </template>
-          <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-2">
-            <li><span class="font-medium">ID:</span> {{ event?.id }}</li>
-            <li><span class="font-medium">Type:</span> {{ event?.type }}</li>
-            <li><span class="font-medium">Status:</span> {{ event?.status }}</li>
-            <li><span class="font-medium">Public:</span> Yes</li>
-            <li v-if="event?.sponsors">
-              <span class="font-medium">Sponsors:</span> {{ event?.sponsors?.length }}
-            </li>
-            <li v-if="event?.gallery">
-              <span class="font-medium">Gallery items:</span> {{ event?.gallery?.length }}
-            </li>
-          </ul>
-        </UCard>
+        <AdminEventsSidebarMeta v-if="event" :event="event" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { nextTick } from 'vue'
+import type { AbstractSubmission } from '../../../../types/submissions'
 definePageMeta({ layout: 'admin' })
 
 const route = useRoute()
 const id = computed(() => Number(route.params.id))
 
 const { events }: { events: Ref<EventItem[]> } = useEvents()
+const { getEventSubmissions, _updateSubmissionStatus } = useSubmissions()
 const event = computed(() => events.value.find(e => e.id === id.value))
 
-// Derive a reasonable image for the event: first gallery image or a title-seeded placeholder
-const imageUrl = computed(() => {
-  const e = event.value
-  if (!e) return ''
-  const galleryImage = e.gallery?.find(g => (g.type ?? 'image') !== 'video')?.url
-  return galleryImage || `https://picsum.photos/seed/${slugify(e.title)}/1200/800`
-})
+// Image URL computation is now handled in the component where it's needed
 
 // Tabs
-const tabs = ['Details', 'Tickets', 'Sponsors', 'Registrations', 'Gallery']
-const currentTab = ref<'Details' | 'Tickets' | 'Registrations' | 'Sponsors' | 'Gallery'>('Details')
+const tabs = ['Details', 'Tickets', 'Sponsors', 'Registrations', 'Submissions', 'Gallery']
+const currentTab = ref<
+  'Details' | 'Tickets' | 'Registrations' | 'Sponsors' | 'Submissions' | 'Gallery'
+>('Details')
 
-const occupancy = computed(() => {
-  if (!event.value) return 0
-  const cap = Number(event.value.capacity) || 0
-  const reg = Number(event.value.registrations) || 0
-  if (cap === 0) return 0
-  return Math.min(100, Math.round((reg / cap) * 100))
-})
+// Occupancy computation is now handled in the DetailsTab component
 
-function statusColor(
-  status: EventItem['status']
-): 'neutral' | 'success' | 'primary' | 'secondary' | 'info' | 'warning' | 'error' {
-  const colors: Record<
-    string,
-    'neutral' | 'success' | 'primary' | 'secondary' | 'info' | 'warning' | 'error'
-  > = {
-    draft: 'neutral',
-    published: 'primary',
-    registration_open: 'success',
-    registration_closed: 'warning',
-    ongoing: 'secondary',
-    completed: 'info',
-    cancelled: 'error',
-  }
-  return colors[status] || 'neutral'
-}
+// Status color logic is now handled in the DetailsTab component
 
-function formatDateRange(startDate: string, endDate?: string): string {
+// Date range formatting is now handled in the DetailsTab component
+function _formatDateRange(startDate: string, endDate?: string): string {
   const start = new Date(startDate)
   const end = endDate ? new Date(endDate) : null
   const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' }
@@ -676,7 +144,7 @@ function formatDateRange(startDate: string, endDate?: string): string {
   return `${start.toLocaleDateString('en-US', options)} - ${end.toLocaleDateString('en-US', options)}`
 }
 
-function slugify(s: string) {
+function _slugify(s: string) {
   return s
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
@@ -684,7 +152,7 @@ function slugify(s: string) {
     .replace(/\s+/g, '-')
 }
 
-function onImgError(e: Event) {
+function _onImgError(e: Event) {
   const el = e.target as HTMLImageElement | null
   if (!el) return
   let idx = parseInt(el.dataset?.fallbackIdx ?? '0', 10)
@@ -717,6 +185,14 @@ function duplicateEvent() {
     title: 'Event duplicated',
     description: `Duplicated "${event.value.title}"`,
     color: 'success',
+  })
+}
+function shareEvent() {
+  if (!event.value) return
+  useToast().add({
+    title: 'Share',
+    description: `Share "${event.value.title}"`,
+    color: 'info',
   })
 }
 function exportEvent() {
@@ -754,8 +230,8 @@ type EventTicket = {
   isPublic: boolean
 }
 
-// Ensure tickets array exists on the event when accessed
-const tickets = computed<EventTicket[]>(() => {
+// Tickets management is now handled in the TicketsTab component
+const _tickets = computed<EventTicket[]>(() => {
   type EventWithTickets = EventItem & { tickets?: EventTicket[] }
   const e = event.value as EventWithTickets | undefined
   if (!e) return []
@@ -785,7 +261,8 @@ const canAddTicket = computed(
   () => !!newTicket.name && Number(newTicket.price) >= 0 && Number(newTicket.quantity) >= 0
 )
 
-function addTicket() {
+// Ticket management functions are now handled in the TicketsTab component
+function _addTicket() {
   if (!event.value || !canAddTicket.value) return
   const t: EventTicket = {
     id: Date.now(),
@@ -810,7 +287,7 @@ function addTicket() {
   useToast().add({ title: 'Ticket added', color: 'success' })
 }
 
-function removeTicket(id: number) {
+function _removeTicket(id: number) {
   if (!event.value) return
   const e = event.value as EventItem & { tickets?: EventTicket[] }
   if (!Array.isArray(e.tickets)) return
@@ -818,8 +295,40 @@ function removeTicket(id: number) {
   useToast().add({ title: 'Ticket removed', color: 'neutral' })
 }
 
-// Sponsors management
-const sponsorTierOptions = [
+// Track if component is mounted to prevent updates after unmount
+const isMounted = ref(true)
+onUnmounted(() => {
+  isMounted.value = false
+})
+
+async function switchTab(tab: string) {
+  // Skip if no tab specified or component is unmounting
+  if (!tab || !isMounted.value) return
+
+  try {
+    // Close any open dropdowns/menus first
+    const active = document.activeElement as HTMLElement | null
+    active?.blur?.()
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+
+    // Allow UI to update before switching tabs
+    await nextTick()
+
+    // Check again after tick in case component started unmounting
+    if (!isMounted.value) return
+
+    // Schedule the tab switch in the next frame
+    requestAnimationFrame(() => {
+      if (!isMounted.value) return
+      currentTab.value = tab as typeof currentTab.value
+    })
+  } catch (error) {
+    console.error('Error switching tabs:', error)
+  }
+}
+
+// Sponsors management is now handled in the SponsorsTab component
+const _sponsorTierOptions = [
   { label: 'Platinum', value: 'platinum' },
   { label: 'Gold', value: 'gold' },
   { label: 'Silver', value: 'silver' },
@@ -832,7 +341,7 @@ const newSponsor = reactive<{ name: string; tier?: string; logoUrl: string; webs
   logoUrl: '',
   website: '',
 })
-function addSponsor() {
+function _addSponsor() {
   if (!event.value) return
   if (!event.value.sponsors) event.value.sponsors = []
   const sponsor = {
@@ -847,14 +356,14 @@ function addSponsor() {
   Object.assign(newSponsor, { name: '', tier: undefined, logoUrl: '', website: '' })
   useToast().add({ title: 'Sponsor added', color: 'success' })
 }
-function removeSponsor(sponsorId: number) {
+function _removeSponsor(sponsorId: number) {
   if (!event.value?.sponsors) return
   event.value.sponsors = event.value.sponsors.filter(s => s.id !== sponsorId)
   useToast().add({ title: 'Sponsor removed', color: 'neutral' })
 }
 
-// Gallery management
-const mediaTypeOptions = [
+// Gallery management is now handled in the GalleryTab component
+const _mediaTypeOptions = [
   { label: 'Image', value: 'image' },
   { label: 'Video', value: 'video' },
 ]
@@ -863,7 +372,7 @@ const newMedia = reactive<{ url: string; caption?: string; type: 'image' | 'vide
   caption: '',
   type: 'image',
 })
-function addMedia() {
+function _addMedia() {
   if (!event.value) return
   if (!event.value.gallery) event.value.gallery = []
   const media = {
@@ -877,7 +386,7 @@ function addMedia() {
   Object.assign(newMedia, { url: '', caption: '', type: 'image' })
   useToast().add({ title: 'Media added', color: 'success' })
 }
-function removeMedia(mediaId: number) {
+function _removeMedia(mediaId: number) {
   if (!event.value?.gallery) return
   event.value.gallery = event.value.gallery.filter(m => m.id !== mediaId)
   useToast().add({ title: 'Media removed', color: 'neutral' })
@@ -1045,7 +554,7 @@ const filteredEventRegistrations = computed(() => {
   )
 })
 
-const paginatedEventRegistrations = computed(() => {
+const _paginatedEventRegistrations = computed(() => {
   const start = (regPagination.value.currentPage - 1) * regPagination.value.perPage
   const end = start + regPagination.value.perPage
   return filteredEventRegistrations.value.slice(start, end)
@@ -1063,13 +572,13 @@ watch(
   { immediate: true }
 )
 
-function formatDate(dateString: string): string {
+function _formatDate(dateString: string): string {
   if (!dateString) return ''
   const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' }
   return new Date(dateString).toLocaleDateString('en-US', options)
 }
 
-function getStatusBadgeClass(status: string): string {
+function _getStatusBadgeClass(status: string): string {
   const statusClasses: Record<string, string> = {
     Paid: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
     Pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
@@ -1079,7 +588,7 @@ function getStatusBadgeClass(status: string): string {
   return statusClasses[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
 }
 
-function getTypeBadgeClass(type: string): string {
+function _getTypeBadgeClass(type: string): string {
   const typeClasses: Record<string, string> = {
     Member: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
     'Non-Member': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
@@ -1090,7 +599,7 @@ function getTypeBadgeClass(type: string): string {
   return typeClasses[type] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
 }
 
-function getRegActionItems(reg: RegistrationRow) {
+function _getRegActionItems(reg: RegistrationRow) {
   return [
     [{ label: 'View Details', icon: 'i-heroicons-eye', to: `/admin/registrations/${reg.id}` }],
     [
@@ -1101,5 +610,137 @@ function getRegActionItems(reg: RegistrationRow) {
       },
     ],
   ]
+}
+
+// Submissions management
+const _submissionSearch = ref('')
+const _submissionStatusFilter = ref('')
+const _submissionCategoryFilter = ref('')
+
+const eventSubmissions = computed<AbstractSubmission[]>(() => {
+  return event.value ? (getEventSubmissions(event.value.id) as AbstractSubmission[]) : []
+})
+
+const _submissionStatusOptions = [
+  { label: 'All Status', value: '' },
+  { label: 'Pending', value: 'pending' },
+  { label: 'Under Review', value: 'under_review' },
+  { label: 'Accepted', value: 'accepted' },
+  { label: 'Rejected', value: 'rejected' },
+  { label: 'Revision Required', value: 'revision_required' },
+]
+
+const _submissionCategoryOptions = [
+  { label: 'All Categories', value: '' },
+  { label: 'Oral Presentation', value: 'oral' },
+  { label: 'Poster Presentation', value: 'poster' },
+  { label: 'Workshop Proposal', value: 'workshop' },
+]
+
+const _filteredSubmissions = computed<AbstractSubmission[]>(() => {
+  let filtered = eventSubmissions.value
+
+  if (_submissionSearch.value) {
+    const search = _submissionSearch.value.toLowerCase()
+    filtered = filtered.filter(
+      s =>
+        s.title.toLowerCase().includes(search) ||
+        s.authors.some(author => author.toLowerCase().includes(search)) ||
+        s.keywords.some(keyword => keyword.toLowerCase().includes(search)) ||
+        s.correspondingAuthor.name.toLowerCase().includes(search)
+    )
+  }
+
+  if (_submissionStatusFilter.value) {
+    filtered = filtered.filter(s => s.status === _submissionStatusFilter.value)
+  }
+
+  if (_submissionCategoryFilter.value) {
+    filtered = filtered.filter(s => s.category === _submissionCategoryFilter.value)
+  }
+
+  return filtered
+})
+
+// Typed counters for status summaries
+const _acceptedCount = computed<number>(
+  () => eventSubmissions.value.filter((s: AbstractSubmission) => s.status === 'accepted').length
+)
+const _underReviewCount = computed<number>(
+  () => eventSubmissions.value.filter((s: AbstractSubmission) => s.status === 'under_review').length
+)
+const _pendingCount = computed<number>(
+  () => eventSubmissions.value.filter((s: AbstractSubmission) => s.status === 'pending').length
+)
+const _rejectedCount = computed<number>(
+  () => eventSubmissions.value.filter((s: AbstractSubmission) => s.status === 'rejected').length
+)
+
+type BadgeColor = 'neutral' | 'success' | 'primary' | 'secondary' | 'info' | 'warning' | 'error'
+function _getSubmissionStatusColor(status: AbstractSubmission['status']): BadgeColor {
+  const colors: Record<AbstractSubmission['status'], BadgeColor> = {
+    pending: 'secondary',
+    under_review: 'warning',
+    accepted: 'success',
+    rejected: 'error',
+    revision_required: 'info',
+  }
+  return colors[status] ?? 'neutral'
+}
+
+interface SubmissionAction {
+  label: string
+  icon: string
+  click: () => void
+  color?: string
+}
+
+type _SubmissionActionGroup = SubmissionAction[][]
+
+function _viewSubmission(submission: AbstractSubmission) {
+  // For now, just show a toast. In a real app, this would open a detailed modal
+  useToast().add({
+    title: 'View Submission',
+    description: `Opening details for "${submission.title}"`,
+    color: 'info',
+  })
+}
+
+function _getSubmissionActions(submission: AbstractSubmission) {
+  return [
+    [
+      {
+        label: 'Accept',
+        icon: 'i-heroicons-check-circle',
+        click: () => changeSubmissionStatus(submission.id, 'accepted'),
+      },
+    ],
+    [
+      {
+        label: 'Request Revision',
+        icon: 'i-heroicons-pencil-square',
+        click: () => changeSubmissionStatus(submission.id, 'revision_required'),
+      },
+    ],
+    [
+      {
+        label: 'Reject',
+        icon: 'i-heroicons-x-circle',
+        click: () => changeSubmissionStatus(submission.id, 'rejected'),
+      },
+    ],
+  ]
+}
+
+function changeSubmissionStatus(submissionId: number, newStatus: AbstractSubmission['status']) {
+  const submission = allSubmissions.value.find(s => s.id === submissionId)
+  if (submission) {
+    submission.status = newStatus
+    useToast().add({
+      title: 'Submission Updated',
+      description: `Status changed to ${newStatus.replace('_', ' ')}`,
+      color: 'success',
+    })
+  }
 }
 </script>

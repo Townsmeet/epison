@@ -45,6 +45,7 @@
                 v-for="link in navLinks"
                 :key="link.to"
                 :to="link.to"
+                :target="link.target || undefined"
                 class="relative px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group"
                 :class="{
                   'text-primary-600 dark:text-primary-400': isActive(link.to),
@@ -127,6 +128,7 @@
               v-for="link in navLinks"
               :key="`mobile-${link.to}`"
               :to="link.to"
+              :target="link.target || undefined"
               class="flex items-center px-4 py-3 text-base font-medium rounded-lg transition-colors"
               :class="[
                 isActive(link.to)
@@ -236,6 +238,7 @@
               <li v-for="link in footerLinks.quickLinks" :key="link.to">
                 <NuxtLink
                   :to="link.to"
+                  :target="link.target || undefined"
                   class="flex items-center text-sm text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors group"
                 >
                   {{ link.label }}
@@ -258,6 +261,7 @@
               <li v-for="link in footerLinks.resources" :key="link.to">
                 <NuxtLink
                   :to="link.to"
+                  :target="link.target || undefined"
                   class="flex items-center text-sm text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors group"
                 >
                   {{ link.label }}
@@ -356,12 +360,14 @@ const isDark = computed({
   },
 })
 
-const navLinks = [
+type NavLink = { label: string; to: string; target?: string }
+const navLinks: NavLink[] = [
   { label: 'Home', to: '/' },
   { label: 'About', to: '/about' },
   { label: 'Events', to: '/events' },
   { label: 'Membership', to: '/membership' },
   { label: 'Blog', to: '/blog' },
+  { label: 'Journal', to: 'https://jeson.org.ng/index.php/jeson', target: '_blank' },
   { label: 'Contact', to: '/contact' },
 ]
 
@@ -388,12 +394,14 @@ const socialLinks = [
   },
 ]
 
-const footerLinks = {
+type FooterLink = { label: string; to: string; target?: string }
+const footerLinks: { quickLinks: FooterLink[]; resources: FooterLink[] } = {
   quickLinks: [
     { label: 'About Us', to: '/about' },
     { label: 'Events', to: '/events' },
     { label: 'Membership', to: '/membership' },
     { label: 'Blog', to: '/blog' },
+    { label: 'Journal', to: 'https://jeson.org.ng/index.php/jeson', target: '_blank' },
   ],
   resources: [
     { label: 'Terms', to: '/terms' },
