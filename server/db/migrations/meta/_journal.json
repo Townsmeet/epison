@@ -8,6 +8,13 @@
       "when": 1758253971952,
       "tag": "0000_natural_risque",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1758376414991,
+      "tag": "0001_gifted_iron_patriot",
+      "breakpoints": true
     }
   ]
 }

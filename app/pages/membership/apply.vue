@@ -345,7 +345,10 @@
                 </p>
               </div>
 
-              <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+              <div
+                v-if="!isEditMode"
+                class="rounded-lg border border-gray-200 dark:border-gray-700 p-4"
+              >
                 <div class="flex items-center justify-between">
                   <div>
                     <p class="text-sm text-gray-500">Application</p>
@@ -363,7 +366,7 @@
                   </div>
                 </div>
               </div>
-              <!-- Pay handled on submit button below -->
+              <!-- Pay handled on submit button below; hidden in edit mode -->
             </div>
 
             <!-- Navigation -->
@@ -387,7 +390,7 @@
                   :loading="isSubmitting"
                   :disabled="isSubmitting"
                 >
-                  Pay & Submit
+                  {{ isEditMode ? 'Save Changes' : 'Pay & Submit' }}
                 </UButton>
               </div>
             </div>
@@ -401,16 +404,21 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
 
-useHead({
-  title: 'Apply for Membership - EPISON',
+const route = useRoute()
+const isEditMode = computed(() => route.query.edit === '1' || route.query.edit === 'true')
+const memberId = computed(() => Number(route.query.id || 0))
+
+useHead(() => ({
+  title: isEditMode.value ? 'Edit Member - EPISON' : 'Apply for Membership - EPISON',
   meta: [
     {
       name: 'description',
-      content:
-        'Apply for membership with the Epidemiological Society of Nigeria (EPISON) and join our community of public health professionals.',
+      content: isEditMode.value
+        ? 'Edit your EPISON membership profile information.'
+        : 'Apply for membership with the Epidemiological Society of Nigeria (EPISON) and join our community of public health professionals.',
     },
   ],
-})
+}))
 
 const toast = useToast()
 const router = useRouter()
@@ -441,7 +449,7 @@ declare global {
   }
 }
 
-const steps = [
+const baseSteps = [
   { key: 'personal', label: 'Personal' },
   { key: 'employment', label: 'Employment' },
   { key: 'languages', label: 'Languages' },
@@ -449,6 +457,10 @@ const steps = [
   { key: 'classification', label: 'Classification' },
   { key: 'payment', label: 'Payment' },
 ]
+const steps = ref(baseSteps)
+if (isEditMode.value) {
+  steps.value = baseSteps.filter(s => s.key !== 'payment')
+}
 
 const currentStep = ref(1)
 const titles = ['Dr', 'Mr', 'Mrs', 'Miss', 'Prof', 'Engr', 'Chief', 'Ms']
@@ -594,7 +606,6 @@ function removePublication(index: number) {
 // Using UFileUpload slot's open() to trigger file dialog; no extra ref needed
 
 // Payment: compute amount based on membership type from query
-const route = useRoute()
 const feeMap: Record<string, number> = {
   regular: 30000,
   'regular iea': 50000,
@@ -784,10 +795,10 @@ function onToggleExpertise(opt: string, checked: boolean) {
 }
 
 function goToStep(n: number) {
-  if (n >= 1 && n <= steps.length) currentStep.value = n
+  if (n >= 1 && n <= steps.value.length) currentStep.value = n
 }
 function nextStep() {
-  if (currentStep.value < steps.length) currentStep.value += 1
+  if (currentStep.value < steps.value.length) currentStep.value += 1
 }
 function prevStep() {
   if (currentStep.value > 1) currentStep.value -= 1
@@ -801,7 +812,27 @@ function onEmailInput(e: Event) {
 const submitApplication = async () => {
   isSubmitting.value = true
   try {
-    // Start Paystack and wait for success
+    if (isEditMode.value) {
+      // Edit mode: save changes without payment
+      // TODO: Replace with real API call e.g., await $fetch(`/api/memberships/${memberId.value}`, { method: 'PUT', body: { ...form } })
+      await new Promise(resolve => setTimeout(resolve, 800))
+      toast.add({
+        title: 'Changes Saved',
+        description: 'Membership details have been updated successfully.',
+        icon: 'i-heroicons-check-circle',
+        color: 'success',
+      })
+      // Redirect back to admin member detail if coming from admin
+      const backTo = route.query.back as string | undefined
+      if (backTo) {
+        await router.push(backTo)
+      } else if (memberId.value) {
+        await router.push(`/admin/memberships/${memberId.value}`)
+      }
+      return
+    }
+
+    // Apply mode: Start Paystack and wait for success
     const { reference } = await startPaystackPayment()
 
     // TODO: submit to API (include Paystack reference and form data)
@@ -816,12 +847,82 @@ const submitApplication = async () => {
     await router.push('/membership/success')
     return
   } catch (e) {
-    // Payment cancelled or failed; keep user on the page
+    // Payment cancelled or failed (apply mode) or save failed (edit mode)
     console.error(e)
   } finally {
     isSubmitting.value = false
   }
 }
+
+// Edit mode: Prefill the form
+async function loadMemberForEdit() {
+  if (!isEditMode.value || !memberId.value) return
+  try {
+    // TODO: Replace with real API call
+    // const member = await $fetch(`/api/memberships/${memberId.value}`)
+    // Mock fallback based on the fields used in admin detail
+    const mockMember = {
+      title: 'Dr',
+      nameFamily: 'Doe',
+      nameMiddle: 'Johnson',
+      nameFirst: 'John',
+      sex: 'Male',
+      dob: '1985-03-15',
+      address: '123 Victoria Island, Lagos, Nigeria 101001',
+      telephone: '+234 801 234 5678',
+      fax: '+234 1 234 5678',
+      email: 'john.doe@example.com',
+      position: 'Senior Epidemiologist',
+      employer: 'Lagos University Teaching Hospital, Idi-Araba, Lagos, Nigeria',
+      department: 'Department of Community Health',
+      qualifications: 'MBBS (2008), MPH (2012), PhD Epidemiology (2016)',
+      experience:
+        'Over 10 years in public health research, disease surveillance, and outbreak investigation.',
+      motherTongue: 'Yoruba',
+      otherLanguages: ['English', 'French'],
+      otherLanguageText: 'Hausa (conversational)',
+      expertiseDescription: 'Infectious disease epidemiology and surveillance systems',
+      expertise: ['Infectious Disease', 'Evaluation', 'Health Services'],
+      expertiseOther: 'Outbreak Investigation',
+      agency: 'Hospital',
+      typeOfWork: 'Clinical',
+      typeOfWorkOther: '',
+    }
+
+    // Map to form
+    form.title = mockMember.title
+    form.nameFamily = mockMember.nameFamily
+    form.nameMiddle = mockMember.nameMiddle
+    form.nameFirst = mockMember.nameFirst
+    form.sex = mockMember.sex
+    form.dob = mockMember.dob
+    form.address = mockMember.address
+    form.telephone = mockMember.telephone
+    form.fax = mockMember.fax || ''
+    form.email = mockMember.email
+    form.position = mockMember.position
+    form.department = mockMember.department || ''
+    form.employer = mockMember.employer
+    form.qualifications = mockMember.qualifications || ''
+    form.experience = mockMember.experience || ''
+    form.motherTongue = mockMember.motherTongue || ''
+    form.otherLanguages = mockMember.otherLanguages || []
+    form.otherLanguageText = mockMember.otherLanguageText || ''
+    form.expertiseDescription = mockMember.expertiseDescription || ''
+    form.expertise = mockMember.expertise || []
+    form.expertiseOther = mockMember.expertiseOther || ''
+    form.agency = mockMember.agency
+    form.typeOfWork = mockMember.typeOfWork
+    form.typeOfWorkOther = mockMember.typeOfWorkOther || ''
+  } catch (e) {
+    console.error('Failed to prefill member', e)
+    toast.add({ title: 'Could not load member details', color: 'warning' })
+  }
+}
+
+onMounted(() => {
+  if (isEditMode.value) loadMemberForEdit()
+})
 </script>
 
 <style>

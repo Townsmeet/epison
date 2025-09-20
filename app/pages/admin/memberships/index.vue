@@ -10,13 +10,13 @@
       >
         Export
       </UButton>
-      <UButton color="primary" icon="i-heroicons-plus" @click="isCreateMembershipOpen = true">
+      <UButton color="primary" icon="i-heroicons-plus" @click="navigateTo('/membership/apply')">
         Add Member
       </UButton>
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-6">
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
         <div class="flex items-center">
           <div class="flex-shrink-0">
@@ -27,7 +27,7 @@
             </div>
           </div>
           <div class="ml-4">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Members</p>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total</p>
             <p class="text-2xl font-semibold text-gray-900 dark:text-white">
               {{ membershipStats.total }}
             </p>
@@ -83,16 +83,34 @@
             <div
               class="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center"
             >
+              <UIcon name="i-heroicons-x-circle" class="w-5 h-5 text-red-600 dark:text-red-300" />
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Expired</p>
+            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+              {{ membershipStats.expired }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center"
+            >
               <UIcon
-                name="i-heroicons-exclamation-triangle"
-                class="w-5 h-5 text-red-600 dark:text-red-300"
+                name="i-heroicons-exclamation-circle"
+                class="w-5 h-5 text-gray-700 dark:text-gray-300"
               />
             </div>
           </div>
           <div class="ml-4">
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Inactive</p>
             <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-              {{ membershipStats.expiringSoon }}
+              {{ membershipStats.inactive }}
             </p>
           </div>
         </div>
@@ -221,6 +239,40 @@
         </table>
       </div>
     </div>
+
+    <!-- Confirmation Modal -->
+    <UModal v-model:open="confirmationModal.isOpen">
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold">{{ confirmationModal.title }}</h3>
+              <UButton
+                color="neutral"
+                variant="ghost"
+                icon="i-heroicons-x-mark"
+                @click="confirmationModal.isOpen = false"
+              />
+            </div>
+          </template>
+
+          <div class="py-4">
+            <p class="text-gray-600 dark:text-gray-400">{{ confirmationModal.message }}</p>
+          </div>
+
+          <template #footer>
+            <div class="flex justify-end space-x-3">
+              <UButton color="neutral" variant="ghost" @click="confirmationModal.isOpen = false">
+                Cancel
+              </UButton>
+              <UButton :color="confirmationModal.confirmColor" @click="confirmationModal.onConfirm">
+                {{ confirmationModal.confirmText }}
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
+    </UModal>
 
     <!-- Create Membership Modal -->
     <UModal v-model:open="isCreateMembershipOpen">
@@ -487,6 +539,14 @@ interface Member {
 
 const isCreateMembershipOpen = ref(false)
 const isCreating = ref(false)
+const confirmationModal = ref({
+  isOpen: false,
+  title: '',
+  message: '',
+  confirmText: 'Confirm',
+  confirmColor: 'primary' as const,
+  onConfirm: () => {},
+})
 const searchQuery = ref('')
 const selectedTypeItem = ref<{ label: string; value: string } | undefined>(undefined)
 const selectedStatusItem = ref<{ label: string; value: string } | undefined>(undefined)
@@ -530,11 +590,15 @@ const newMembership = ref({
   fees: '',
 })
 
-const membershipStats = ref({
-  total: 856,
-  active: 734,
-  pending: 45,
-  expiringSoon: 23,
+const membershipStats = computed(() => {
+  const list = memberships.value
+  const total = list.length
+  const active = list.filter(m => m.status === 'active').length
+  const pending = list.filter(m => m.status === 'pending').length
+  const expired = list.filter(m => m.status === 'expired').length
+  const suspended = list.filter(m => m.status === 'suspended').length
+  const inactive = expired + suspended
+  return { total, active, pending, expired, suspended, inactive }
 })
 
 // Set default status selection when the modal opens (after refs are initialized)
@@ -680,21 +744,25 @@ function getMemberActions(member: Member) {
       {
         label: 'Renew Membership',
         icon: 'i-heroicons-arrow-path',
-        click: () => renewMembership(member.id),
+        click: () => confirmRenewMembership(member),
       },
       {
         label: 'Send Reminder',
         icon: 'i-heroicons-envelope',
-        click: () => sendReminder(member.id),
+        click: () => confirmSendReminder(member),
       },
     ],
     [
       {
         label: 'Suspend Member',
         icon: 'i-heroicons-no-symbol',
-        click: () => suspendMember(member.id),
+        click: () => confirmSuspendMember(member),
       },
-      { label: 'Delete Member', icon: 'i-heroicons-trash', click: () => deleteMember(member.id) },
+      {
+        label: 'Delete Member',
+        icon: 'i-heroicons-trash',
+        click: () => confirmDeleteMember(member),
+      },
     ],
   ]
 }
@@ -734,7 +802,52 @@ function editMember(id: number) {
   navigateTo(`/admin/memberships/${id}/edit`)
 }
 
+function confirmRenewMembership(member: Member) {
+  confirmationModal.value = {
+    isOpen: true,
+    title: 'Renew Membership',
+    message: `Are you sure you want to renew the membership for ${member.name}? This will extend their membership period.`,
+    confirmText: 'Renew',
+    confirmColor: 'primary',
+    onConfirm: () => renewMembership(member.id),
+  }
+}
+
+function confirmSuspendMember(member: Member) {
+  confirmationModal.value = {
+    isOpen: true,
+    title: 'Suspend Member',
+    message: `Are you sure you want to suspend ${member.name}? They will lose access to member benefits.`,
+    confirmText: 'Suspend',
+    confirmColor: 'primary',
+    onConfirm: () => suspendMember(member.id),
+  }
+}
+
+function confirmDeleteMember(member: Member) {
+  confirmationModal.value = {
+    isOpen: true,
+    title: 'Delete Member',
+    message: `Are you sure you want to permanently delete ${member.name}? This action cannot be undone.`,
+    confirmText: 'Delete',
+    confirmColor: 'primary',
+    onConfirm: () => deleteMember(member.id),
+  }
+}
+
+function confirmSendReminder(member: Member) {
+  confirmationModal.value = {
+    isOpen: true,
+    title: 'Send Reminder',
+    message: `Send a renewal reminder email to ${member.name}?`,
+    confirmText: 'Send',
+    confirmColor: 'primary',
+    onConfirm: () => sendReminder(member.id),
+  }
+}
+
 function renewMembership(_id: number) {
+  confirmationModal.value.isOpen = false
   useToast().add({
     title: 'Membership renewed',
     description: 'Membership has been renewed successfully',
@@ -742,15 +855,8 @@ function renewMembership(_id: number) {
   })
 }
 
-function sendReminder(_id: number) {
-  useToast().add({
-    title: 'Reminder sent',
-    description: 'Renewal reminder has been sent to the member',
-    color: 'info',
-  })
-}
-
 function suspendMember(_id: number) {
+  confirmationModal.value.isOpen = false
   useToast().add({
     title: 'Member suspended',
     description: 'Member has been suspended',
@@ -759,10 +865,20 @@ function suspendMember(_id: number) {
 }
 
 function deleteMember(_id: number) {
+  confirmationModal.value.isOpen = false
   useToast().add({
     title: 'Member deleted',
     description: 'Member has been removed from the system',
     color: 'error',
+  })
+}
+
+function sendReminder(_id: number) {
+  confirmationModal.value.isOpen = false
+  useToast().add({
+    title: 'Reminder sent',
+    description: 'Renewal reminder has been sent to the member',
+    color: 'info',
   })
 }
 
