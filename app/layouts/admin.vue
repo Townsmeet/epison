@@ -132,6 +132,8 @@
 
 <script setup lang="ts">
 const sidebarOpen = ref(false)
+// Auth composable
+const { logout } = useAuth()
 
 const navigation = [
   { name: 'Dashboard', to: '/admin', icon: 'i-heroicons-home' },
@@ -159,7 +161,15 @@ const userMenuItems = [
     { label: 'Profile', icon: 'i-heroicons-user', to: '/admin/profile' },
     { label: 'Settings', icon: 'i-heroicons-cog-6-tooth', to: '/admin/settings' },
   ],
-  [{ label: 'Sign out', icon: 'i-heroicons-arrow-right-on-rectangle', click: () => {} }],
+  [
+    {
+      label: 'Sign out',
+      icon: 'i-heroicons-arrow-right-on-rectangle',
+      onSelect: async () => {
+        await logout()
+      },
+    },
+  ],
 ]
 
 const pageTitle = computed(() => {
