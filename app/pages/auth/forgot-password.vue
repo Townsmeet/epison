@@ -53,7 +53,7 @@
 import * as z from 'zod'
 import type { FormSubmitEvent } from '#ui/types'
 
-const isLoading = ref(false)
+const { requestPasswordReset, isLoading } = useAuth()
 
 const schema = z.object({
   email: z.string().email('Invalid email'),
@@ -65,32 +65,28 @@ const state = reactive<Partial<Schema>>({
   email: '',
 })
 
-async function onSubmit(event: FormSubmitEvent<Schema>) {
-  event.preventDefault() // added to resolve unused var error
+async function onSubmit(_event: FormSubmitEvent<Schema>) {
   try {
-    isLoading.value = true
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    // Show success message
+    const { error } = await requestPasswordReset(state.email!)
+
+    if (error) throw error
+
     useToast().add({
       title: 'Email sent',
       description: 'Check your email for a link to reset your password.',
       icon: 'i-heroicons-envelope',
       color: 'success',
     })
-    // Navigate back to login
+
     await navigateTo('/auth/login')
-  } catch (error) {
-    // Handle error
-    console.error(error)
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to send reset link'
     useToast().add({
       title: 'Error',
-      description: 'Failed to send reset link',
+      description: errorMessage,
       icon: 'i-heroicons-exclamation-circle',
       color: 'error',
     })
-  } finally {
-    isLoading.value = false
   }
 }
 

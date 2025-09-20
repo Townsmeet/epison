@@ -25,5 +25,7 @@ export default defineNuxtConfig({
       databaseUrl: process.env.NUXT_TURSO_DATABASE_URL,
       authToken: process.env.NUXT_TURSO_AUTH_TOKEN,
     },
+
+    brevoApiKey: process.env.NUXT_BREVO_API_KEY,
   },
 })

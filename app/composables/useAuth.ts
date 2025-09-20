@@ -55,6 +55,50 @@ export const useAuth = () => {
     }
   }
 
+  // Request password reset
+  const requestPasswordReset = async (email: string) => {
+    try {
+      isLoading.value = true
+      const { error } = await authClient.forgetPassword({
+        email,
+        redirectTo: '/auth/reset-password',
+      })
+
+      if (error) {
+        throw new Error(error.message || 'Failed to send reset email')
+      }
+
+      return { error: null }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send reset email'
+      return { error: new Error(errorMessage) }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Reset password with token
+  const resetPassword = async (token: string, password: string) => {
+    try {
+      isLoading.value = true
+      const { error } = await authClient.resetPassword({
+        token,
+        newPassword: password,
+      })
+
+      if (error) {
+        throw new Error(error.message || 'Failed to reset password')
+      }
+
+      return { error: null }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to reset password'
+      return { error: new Error(errorMessage) }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   // Logout
   const logout = async () => {
     try {
@@ -73,5 +117,7 @@ export const useAuth = () => {
     init,
     login,
     logout,
+    requestPasswordReset,
+    resetPassword,
   }
 }

@@ -64,7 +64,7 @@ import * as z from 'zod'
 import type { FormSubmitEvent } from '#ui/types'
 
 const route = useRoute()
-const isLoading = ref(false)
+const { resetPassword, isLoading } = useAuth()
 
 // Token from the reset link
 const token = computed(() => {
@@ -89,8 +89,7 @@ const state = reactive<Partial<Schema>>({
   confirm: '',
 })
 
-async function onSubmit(event: FormSubmitEvent<Schema>) {
-  event.preventDefault() // added to resolve unused var error
+async function onSubmit(_event: FormSubmitEvent<Schema>) {
   try {
     if (!token.value) {
       useToast().add({
@@ -103,10 +102,9 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       return
     }
 
-    isLoading.value = true
+    const { error } = await resetPassword(token.value, state.password!)
 
-    // Simulate API call to reset password with token + new password
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    if (error) throw error
 
     useToast().add({
       title: 'Password updated',
@@ -116,16 +114,15 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     })
 
     await navigateTo('/auth/login')
-  } catch (error) {
-    console.error(error)
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to reset password. Please try again.'
     useToast().add({
       title: 'Error',
-      description: 'Failed to reset password. Please try again.',
+      description: errorMessage,
       icon: 'i-heroicons-exclamation-circle',
       color: 'error',
     })
-  } finally {
-    isLoading.value = false
   }
 }
 
