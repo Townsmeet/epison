@@ -1,4 +1,5 @@
 import { defineConfig } from 'drizzle-kit'
+// import * as dotenv from 'dotenv' // Not currently used
 
 export default defineConfig({
   out: './server/db/migrations',

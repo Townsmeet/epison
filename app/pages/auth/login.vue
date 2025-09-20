@@ -109,7 +109,7 @@ const onSubmit = async (_event: FormSubmitEvent<Schema>) => {
     await navigateTo(redirect)
   } catch (error: unknown) {
     // Extract error message from the error object
-    const errorMessage = error?.message || 'An unknown error occurred'
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred'
     toast.add({
       title: 'Login failed',
       description: errorMessage,

@@ -47,7 +47,8 @@ export const useAuth = () => {
     } catch (error: unknown) {
       user.value = null
       // Ensure we return a proper error object with message
-      const errorMessage = error?.message || 'An unknown error occurred during login'
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unknown error occurred during login'
       return { error: new Error(errorMessage) }
     } finally {
       isLoading.value = false
