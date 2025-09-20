@@ -41,9 +41,17 @@
             </NuxtLink>
           </div>
 
-          <UButton type="submit" color="primary" class="w-full justify-center" :loading="isLoading">
+          <UButton
+            type="submit"
+            color="primary"
+            class="w-full justify-center"
+            :loading="isLoading"
+            :disabled="isLoading"
+          >
             Sign in
           </UButton>
+
+          <!-- Errors will be shown via toast notifications -->
         </UForm>
       </UCard>
     </div>
@@ -66,7 +74,9 @@
 import * as z from 'zod'
 import type { FormSubmitEvent } from '#ui/types'
 
-const isLoading = ref(false)
+const { login, isLoading } = useAuth()
+const toast = useToast()
+const route = useRoute()
 
 const schema = z.object({
   email: z.string().email('Invalid email'),
@@ -76,31 +86,42 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>
 
-const state = reactive<Partial<Schema>>({
+const state = reactive<Schema>({
   email: '',
   password: '',
   remember: false,
 })
 
-async function onSubmit(event: FormSubmitEvent<Schema>) {
-  event.preventDefault() // added to resolve unused var error
+const onSubmit = async (_event: FormSubmitEvent<Schema>) => {
   try {
-    isLoading.value = true
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    // Navigate to admin dashboard on success
-    await navigateTo('/admin')
-  } catch (error) {
-    // Handle error
-    console.error(error)
-  } finally {
-    isLoading.value = false
+    const { error: loginError } = await login(state.email, state.password, state.remember)
+    if (loginError) throw loginError
+
+    // Show success message
+    toast.add({
+      title: 'Login successful',
+      color: 'success',
+      icon: 'i-heroicons-check-circle',
+    })
+
+    // Redirect to intended page or default to /admin
+    const redirect = route.query.redirect?.toString() || '/admin'
+    await navigateTo(redirect)
+  } catch (error: unknown) {
+    // Extract error message from the error object
+    const errorMessage = error?.message || 'An unknown error occurred'
+    toast.add({
+      title: 'Login failed',
+      description: errorMessage,
+      color: 'error',
+      icon: 'i-heroicons-exclamation-circle',
+    })
   }
 }
 
 // Set page metadata
 definePageMeta({
   layout: 'auth',
-  middleware: ['guest'],
+  middleware: 'guest',
 })
 </script>
