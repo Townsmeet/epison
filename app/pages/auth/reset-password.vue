@@ -9,7 +9,7 @@
           </div>
         </template>
 
-        <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
+        <UForm :schema="resetPasswordSchema" :state="state" class="space-y-4" @submit="onSubmit">
           <UFormField label="New password" name="password">
             <UInput
               v-model="state.password"
@@ -60,8 +60,8 @@
 </template>
 
 <script setup lang="ts">
-import * as z from 'zod'
 import type { FormSubmitEvent } from '#ui/types'
+import { resetPasswordSchema, type ResetPasswordData } from '~/schemas/auth'
 
 const route = useRoute()
 const { resetPassword, isLoading } = useAuth()
@@ -72,24 +72,12 @@ const token = computed(() => {
   return Array.isArray(t) ? t[0] : t || ''
 })
 
-const schema = z
-  .object({
-    password: z.string().min(8, 'Must be at least 8 characters'),
-    confirm: z.string().min(8, 'Must be at least 8 characters'),
-  })
-  .refine(data => data.password === data.confirm, {
-    message: "Passwords don't match",
-    path: ['confirm'],
-  })
-
-type Schema = z.output<typeof schema>
-
-const state = reactive<Partial<Schema>>({
+const state = reactive<Partial<ResetPasswordData>>({
   password: '',
   confirm: '',
 })
 
-async function onSubmit(_event: FormSubmitEvent<Schema>) {
+async function onSubmit(_event: FormSubmitEvent<ResetPasswordData>) {
   try {
     if (!token.value) {
       useToast().add({

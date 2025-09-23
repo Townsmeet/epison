@@ -13,7 +13,7 @@
         </UButton>
         <div>
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-            {{ member?.name || 'Member Details' }}
+            {{ member ? getFullName(member) : 'Member Details' }}
           </h1>
           <p class="text-sm text-gray-500 dark:text-gray-400">
             View member information and membership details
@@ -87,9 +87,9 @@
                 >
                   <span class="text-xl font-semibold text-primary-600 dark:text-primary-300">
                     {{
-                      member.name
+                      getFullName(member)
                         .split(' ')
-                        .map(n => n[0])
+                        .map((n: string) => n[0])
                         .join('')
                         .slice(0, 2)
                     }}
@@ -98,15 +98,15 @@
               </div>
               <div class="flex-1">
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-                  {{ member.name }}
+                  {{ getFullName(member) }}
                 </h2>
                 <p class="text-gray-500 dark:text-gray-400">{{ member.email }}</p>
                 <div class="flex items-center space-x-2 mt-1">
                   <UBadge :color="getStatusColor(member.status)" size="sm">
                     {{ member.status }}
                   </UBadge>
-                  <UBadge :color="getTypeColor(member.type)" size="sm">
-                    {{ member.type }}
+                  <UBadge :color="getTypeColor(member.membershipType)" size="sm">
+                    {{ member.membershipType }}
                   </UBadge>
                 </div>
               </div>
@@ -125,8 +125,7 @@
                     >Full Name</label
                   >
                   <p class="text-gray-900 dark:text-white">
-                    {{ member.title }} {{ member.nameFirst }} {{ member.nameMiddle }}
-                    {{ member.nameFamily }}
+                    {{ getFullName(member) }}
                   </p>
                 </div>
                 <div>
@@ -140,7 +139,7 @@
                     >Date of Birth</label
                   >
                   <p class="text-gray-900 dark:text-white">
-                    {{ new Date(member.dob).toLocaleDateString() }}
+                    {{ member.dob ? new Date(member.dob).toLocaleDateString() : 'Not provided' }}
                   </p>
                 </div>
                 <div>
@@ -212,16 +211,44 @@
                   <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1"
                     >Publications</label
                   >
-                  <div class="space-y-1">
-                    <div
+                  <ul
+                    class="divide-y divide-gray-200 dark:divide-gray-800 rounded-md border border-gray-200 dark:border-gray-800"
+                  >
+                    <li
                       v-for="pub in member.publications"
                       :key="pub"
-                      class="flex items-center gap-2"
+                      class="flex items-center justify-between p-3"
                     >
-                      <UIcon name="i-heroicons-document" class="w-4 h-4 text-gray-400" />
-                      <span class="text-gray-900 dark:text-white text-sm">{{ pub }}</span>
-                    </div>
-                  </div>
+                      <div class="flex items-center gap-2 min-w-0">
+                        <UIcon name="i-heroicons-document" class="w-5 h-5 text-gray-400 shrink-0" />
+                        <p class="text-gray-900 dark:text-white text-sm truncate" :title="pub">
+                          {{ getFileName(pub) }}
+                        </p>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <UButton
+                          :href="pub"
+                          target="_blank"
+                          rel="noopener"
+                          color="neutral"
+                          variant="ghost"
+                          size="xs"
+                          icon="i-heroicons-eye"
+                          title="View"
+                        />
+                        <UButton
+                          color="neutral"
+                          variant="outline"
+                          size="xs"
+                          icon="i-heroicons-arrow-down-tray"
+                          title="Download"
+                          @click="downloadPublication(pub)"
+                        >
+                          Download
+                        </UButton>
+                      </div>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -353,7 +380,7 @@
         </UCard>
 
         <!-- Membership History -->
-        <UCard>
+        <UCard class="mt-6">
           <template #header>
             <h3 class="text-lg font-semibold">Membership History</h3>
           </template>
@@ -381,6 +408,73 @@
             </div>
           </div>
         </UCard>
+
+        <!-- Manage Publications -->
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold">Publications</h3>
+              <div class="flex items-center gap-2">
+                <UButton
+                  color="primary"
+                  variant="outline"
+                  size="sm"
+                  icon="i-heroicons-arrow-up-tray"
+                  @click="triggerUpload()"
+                >
+                  Upload File
+                </UButton>
+                <input ref="fileInputRef" type="file" class="hidden" @change="onFileSelected" />
+              </div>
+            </div>
+          </template>
+
+          <div
+            v-if="publicationsLocal.length === 0"
+            class="text-sm text-gray-500 dark:text-gray-400"
+          >
+            No publications yet.
+          </div>
+          <ul v-else class="divide-y divide-gray-200 dark:divide-gray-800">
+            <li
+              v-for="url in publicationsLocal"
+              :key="url"
+              class="flex items-center justify-between py-2"
+            >
+              <div class="flex items-center gap-2 min-w-0">
+                <UIcon name="i-heroicons-document" class="w-5 h-5 text-gray-400 shrink-0" />
+                <a
+                  :href="url"
+                  target="_blank"
+                  class="text-sm truncate text-primary-600 dark:text-primary-400"
+                  :title="url"
+                >
+                  {{ getFileName(url) }}
+                </a>
+              </div>
+              <div class="flex items-center gap-2">
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  size="xs"
+                  icon="i-heroicons-eye"
+                  :href="url"
+                  target="_blank"
+                  title="View"
+                />
+                <UButton
+                  color="error"
+                  variant="outline"
+                  size="xs"
+                  icon="i-heroicons-trash"
+                  :loading="isUpdatingPublications"
+                  title="Remove"
+                  @click="removePublication(url)"
+                />
+              </div>
+            </li>
+          </ul>
+        </UCard>
       </div>
 
       <!-- Sidebar -->
@@ -396,8 +490,8 @@
               <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                 Membership Type
               </label>
-              <UBadge :color="getTypeColor(member.type)" size="sm">
-                {{ member.type }}
+              <UBadge :color="getTypeColor(member.membershipType)" size="sm">
+                {{ member.membershipType }}
               </UBadge>
             </div>
 
@@ -513,56 +607,11 @@
 </template>
 
 <script setup lang="ts">
+import type { MemberDetail } from '../../../../types/members'
+
 definePageMeta({
   layout: 'admin',
 })
-
-interface Member {
-  id: number
-  // Personal Information
-  title: string
-  nameFamily: string
-  nameMiddle?: string
-  nameFirst: string
-  name: string // computed full name
-  sex: string
-  dob: string
-  address: string
-  telephone: string
-  fax?: string
-  email: string
-
-  // Employment & Education
-  position: string
-  employer: string
-  department?: string
-  qualifications?: string
-  experience?: string
-  publications?: string[] // file names/paths
-
-  // Languages
-  motherTongue?: string
-  otherLanguages: string[]
-  otherLanguageText?: string
-
-  // Areas of Expertise
-  expertiseDescription?: string
-  expertise: string[]
-  expertiseOther?: string
-
-  // Employment Classification
-  agency: string
-  typeOfWork: string
-  typeOfWorkOther?: string
-
-  // Membership Details
-  type: string
-  status: string
-  joinedDate: string
-  expiryDate: string
-  fees: number
-  paymentReference?: string
-}
 
 interface MembershipHistory {
   id: number
@@ -573,7 +622,17 @@ interface MembershipHistory {
 }
 
 const route = useRoute()
-const memberId = parseInt(route.params.id as string)
+const memberId = route.params.id as string
+
+// Use the composable for API calls
+const {
+  getMember,
+  updateMember,
+  deleteMember: deleteMemberAPI,
+  activateMember,
+  suspendMember: suspendMemberAPI,
+  renewMember,
+} = useMembers()
 
 const confirmationModal = ref({
   isOpen: false,
@@ -584,130 +643,91 @@ const confirmationModal = ref({
   onConfirm: () => {},
 })
 
-// Mock data - replace with actual API call
-const {
-  data: member,
-  pending,
-  error,
-} = await useLazyAsyncData(`member-${memberId}`, async () => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500))
+// Fetch member data using the composable
+const { data: memberResponse, pending, error } = getMember(memberId)
 
-  // Mock member data with full application details
-  const mockMembers: Member[] = [
-    {
-      id: 1,
-      title: 'Dr',
-      nameFamily: 'Doe',
-      nameMiddle: 'Johnson',
-      nameFirst: 'John',
-      name: 'Dr. John Johnson Doe',
-      sex: 'Male',
-      dob: '1985-03-15',
-      address: '123 Victoria Island, Lagos, Nigeria 101001',
-      telephone: '+234 801 234 5678',
-      fax: '+234 1 234 5678',
-      email: 'john.doe@example.com',
-      position: 'Senior Epidemiologist',
-      employer: 'Lagos University Teaching Hospital, Idi-Araba, Lagos, Nigeria',
-      department: 'Department of Community Health',
-      qualifications: 'MBBS (2008), MPH (2012), PhD Epidemiology (2016)',
-      experience:
-        'Over 10 years in public health research, disease surveillance, and outbreak investigation. Led multiple epidemiological studies on infectious diseases.',
-      publications: ['outbreak-investigation-2023.pdf', 'malaria-surveillance-study.pdf'],
-      motherTongue: 'Yoruba',
-      otherLanguages: ['English', 'French'],
-      otherLanguageText: 'Hausa (conversational)',
-      expertiseDescription:
-        'Infectious disease epidemiology, outbreak investigation, surveillance systems, and public health emergency response',
-      expertise: ['Infectious Disease', 'Evaluation', 'Surveillance', 'Health Services'],
-      expertiseOther: 'Outbreak Investigation',
-      agency: 'Hospital',
-      typeOfWork: 'Clinical',
-      type: 'Regular Membership (EPiSON only)',
-      status: 'active',
-      joinedDate: '2023-01-15',
-      expiryDate: '2024-01-15',
-      fees: 30000,
-      paymentReference: 'EPISON-2023-ABC123',
-    },
-    {
-      id: 2,
-      title: 'Prof',
-      nameFamily: 'Smith',
-      nameFirst: 'Jane',
-      name: 'Prof. Jane Smith',
-      sex: 'Female',
-      dob: '1978-07-22',
-      address: 'University of Ibadan, Ibadan, Oyo State, Nigeria',
-      telephone: '+234 802 345 6789',
-      email: 'jane.smith@example.com',
-      position: 'Professor of Epidemiology',
-      employer: 'University of Ibadan, Faculty of Public Health, Ibadan, Nigeria',
-      department: 'Department of Epidemiology and Medical Statistics',
-      qualifications: 'MBBS (1999), MSc Epidemiology (2003), PhD Public Health (2007)',
-      experience:
-        'Professor with 20+ years experience in epidemiological research, teaching, and policy development. Published over 50 peer-reviewed articles.',
-      publications: [
-        'health-policy-framework-2024.pdf',
-        'chronic-disease-burden-nigeria.pdf',
-        'epidemiology-textbook-chapter.pdf',
-      ],
-      motherTongue: 'English',
-      otherLanguages: ['French', 'Spanish'],
-      expertiseDescription:
-        'Chronic disease epidemiology, health policy, biostatistics, and research methodology',
-      expertise: ['Cardiovascular', 'Diabetes', 'Policy', 'Methods', 'Teaching & Research'],
-      agency: 'University/Higher Institution (or similar)',
-      typeOfWork: 'Teaching & Research',
-      type: 'Regular Membership (Joint IEA - EPiSON)',
-      status: 'active',
-      joinedDate: '2023-03-20',
-      expiryDate: '2024-03-20',
-      fees: 50000,
-      paymentReference: 'EPISON-2023-DEF456',
-    },
-    {
-      id: 3,
-      title: 'Mr',
-      nameFamily: 'Brown',
-      nameFirst: 'Michael',
-      name: 'Mr. Michael Brown',
-      sex: 'Male',
-      dob: '1995-11-08',
-      address: 'University of Lagos, Akoka, Lagos, Nigeria',
-      telephone: '+234 803 456 7890',
-      email: 'michael.brown@student.edu',
-      position: 'Graduate Research Assistant',
-      employer: 'University of Lagos, College of Medicine, Lagos, Nigeria',
-      department: 'Department of Community Health and Primary Care',
-      qualifications: 'BSc Public Health (2018), MSc Epidemiology (in progress)',
-      experience:
-        'Early career researcher with focus on environmental health and chronic disease prevention. Currently pursuing MSc in Epidemiology.',
-      motherTongue: 'Igbo',
-      otherLanguages: ['English'],
-      expertiseDescription:
-        'Environmental health, chronic disease prevention, and community health research',
-      expertise: ['Environment', 'Chronic Respiratory Conditions', 'Health Promotion'],
-      expertiseOther: 'Community Health Research',
-      agency: 'University/Higher Institution (or similar)',
-      typeOfWork: 'Teaching & Research',
-      type: 'Early Career Membership (EPiSON only)',
-      status: 'pending',
-      joinedDate: '2024-08-01',
-      expiryDate: '2025-08-01',
-      fees: 15000,
-      paymentReference: 'EPISON-2024-GHI789',
-    },
-  ]
-
-  const foundMember = mockMembers.find(m => m.id === memberId)
-  if (!foundMember) {
-    throw createError({ statusCode: 404, statusMessage: 'Member not found' })
+// Extract member data from API response
+const member = computed(() => {
+  if (memberResponse.value?.success && memberResponse.value.data) {
+    return memberResponse.value.data
   }
-
-  return foundMember
+  return null
 })
+
+// Publications management state
+const publicationsLocal = ref<string[]>([])
+const isUpdatingPublications = ref(false)
+const fileInputRef = ref<HTMLInputElement | null>(null)
+
+watch(
+  member,
+  m => {
+    publicationsLocal.value = m?.publications ? [...m.publications] : []
+  },
+  { immediate: true }
+)
+
+function triggerUpload() {
+  fileInputRef.value?.click()
+}
+
+async function onFileSelected(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files && input.files[0]
+  if (!file) return
+
+  try {
+    isUpdatingPublications.value = true
+    const form = new FormData()
+    form.append('file', file, file.name)
+    form.append('folder', 'publications')
+
+    const res = await $fetch<{ url: string }>('/api/uploads', { method: 'POST', body: form })
+    publicationsLocal.value = [...publicationsLocal.value, res.url]
+    await savePublications()
+    useToast().add({ title: 'Uploaded', description: `${file.name} added`, color: 'success' })
+  } catch (err: unknown) {
+    useToast().add({
+      title: 'Upload failed',
+      description: extractApiMessage(err, 'Could not upload file'),
+      color: 'error',
+    })
+  } finally {
+    if (input) input.value = ''
+    isUpdatingPublications.value = false
+  }
+}
+
+async function removePublication(url: string) {
+  try {
+    isUpdatingPublications.value = true
+    publicationsLocal.value = publicationsLocal.value.filter(u => u !== url)
+    await savePublications()
+    useToast().add({ title: 'Removed', description: 'Publication removed', color: 'success' })
+  } catch (err: unknown) {
+    useToast().add({
+      title: 'Update failed',
+      description: extractApiMessage(err, 'Could not update publications'),
+      color: 'error',
+    })
+  } finally {
+    isUpdatingPublications.value = false
+  }
+}
+
+async function savePublications() {
+  if (!member.value) return
+  await updateMember(memberId, { publications: publicationsLocal.value })
+  await refreshCookie(`member-${memberId}`)
+}
+
+// Helper function to get full name
+const getFullName = (member: MemberDetail) => {
+  const parts = [member.title, member.nameFirst, member.nameMiddle, member.nameFamily].filter(
+    Boolean
+  )
+  return parts.join(' ')
+}
 
 // Mock membership history
 const membershipHistory = ref<MembershipHistory[]>([
@@ -801,6 +821,39 @@ function formatDate(dateString: string): string {
   })
 }
 
+// Extract a user-friendly filename from a URL or path
+function getFileName(path: string): string {
+  try {
+    const u = new URL(path)
+    const last = u.pathname.split('/')
+    return decodeURIComponent(last[last.length - 1] || 'file')
+  } catch {
+    const parts = path.split('/')
+    return decodeURIComponent(parts[parts.length - 1] || 'file')
+  }
+}
+
+// Trigger file download; falls back to opening in a new tab if download is blocked
+function downloadPublication(url: string) {
+  try {
+    const fileName = getFileName(url)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fileName
+    a.target = '_blank'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  } catch {
+    useToast().add({
+      title: 'Download failed',
+      description: 'Unable to download the file. Please try again.',
+      color: 'error',
+    })
+    window.open(url, '_blank')
+  }
+}
+
 function editMember() {
   navigateTo(`/admin/memberships/${memberId}/edit`)
 }
@@ -811,7 +864,7 @@ function confirmRenewMembership() {
   confirmationModal.value = {
     isOpen: true,
     title: 'Renew Membership',
-    message: `Are you sure you want to renew the membership for ${member.value.name}? This will extend their membership period.`,
+    message: `Are you sure you want to renew the membership for ${getFullName(member.value)}? This will extend their membership period.`,
     confirmText: 'Renew',
     confirmColor: 'primary',
     onConfirm: () => renewMembership(),
@@ -824,7 +877,7 @@ function confirmSuspendMember() {
   confirmationModal.value = {
     isOpen: true,
     title: 'Suspend Member',
-    message: `Are you sure you want to suspend ${member.value.name}? They will lose access to member benefits.`,
+    message: `Are you sure you want to suspend ${getFullName(member.value)}? They will lose access to member benefits.`,
     confirmText: 'Suspend',
     confirmColor: 'warning',
     onConfirm: () => suspendMember(),
@@ -837,29 +890,53 @@ function confirmDeleteMember() {
   confirmationModal.value = {
     isOpen: true,
     title: 'Delete Member',
-    message: `Are you sure you want to permanently delete ${member.value.name}? This action cannot be undone.`,
+    message: `Are you sure you want to permanently delete ${getFullName(member.value)}? This action cannot be undone.`,
     confirmText: 'Delete',
     confirmColor: 'error',
     onConfirm: () => deleteMember(),
   }
 }
 
-function renewMembership() {
-  confirmationModal.value.isOpen = false
-  useToast().add({
-    title: 'Membership renewed',
-    description: 'Membership has been renewed successfully',
-    color: 'success',
-  })
+async function renewMembership() {
+  if (!member.value) return
+
+  try {
+    await renewMember(memberId, { reason: 'Renewed via admin panel', period: '1 year' })
+    confirmationModal.value.isOpen = false
+    await refreshCookie(`member-${memberId}`)
+    useToast().add({
+      title: 'Membership renewed',
+      description: 'Membership has been renewed successfully',
+      color: 'success',
+    })
+  } catch (error: unknown) {
+    useToast().add({
+      title: 'Error',
+      description: extractApiMessage(error, 'Failed to renew membership'),
+      color: 'error',
+    })
+  }
 }
 
-function suspendMember() {
-  confirmationModal.value.isOpen = false
-  useToast().add({
-    title: 'Member suspended',
-    description: 'Member has been suspended',
-    color: 'warning',
-  })
+async function suspendMember() {
+  if (!member.value) return
+
+  try {
+    await suspendMemberAPI(memberId, { reason: 'Suspended via admin panel' })
+    confirmationModal.value.isOpen = false
+    await refreshCookie(`member-${memberId}`)
+    useToast().add({
+      title: 'Member suspended',
+      description: 'Member has been suspended',
+      color: 'warning',
+    })
+  } catch (error: unknown) {
+    useToast().add({
+      title: 'Error',
+      description: extractApiMessage(error, 'Failed to suspend member'),
+      color: 'error',
+    })
+  }
 }
 
 function sendReminder() {
@@ -870,14 +947,71 @@ function sendReminder() {
   })
 }
 
-function deleteMember() {
-  confirmationModal.value.isOpen = false
-  useToast().add({
-    title: 'Member deleted',
-    description: 'Member has been removed from the system',
-    color: 'error',
-  })
-  // Redirect back to members list
-  navigateTo('/admin/memberships')
+async function deleteMember() {
+  if (!member.value) return
+
+  try {
+    await deleteMemberAPI(memberId)
+    confirmationModal.value.isOpen = false
+    useToast().add({
+      title: 'Member deleted',
+      description: 'Member has been removed from the system',
+      color: 'error',
+    })
+    // Redirect back to members list
+    navigateTo('/admin/memberships')
+  } catch (error: unknown) {
+    useToast().add({
+      title: 'Error',
+      description: extractApiMessage(error, 'Failed to delete member'),
+      color: 'error',
+    })
+  }
+}
+
+async function activateMemberAction() {
+  if (!member.value) return
+
+  try {
+    await activateMember(memberId, { reason: 'Activated via admin panel' })
+    confirmationModal.value.isOpen = false
+    await refreshCookie(`member-${memberId}`)
+    useToast().add({
+      title: 'Member activated',
+      description: 'Member has been activated successfully',
+      color: 'success',
+    })
+  } catch {
+    useToast().add({
+      title: 'Error',
+      description: extractApiMessage(undefined, 'Failed to activate member'),
+      color: 'error',
+    })
+  }
+}
+
+function extractApiMessage(val: unknown, fallback: string): string {
+  if (!val) return fallback
+  if (val instanceof Error) return val.message || fallback
+  if (typeof val === 'object') {
+    const obj = val as Record<string, unknown>
+    const data = obj['data'] as Record<string, unknown> | undefined
+    const msg = data?.['message']
+    if (typeof msg === 'string') return msg
+  }
+  return fallback
+}
+
+function _confirmActivateMember() {
+  if (!member.value) return
+
+  confirmationModal.value = {
+    isOpen: true,
+    title: 'Activate Member',
+    message: `Are you sure you want to activate ${getFullName(member.value)}? They will regain access to member benefits.`,
+    confirmText: 'Activate',
+    confirmColor: 'primary',
+    onConfirm: () => activateMemberAction(),
+  }
 }
 </script>

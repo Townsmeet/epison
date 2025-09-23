@@ -1,19 +1,20 @@
-export default defineNuxtRouteMiddleware(async to => {
+export default defineNuxtRouteMiddleware(to => {
   // Only protect admin routes
   if (!to.path.startsWith('/admin')) return
 
-  const { isAuthenticated, init } = useAuth()
+  const { isAuthenticated } = useAuth()
 
-  // Initialize auth state
-  await init()
+  // If already authenticated via shared state, allow
+  if (isAuthenticated.value) return
 
-  // Redirect to login if not authenticated
-  if (!isAuthenticated.value) {
-    return navigateTo(`/auth/login?redirect=${encodeURIComponent(to.path)}`)
-  }
+  // Fallback: if we have a session cookie, allow without network calls
+  const sessionCookie = useCookie<string | null>('better-auth.session')
+  const sessionToken = useCookie<string | null>('better-auth.session_token')
+  const legacyAuth = useCookie<string | null>('auth_token')
+  const hasSession = Boolean(sessionCookie.value || sessionToken.value || legacyAuth.value)
 
-  // If already on login page but authenticated, redirect to admin
-  if (to.path === '/auth/login' && isAuthenticated.value) {
-    return navigateTo('/admin')
-  }
+  if (hasSession) return
+
+  // Otherwise redirect to login
+  return navigateTo(`/auth/login?redirect=${encodeURIComponent(to.path)}`)
 })

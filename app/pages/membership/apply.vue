@@ -19,381 +19,52 @@
         </div>
 
         <div class="px-6 py-6">
-          <UForm :state="form" class="space-y-8" @submit="submitApplication">
-            <!-- Stepper -->
-            <div ref="stepperRef" class="overflow-x-auto no-scrollbar">
-              <div class="min-w-max inline-flex items-center gap-4">
-                <template v-for="(s, i) in steps" :key="s.key">
-                  <div class="inline-flex items-center gap-4 shrink-0">
-                    <button
-                      :ref="el => el && (stepEls[i] = el as HTMLElement)"
-                      type="button"
-                      class="inline-flex items-center gap-3 group shrink-0"
-                      @click="goToStep(i + 1)"
-                    >
-                      <span
-                        :class="[
-                          'h-8 w-8 rounded-full flex items-center justify-center text-sm font-semibold',
-                          currentStep === i + 1
-                            ? 'bg-primary-600 text-white'
-                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300',
-                        ]"
-                      >
-                        {{ i + 1 }}
-                      </span>
-                      <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {{ s.label }}
-                      </span>
-                    </button>
-                    <div
-                      v-if="i < steps.length - 1"
-                      class="h-0.5 w-10 bg-gray-200 dark:bg-gray-700"
-                    />
-                  </div>
-                </template>
-              </div>
-            </div>
+          <UForm :schema="membershipFormSchema" :state="state" class="space-y-8" @submit="onSubmit">
+            <!-- Step Indicator -->
+            <MembershipStepIndicator
+              :steps="steps"
+              :current-step="currentStep"
+              @go-to-step="goToStep"
+            />
 
-            <!-- Section 1: Personal Information -->
-            <div v-show="currentStep === 1" class="space-y-6">
-              <h3 class="text-base font-medium text-gray-900 dark:text-white">
-                Personal Information
-              </h3>
+            <!-- Step 1: Personal Information -->
+            <MembershipStep1PersonalInfo
+              v-show="currentStep === 1"
+              v-model:form="state"
+              :current-step-errors="currentStepErrors"
+            />
 
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <UFormField label="Family Name" name="nameFamily" required>
-                  <UInput v-model="form.nameFamily" class="w-full" />
-                </UFormField>
-                <UFormField label="Middle Name" name="nameMiddle">
-                  <UInput v-model="form.nameMiddle" class="w-full" />
-                </UFormField>
-                <UFormField label="First Name" name="nameFirst" required>
-                  <UInput v-model="form.nameFirst" class="w-full" />
-                </UFormField>
-              </div>
+            <!-- Step 2: Employment & Education -->
+            <MembershipStep2Employment v-show="currentStep === 2" v-model:form="state" />
 
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <UFormField label="Title" name="title" required>
-                  <USelect
-                    v-model="form.title"
-                    :items="titles"
-                    placeholder="Select title"
-                    class="w-full"
-                  />
-                </UFormField>
+            <!-- Step 3: Languages -->
+            <MembershipStep3Languages v-show="currentStep === 3" v-model:form="state" />
 
-                <UFormField label="Sex" name="sex" required>
-                  <URadioGroup
-                    v-model="form.sex"
-                    orientation="horizontal"
-                    variant="list"
-                    :items="[
-                      { label: 'Male', value: 'Male' },
-                      { label: 'Female', value: 'Female' },
-                    ]"
-                  />
-                </UFormField>
+            <!-- Step 4: Areas of Expertise -->
+            <MembershipStep4Expertise v-show="currentStep === 4" v-model:form="state" />
 
-                <UFormField label="Date of Birth" name="dob" required>
-                  <UInput v-model="form.dob" type="date" class="w-full" />
-                </UFormField>
-              </div>
+            <!-- Step 5: Employment Classification -->
+            <MembershipStep5Classification v-show="currentStep === 5" v-model:form="state" />
 
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <UFormField label="Telephone" name="telephone" required>
-                  <UInput v-model="form.telephone" class="w-full" />
-                </UFormField>
-                <UFormField label="Fax" name="fax">
-                  <UInput v-model="form.fax" class="w-full" />
-                </UFormField>
-                <UFormField label="Email" name="email" required>
-                  <UInput v-model="form.email" type="email" class="w-full" @input="onEmailInput" />
-                </UFormField>
-              </div>
+            <!-- Step 6: Payment -->
+            <MembershipStep6Payment
+              v-show="currentStep === 6"
+              :is-edit-mode="isEditMode"
+              :membership-type="membershipType"
+              :amount-naira="amountNaira"
+            />
 
-              <UFormField
-                label="Present Mailing Address"
-                name="address"
-                hint="Include Postal/Zip Code, City, Country"
-                required
-              >
-                <UTextarea v-model="form.address" :rows="3" class="w-full" />
-              </UFormField>
-            </div>
-
-            <!-- Section 2: Employment & Education -->
-            <div v-show="currentStep === 2" class="space-y-6">
-              <h3 class="text-base font-medium text-gray-900 dark:text-white">
-                Employment & Education
-              </h3>
-
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <UFormField label="Present Position (Exact designation)" name="position" required>
-                  <UInput v-model="form.position" class="w-full" />
-                </UFormField>
-
-                <UFormField label="Department/Unit/Division" name="department">
-                  <UInput v-model="form.department" class="w-full" />
-                </UFormField>
-              </div>
-
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <UFormField
-                  label="Employing Institution/Organization (full address)"
-                  name="employer"
-                  required
-                >
-                  <UTextarea v-model="form.employer" :rows="3" class="w-full" />
-                </UFormField>
-
-                <UFormField
-                  label="Personal Qualifications (degrees/diplomas with dates)"
-                  name="qualifications"
-                >
-                  <UTextarea v-model="form.qualifications" :rows="3" class="w-full" />
-                </UFormField>
-              </div>
-
-              <UFormField
-                label="Professional Experience (relevant to Epidemiology, key positions and dates)"
-                name="experience"
-              >
-                <UTextarea v-model="form.experience" :rows="3" class="w-full" />
-              </UFormField>
-
-              <UFormField
-                label="Major Publications (up to 5 files)"
-                name="publications"
-                hint="Optional"
-              >
-                <div class="space-y-3">
-                  <UFileUpload
-                    v-slot="{ open }"
-                    v-model="form.publications"
-                    multiple
-                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                    :ui="{
-                      base: 'w-full',
-                      wrapper:
-                        'border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 transition-colors',
-                    }"
-                  >
-                    <div
-                      class="flex flex-col items-center justify-center gap-2 text-gray-600 dark:text-gray-300 cursor-pointer select-none"
-                      role="button"
-                      aria-label="Open file dialog"
-                      @click.stop="open()"
-                    >
-                      <UIcon name="i-heroicons-arrow-up-on-square" class="h-8 w-8" />
-                      <div class="text-sm">
-                        <span class="font-medium text-gray-900 dark:text-white"
-                          >Click to upload</span
-                        >
-                        or drag and drop
-                      </div>
-                      <div class="text-xs text-gray-500">
-                        PDF, DOC, DOCX, PNG, JPG up to 10MB each
-                      </div>
-                    </div>
-                  </UFileUpload>
-
-                  <p class="text-xs text-gray-500 dark:text-gray-400">
-                    Selected: {{ form.publications.length }}/5 file(s)
-                  </p>
-
-                  <div
-                    v-if="form.publications.length"
-                    class="rounded-lg border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700 overflow-hidden"
-                  >
-                    <div
-                      v-for="(file, i) in form.publications"
-                      :key="file.name + i"
-                      class="flex items-center justify-between px-4 py-3 bg-gray-50/60 dark:bg-gray-800/50"
-                    >
-                      <div class="flex items-center gap-3">
-                        <UIcon name="i-heroicons-document" class="h-5 w-5 text-gray-500" />
-                        <div class="text-sm">
-                          <p
-                            class="font-medium text-gray-900 dark:text-white truncate max-w-[40ch]"
-                          >
-                            {{ file.name }}
-                          </p>
-                          <p class="text-xs text-gray-500">{{ formatBytes(file.size) }}</p>
-                        </div>
-                      </div>
-                      <UButton
-                        icon="i-heroicons-x-mark"
-                        color="neutral"
-                        variant="ghost"
-                        size="xs"
-                        aria-label="Remove file"
-                        @click="removePublication(i)"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </UFormField>
-            </div>
-
-            <!-- Section 3: Languages -->
-            <div v-show="currentStep === 3" class="space-y-6">
-              <h3 class="text-base font-medium text-gray-900 dark:text-white">Languages</h3>
-
-              <UFormField label="Mother Tongue" name="motherTongue">
-                <UInput v-model="form.motherTongue" class="w-full md:w-1/2" />
-              </UFormField>
-
-              <UFormField label="Other Languages" name="otherLanguages">
-                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  <UCheckbox
-                    v-for="lang in otherLanguages"
-                    :key="lang"
-                    :label="lang"
-                    :value="lang"
-                    :model-value="form.otherLanguages.includes(lang)"
-                    @update:model-value="val => toggleLanguage(lang, val === true)"
-                  />
-                </div>
-                <div class="mt-3">
-                  <UCheckbox v-model="otherLanguageChecked" label="Others" />
-                  <div v-if="otherLanguageChecked" class="mt-2">
-                    <UInput
-                      v-model="form.otherLanguageText"
-                      placeholder="Specify other languages"
-                    />
-                  </div>
-                </div>
-              </UFormField>
-            </div>
-
-            <!-- Section 4: Areas of Expertise -->
-            <div v-show="currentStep === 4" class="space-y-6">
-              <h3 class="text-base font-medium text-gray-900 dark:text-white">
-                Areas of Expertise
-              </h3>
-
-              <UFormField
-                label="Describe areas of expertise (3–4 major fields)"
-                name="expertiseDescription"
-              >
-                <UTextarea v-model="form.expertiseDescription" :rows="3" class="w-full" />
-              </UFormField>
-
-              <UFormField label="Select up to 5 areas" name="expertise">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                  <UCheckbox
-                    v-for="opt in expertiseOptions"
-                    :key="opt"
-                    :label="opt"
-                    :value="opt"
-                    :model-value="form.expertise.includes(opt)"
-                    @update:model-value="val => onToggleExpertise(opt, val === true)"
-                  />
-                </div>
-                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Selected: {{ form.expertise.length }}/5
-                </p>
-                <div class="mt-3">
-                  <UInput v-model="form.expertiseOther" placeholder="Others (specify)" />
-                </div>
-              </UFormField>
-            </div>
-
-            <!-- Section 5: Employment Classification -->
-            <div v-show="currentStep === 5" class="space-y-6">
-              <h3 class="text-base font-medium text-gray-900 dark:text-white">
-                Employment Classification
-              </h3>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <UFormField label="Employing Agency/Institution/Organization" name="agency">
-                  <USelect
-                    v-model="form.agency"
-                    :items="agencyOptions"
-                    placeholder="Select agency"
-                    class="w-full"
-                  />
-                </UFormField>
-
-                <div class="flex flex-col gap-2">
-                  <UFormField label="Type of Work" name="typeOfWork">
-                    <USelect
-                      v-model="form.typeOfWork"
-                      :items="typeOfWorkOptions"
-                      placeholder="Select type of work"
-                      class="w-full"
-                    />
-                  </UFormField>
-                  <div v-if="form.typeOfWork === 'Others'">
-                    <UFormField label="Please specify" name="typeOfWorkOther">
-                      <UInput v-model="form.typeOfWorkOther" class="w-full" />
-                    </UFormField>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Section 6: Payment -->
-            <div v-show="currentStep === 6" class="space-y-6">
-              <h3 class="text-base font-medium text-gray-900 dark:text-white">Payment</h3>
-
-              <div
-                class="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/50 p-4"
-              >
-                <p class="text-sm text-gray-700 dark:text-gray-300">
-                  Review your details and proceed to payment to complete your membership
-                  application.
-                </p>
-              </div>
-
-              <div
-                v-if="!isEditMode"
-                class="rounded-lg border border-gray-200 dark:border-gray-700 p-4"
-              >
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-sm text-gray-500">Application</p>
-                    <p class="text-base font-semibold text-gray-900 dark:text-white">
-                      Membership Fee
-                    </p>
-                  </div>
-                  <div class="text-right">
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white">
-                      ₦ {{ formatNaira(amountNaira) }}
-                    </p>
-                    <p class="text-xs text-gray-500">
-                      {{ membershipType || 'Select on previous page' }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <!-- Pay handled on submit button below; hidden in edit mode -->
-            </div>
-
-            <!-- Navigation -->
-            <div class="pt-4 flex items-center justify-between">
-              <UButton
-                color="neutral"
-                variant="outline"
-                :disabled="currentStep === 1"
-                @click="prevStep"
-              >
-                Back
-              </UButton>
-              <div class="flex items-center gap-3">
-                <UButton v-if="currentStep < steps.length" color="primary" @click="nextStep">
-                  Next
-                </UButton>
-                <UButton
-                  v-else
-                  type="submit"
-                  color="primary"
-                  :loading="isSubmitting"
-                  :disabled="isSubmitting"
-                >
-                  {{ isEditMode ? 'Save Changes' : 'Pay & Submit' }}
-                </UButton>
-              </div>
-            </div>
+            <!-- Step Navigation Buttons -->
+            <MembershipStepNavigation
+              :steps="steps"
+              :current-step="currentStep"
+              :is-current-step-valid="isCurrentStepValid"
+              :is-edit-mode="isEditMode"
+              :is-submitting="isSubmitting"
+              @go-to-step="goToStep"
+              @next-step="nextStep"
+              @prev-step="prevStep"
+            />
           </UForm>
         </div>
       </div>
@@ -402,6 +73,9 @@
 </template>
 
 <script setup lang="ts">
+import type { FormSubmitEvent } from '#ui/types'
+import { membershipFormSchema, type MembershipFormData } from '~/schemas/membership'
+
 definePageMeta({ layout: 'default' })
 
 const route = useRoute()
@@ -423,6 +97,50 @@ useHead(() => ({
 const toast = useToast()
 const router = useRouter()
 const isSubmitting = ref(false)
+const { createMember, updateMember, getMember } = useMembers()
+
+// Form state with Zod schema
+const state = reactive<MembershipFormData>({
+  // Personal Information
+  title: 'Dr',
+  nameFamily: '',
+  nameMiddle: '',
+  nameFirst: '',
+  sex: '',
+  dob: '',
+  address: '',
+  telephone: '',
+  fax: '',
+  email: '',
+
+  // Employment & Education
+  position: '',
+  employer: '',
+  department: '',
+  qualifications: '',
+  experience: '',
+
+  // Languages
+  motherTongue: '',
+  otherLanguages: [],
+  otherLanguageText: '',
+
+  // Areas of Expertise
+  expertiseDescription: '',
+  expertise: [],
+  expertiseOther: '',
+
+  // Employment Classification
+  agency: 'Industry',
+  typeOfWork: 'Clinical',
+  typeOfWorkOther: '',
+  retiredSince: '',
+
+  // Payment Details
+  membershipType: '',
+  fees: 0,
+  publications: [],
+})
 
 // Minimal Paystack types
 type PaystackResponse = { reference: string }
@@ -463,145 +181,60 @@ if (isEditMode.value) {
 }
 
 const currentStep = ref(1)
-const titles = ['Dr', 'Mr', 'Mrs', 'Miss', 'Prof', 'Engr', 'Chief', 'Ms']
-const otherLanguages = ['English', 'French', 'German', 'Spanish', 'Russian', 'Japanese', 'Arabic']
-const otherLanguageChecked = ref(false)
 
-const expertiseOptions = [
-  'Accidents',
-  'HIV/AIDS',
-  'Arthritis (including Musculoskeletal)',
-  'Behaviour',
-  'Cancer',
-  'Cardiovascular',
-  'Cerebrovascular',
-  'Chronic Respiratory Conditions',
-  'Dementia',
-  'Developing Countries',
-  'Diabetes',
-  'Disability',
-  'Disasters',
-  'Diet',
-  'Drugs (including Alcohol)',
-  'Elderly',
-  'Endocrine',
-  'Environment',
-  'Evaluation',
-  'Genetics',
-  'Growth',
-  'Handicap',
-  'Health Economics',
-  'Health Education',
-  'Health Promotion',
-  'Health Services',
-  'Hearing',
-  'Hypertension',
-  'Infectious Disease',
-  'Information Systems',
-  'Injuries',
-  'Lipids',
-  'Malnutrition',
-  'Measurement',
-  'Methods',
-  'Mental',
-  'Neurological',
-  'Nutrition',
-  'Obstetrics, Gynecology',
-  'Occupational Health',
-  'Perinatal, Neonatal',
-  'Pharmacological',
-  'Physical Activity',
-  'Psychiatry',
-  'Planning',
-  'Policy',
-  'Screening',
-  'Social Work',
-  'Social Security & Health Insurance',
-  'Suicide',
-  'Surveys',
-  'Toxicology (including Chemical)',
-  'Vaccination',
-  'Vision',
-  'Tobacco Consumption',
-]
-
-const agencyOptions = [
-  'Health Service Administration',
-  'Social Security Administration',
-  'University/Higher Institution (or similar)',
-  'Other Research Establishment',
-  'Hospital',
-  'Health Centre or other Primary Care Facility',
-  'Industry',
-  'Self-Employed or Private',
-]
-
-const typeOfWorkOptions = [
-  'Administration & Management',
-  'Planning & Information',
-  'Teaching & Research',
-  'Clinical',
-  'Laboratory',
-  'Other Practical Work',
-  'Others',
-]
-
-const form = reactive({
-  // Section 1
-  title: 'Dr',
-  nameFamily: '',
-  nameMiddle: '',
-  nameFirst: '',
-  sex: '',
-  dob: '',
-  address: '',
-  telephone: '',
-  fax: '',
-  email: '',
-
-  // Section 2
-  position: '',
-  employer: '',
-  department: '',
-  qualifications: '',
-  experience: '',
-  publications: [] as File[],
-
-  // Section 3
-  motherTongue: '',
-  otherLanguages: [] as string[],
-  otherLanguageText: '',
-
-  // Section 4
-  expertiseDescription: '',
-  expertise: [] as string[],
-  expertiseOther: '',
-
-  // Section 5
-  agency: 'Industry',
-  typeOfWork: 'Clinical',
-  typeOfWorkOther: '',
-  retiredSince: '',
-
-  // Section 6 (no extra fields; Paystack inline only)
-})
-
-// ... rest of the code remains the same ...
-
-// File helpers for publications
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`
+// Step validation functions
+function isStep1Valid() {
+  return !!(
+    state.nameFamily.trim() &&
+    state.nameFirst.trim() &&
+    state.title &&
+    state.sex &&
+    state.dob &&
+    state.telephone.trim() &&
+    state.email.trim() &&
+    state.address.trim()
+  )
 }
 
-function removePublication(index: number) {
-  if (index >= 0 && index < form.publications.length) {
-    form.publications.splice(index, 1)
+function isStep2Valid() {
+  return !!(state.position.trim() && state.employer.trim())
+}
+
+function isStep3Valid() {
+  return true // No required fields
+}
+
+function isStep4Valid() {
+  return true // No required fields
+}
+
+function isStep5Valid() {
+  return true // No required fields
+}
+
+function isStep6Valid() {
+  return !!state.fees && state.fees > 0 // Need valid amount for payment
+}
+
+// Computed property to check if current step is valid
+const isCurrentStepValid = computed(() => {
+  switch (currentStep.value) {
+    case 1:
+      return isStep1Valid()
+    case 2:
+      return isStep2Valid()
+    case 3:
+      return isStep3Valid()
+    case 4:
+      return isStep4Valid()
+    case 5:
+      return isStep5Valid()
+    case 6:
+      return isStep6Valid()
+    default:
+      return false
   }
-}
+})
 
 // Using UFileUpload slot's open() to trigger file dialog; no extra ref needed
 
@@ -615,9 +248,7 @@ const feeMap: Record<string, number> = {
 const membershipType = computed(() => String((route.query.type as string) || '').toLowerCase())
 const amountNaira = computed(() => feeMap[membershipType.value] ?? 0)
 
-function formatNaira(n: number) {
-  return new Intl.NumberFormat('en-NG').format(n)
-}
+// formatNaira handled in Step6Payment component
 
 async function loadPaystackScript() {
   if (typeof window === 'undefined') return
@@ -636,7 +267,7 @@ function startPaystackPayment(): Promise<{ reference: string }> {
   return new Promise((resolve, reject) => {
     ;(async () => {
       const amount = amountNaira.value
-      if (!form.email) {
+      if (!state.email) {
         toast.add({
           title: 'Email required',
           description: 'Enter your email to continue to payment.',
@@ -668,7 +299,7 @@ function startPaystackPayment(): Promise<{ reference: string }> {
       const ref = `EPISON-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
       const handler = window.PaystackPop!.setup({
         key: publicKey,
-        email: form.email,
+        email: state.email,
         amount: amount * 100, // kobo
         ref,
         metadata: {
@@ -676,7 +307,7 @@ function startPaystackPayment(): Promise<{ reference: string }> {
             {
               display_name: 'Membership Type',
               variable_name: 'membership_type',
-              value: membershipType.value || 'unspecified',
+              value: state.membershipType || 'unspecified',
             },
           ],
         },
@@ -727,7 +358,7 @@ onMounted(() => {
 
 // Enforce max 5 files and 10MB per file
 watch(
-  () => form.publications,
+  () => state.publications,
   val => {
     const MAX_FILES = 5
     const MAX_SIZE = 10 * 1024 * 1024
@@ -758,70 +389,114 @@ watch(
     }
 
     if (changed) {
-      form.publications = sizeFiltered
+      state.publications = sizeFiltered
     }
   },
   { deep: true }
 )
 
-function toggleLanguage(language: string, checked: boolean) {
-  if (checked) {
-    if (!form.otherLanguages.includes(language)) {
-      form.otherLanguages.push(language)
-    }
-  } else {
-    const index = form.otherLanguages.indexOf(language)
-    if (index > -1) {
-      form.otherLanguages.splice(index, 1)
-    }
-  }
-}
-
-function onToggleExpertise(opt: string, checked: boolean) {
-  const exists = form.expertise.includes(opt)
-  if (checked && !exists) {
-    if (form.expertise.length >= 5) {
-      toast.add({
-        title: 'Selection limit',
-        description: 'You can select up to 5 areas of expertise.',
-        color: 'warning',
-      })
-      return
-    }
-    form.expertise.push(opt)
-  } else if (!checked && exists) {
-    form.expertise = form.expertise.filter(x => x !== opt)
-  }
-}
-
-function goToStep(n: number) {
-  if (n >= 1 && n <= steps.value.length) currentStep.value = n
-}
-function nextStep() {
-  if (currentStep.value < steps.value.length) currentStep.value += 1
-}
 function prevStep() {
   if (currentStep.value > 1) currentStep.value -= 1
 }
 
-function onEmailInput(e: Event) {
-  const target = e.target as HTMLInputElement
-  form.email = (target?.value || '').trim()
+function goToStep(n?: number) {
+  if (typeof n === 'number' && n >= 1 && n <= steps.value.length) {
+    currentStep.value = n
+  }
 }
 
-const submitApplication = async () => {
+function nextStep() {
+  if (currentStep.value < steps.value.length) {
+    currentStep.value += 1
+  }
+}
+
+// onEmailInput handled within Step1 component
+
+// Computed property to get validation errors for current step
+const currentStepErrors = computed(() => {
+  const errors: string[] = []
+  switch (currentStep.value) {
+    case 1:
+      if (!state.nameFamily.trim()) errors.push('Family name is required')
+      if (!state.nameFirst.trim()) errors.push('First name is required')
+      if (!state.title) errors.push('Title is required')
+      if (!state.sex) errors.push('Sex is required')
+      if (!state.dob) errors.push('Date of birth is required')
+      if (!state.telephone.trim()) errors.push('Telephone is required')
+      if (!state.email.trim()) errors.push('Email is required')
+      if (!state.address.trim()) errors.push('Address is required')
+      break
+    case 2:
+      if (!state.position.trim()) errors.push('Position is required')
+      if (!state.employer.trim()) errors.push('Employer is required')
+      break
+    case 6:
+      if (!state.fees || state.fees <= 0)
+        errors.push('Please select a membership type to proceed with payment')
+      break
+  }
+  return errors
+})
+
+const onSubmit = async (_event: FormSubmitEvent<MembershipFormData>) => {
   isSubmitting.value = true
   try {
     if (isEditMode.value) {
       // Edit mode: save changes without payment
-      // TODO: Replace with real API call e.g., await $fetch(`/api/memberships/${memberId.value}`, { method: 'PUT', body: { ...form } })
-      await new Promise(resolve => setTimeout(resolve, 800))
+      const updateData = {
+        id: memberId.value.toString(),
+        // Personal Information
+        title: state.title,
+        nameFamily: state.nameFamily,
+        nameMiddle: state.nameMiddle,
+        nameFirst: state.nameFirst,
+        sex: state.sex,
+        dob: state.dob,
+        address: state.address,
+        telephone: state.telephone,
+        fax: state.fax,
+        email: state.email,
+
+        // Employment & Education
+        position: state.position,
+        employer: state.employer,
+        department: state.department,
+        qualifications: state.qualifications,
+        experience: state.experience,
+
+        // Languages
+        motherTongue: state.motherTongue,
+        otherLanguages: state.otherLanguages,
+        otherLanguageText: state.otherLanguageText,
+
+        // Areas of Expertise
+        expertiseDescription: state.expertiseDescription,
+        expertise: state.expertise,
+        expertiseOther: state.expertiseOther,
+
+        // Employment Classification
+        agency: state.agency,
+        typeOfWork: state.typeOfWork,
+        typeOfWorkOther: state.typeOfWorkOther,
+      }
+
+      const updateResponse = await updateMember(memberId.value.toString(), updateData)
+      if (!updateResponse.success) {
+        throw new Error(updateResponse.error || 'Failed to update member')
+      }
+
+      if (!updateResponse.data) {
+        throw new Error('No data returned from server')
+      }
+
       toast.add({
         title: 'Changes Saved',
         description: 'Membership details have been updated successfully.',
         icon: 'i-heroicons-check-circle',
         color: 'success',
       })
+
       // Redirect back to admin member detail if coming from admin
       const backTo = route.query.back as string | undefined
       if (backTo) {
@@ -835,8 +510,88 @@ const submitApplication = async () => {
     // Apply mode: Start Paystack and wait for success
     const { reference } = await startPaystackPayment()
 
-    // TODO: submit to API (include Paystack reference and form data)
-    await new Promise(resolve => setTimeout(resolve, 1200))
+    // Upload publications if any
+    let publicationUrls: string[] = []
+    if (state.publications.length > 0) {
+      try {
+        const uploadPromises = state.publications.map(async (file: File) => {
+          const uploadForm = new FormData()
+          // Include filename explicitly so multipart part has a filename
+          uploadForm.append('file', file, file.name)
+          uploadForm.append('folder', 'publications')
+
+          const response = (await $fetch('/api/uploads', {
+            method: 'POST',
+            body: uploadForm,
+          })) as { url: string }
+          return response.url
+        })
+
+        publicationUrls = await Promise.all(uploadPromises)
+      } catch (uploadError) {
+        console.error('Failed to upload publications:', uploadError)
+        toast.add({
+          title: 'Upload Warning',
+          description:
+            'Some files could not be uploaded but your application will still be submitted.',
+          color: 'warning',
+        })
+      }
+    }
+
+    // Prepare member data for API
+    const createData = {
+      // Personal Information
+      title: state.title,
+      nameFamily: state.nameFamily,
+      nameMiddle: state.nameMiddle,
+      nameFirst: state.nameFirst,
+      sex: state.sex,
+      dob: state.dob,
+      address: state.address,
+      telephone: state.telephone,
+      fax: state.fax,
+      email: state.email,
+
+      // Employment & Education
+      position: state.position,
+      employer: state.employer,
+      department: state.department,
+      qualifications: state.qualifications,
+      experience: state.experience,
+
+      // Languages
+      motherTongue: state.motherTongue,
+      otherLanguages: state.otherLanguages,
+      otherLanguageText: state.otherLanguageText,
+
+      // Areas of Expertise
+      expertiseDescription: state.expertiseDescription,
+      expertise: state.expertise,
+      expertiseOther: state.expertiseOther,
+
+      // Employment Classification
+      agency: state.agency,
+      typeOfWork: state.typeOfWork,
+      typeOfWorkOther: state.typeOfWorkOther,
+
+      // Membership Details
+      membershipType: state.membershipType,
+      fees: state.fees,
+      paymentReference: reference,
+
+      // Related data
+      publications: publicationUrls,
+    }
+
+    const createResponse = await createMember(createData)
+    if (!createResponse.success) {
+      throw new Error(createResponse.error || 'Failed to create member')
+    }
+
+    if (!createResponse.data) {
+      throw new Error('No data returned from server')
+    }
 
     toast.add({
       title: 'Application Submitted',
@@ -849,6 +604,50 @@ const submitApplication = async () => {
   } catch (e) {
     // Payment cancelled or failed (apply mode) or save failed (edit mode)
     console.error(e)
+
+    // Handle specific error types
+    let errorTitle = 'Error'
+    let errorDescription = 'An unexpected error occurred'
+    let errorColor: 'error' | 'warning' = 'error'
+
+    if (e instanceof Error) {
+      if (e.message === 'EMAIL_REQUIRED') {
+        errorTitle = 'Email Required'
+        errorDescription = 'Please enter your email address to proceed with payment.'
+        errorColor = 'warning'
+      } else if (e.message === 'AMOUNT_INVALID') {
+        errorTitle = 'Invalid Amount'
+        errorDescription = 'Please select a membership type to determine the fee amount.'
+        errorColor = 'warning'
+      } else if (e.message === 'MISSING_KEY') {
+        errorTitle = 'Payment Configuration Error'
+        errorDescription = 'Payment system is not properly configured. Please contact support.'
+        errorColor = 'error'
+      } else if (e.message === 'CLOSED') {
+        errorTitle = 'Payment Cancelled'
+        errorDescription = 'You cancelled the payment process.'
+        errorColor = 'warning'
+      } else if (e.message === 'PAYMENT_ERROR') {
+        errorTitle = 'Payment Error'
+        errorDescription = 'Unable to process payment. Please try again or contact support.'
+        errorColor = 'error'
+      } else if (isEditMode.value) {
+        errorTitle = 'Save Failed'
+        errorDescription = 'Unable to save your changes. Please try again.'
+        errorColor = 'error'
+      } else {
+        errorTitle = 'Application Failed'
+        errorDescription =
+          'Unable to submit your application. Please check your information and try again.'
+        errorColor = 'error'
+      }
+    }
+
+    toast.add({
+      title: errorTitle,
+      description: errorDescription,
+      color: errorColor,
+    })
   } finally {
     isSubmitting.value = false
   }
@@ -858,67 +657,83 @@ const submitApplication = async () => {
 async function loadMemberForEdit() {
   if (!isEditMode.value || !memberId.value) return
   try {
-    // TODO: Replace with real API call
-    // const member = await $fetch(`/api/memberships/${memberId.value}`)
-    // Mock fallback based on the fields used in admin detail
-    const mockMember = {
-      title: 'Dr',
-      nameFamily: 'Doe',
-      nameMiddle: 'Johnson',
-      nameFirst: 'John',
-      sex: 'Male',
-      dob: '1985-03-15',
-      address: '123 Victoria Island, Lagos, Nigeria 101001',
-      telephone: '+234 801 234 5678',
-      fax: '+234 1 234 5678',
-      email: 'john.doe@example.com',
-      position: 'Senior Epidemiologist',
-      employer: 'Lagos University Teaching Hospital, Idi-Araba, Lagos, Nigeria',
-      department: 'Department of Community Health',
-      qualifications: 'MBBS (2008), MPH (2012), PhD Epidemiology (2016)',
-      experience:
-        'Over 10 years in public health research, disease surveillance, and outbreak investigation.',
-      motherTongue: 'Yoruba',
-      otherLanguages: ['English', 'French'],
-      otherLanguageText: 'Hausa (conversational)',
-      expertiseDescription: 'Infectious disease epidemiology and surveillance systems',
-      expertise: ['Infectious Disease', 'Evaluation', 'Health Services'],
-      expertiseOther: 'Outbreak Investigation',
-      agency: 'Hospital',
-      typeOfWork: 'Clinical',
-      typeOfWorkOther: '',
+    const { data: member, error, pending: _pending } = await getMember(memberId.value.toString())
+    if (error.value || !member.value) {
+      let errorMessage = 'Failed to load member'
+      if (error.value) {
+        const val: unknown = error.value
+        if (
+          val &&
+          typeof val === 'object' &&
+          'message' in val &&
+          typeof (val as { message: unknown }).message === 'string'
+        ) {
+          errorMessage = (val as { message: string }).message
+        }
+      }
+      throw new Error(errorMessage)
     }
 
-    // Map to form
-    form.title = mockMember.title
-    form.nameFamily = mockMember.nameFamily
-    form.nameMiddle = mockMember.nameMiddle
-    form.nameFirst = mockMember.nameFirst
-    form.sex = mockMember.sex
-    form.dob = mockMember.dob
-    form.address = mockMember.address
-    form.telephone = mockMember.telephone
-    form.fax = mockMember.fax || ''
-    form.email = mockMember.email
-    form.position = mockMember.position
-    form.department = mockMember.department || ''
-    form.employer = mockMember.employer
-    form.qualifications = mockMember.qualifications || ''
-    form.experience = mockMember.experience || ''
-    form.motherTongue = mockMember.motherTongue || ''
-    form.otherLanguages = mockMember.otherLanguages || []
-    form.otherLanguageText = mockMember.otherLanguageText || ''
-    form.expertiseDescription = mockMember.expertiseDescription || ''
-    form.expertise = mockMember.expertise || []
-    form.expertiseOther = mockMember.expertiseOther || ''
-    form.agency = mockMember.agency
-    form.typeOfWork = mockMember.typeOfWork
-    form.typeOfWorkOther = mockMember.typeOfWorkOther || ''
+    // Map API response to form
+    const memberData = member.value.data
+    if (!memberData) {
+      throw new Error('No member data found')
+    }
+    state.title = memberData.title || ''
+    state.nameFamily = memberData.nameFamily
+    state.nameMiddle = memberData.nameMiddle || ''
+    state.nameFirst = memberData.nameFirst
+    state.sex = memberData.sex || ''
+    state.dob = memberData.dob || ''
+    state.address = memberData.address || ''
+    state.telephone = memberData.telephone || ''
+    state.fax = memberData.fax || ''
+    state.email = memberData.email
+    state.position = memberData.position || ''
+    state.department = memberData.department || ''
+    state.employer = memberData.employer || ''
+    state.qualifications = memberData.qualifications || ''
+    state.experience = memberData.experience || ''
+    state.motherTongue = memberData.motherTongue || ''
+    state.otherLanguages = memberData.otherLanguages || []
+    state.otherLanguageText = memberData.otherLanguageText || ''
+    state.expertiseDescription = memberData.expertiseDescription || ''
+    state.expertise = memberData.expertise || []
+    state.expertiseOther = memberData.expertiseOther || ''
+    state.agency = memberData.agency || ''
+    state.typeOfWork = memberData.typeOfWork || ''
+    state.typeOfWorkOther = memberData.typeOfWorkOther || ''
   } catch (e) {
     console.error('Failed to prefill member', e)
-    toast.add({ title: 'Could not load member details', color: 'warning' })
+    let errorMessage = 'Could not load member details'
+
+    if (e instanceof Error) {
+      if (e.message.includes('not found')) {
+        errorMessage = 'Member not found. Please check the URL and try again.'
+      } else if (e.message.includes('unauthorized') || e.message.includes('forbidden')) {
+        errorMessage = "You do not have permission to view this member's information."
+      } else if (e.message.includes('network') || e.message.includes('fetch')) {
+        errorMessage = 'Unable to connect to the server. Please check your internet connection.'
+      }
+    }
+
+    toast.add({
+      title: 'Load Error',
+      description: errorMessage,
+      color: 'warning',
+    })
   }
 }
+
+// Watch for membership type changes and update state
+watch(
+  [membershipType, amountNaira],
+  ([newType, newAmount]) => {
+    state.membershipType = newType
+    state.fees = newAmount
+  },
+  { immediate: true }
+)
 
 onMounted(() => {
   if (isEditMode.value) loadMemberForEdit()

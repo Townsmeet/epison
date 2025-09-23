@@ -11,7 +11,7 @@
           </div>
         </template>
 
-        <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
+        <UForm :schema="loginSchema" :state="state" class="space-y-4" @submit="onSubmit">
           <UFormField label="Email" name="email">
             <UInput
               v-model="state.email"
@@ -71,28 +71,20 @@
 </template>
 
 <script setup lang="ts">
-import * as z from 'zod'
 import type { FormSubmitEvent } from '#ui/types'
+import { loginSchema, type LoginData } from '~/schemas/auth'
 
 const { login, isLoading } = useAuth()
 const toast = useToast()
 const route = useRoute()
 
-const schema = z.object({
-  email: z.string().email('Invalid email'),
-  password: z.string().min(8, 'Must be at least 8 characters'),
-  remember: z.boolean().default(false),
-})
-
-type Schema = z.output<typeof schema>
-
-const state = reactive<Schema>({
+const state = reactive<LoginData>({
   email: '',
   password: '',
   remember: false,
 })
 
-const onSubmit = async (_event: FormSubmitEvent<Schema>) => {
+const onSubmit = async (_event: FormSubmitEvent<LoginData>) => {
   try {
     const { error: loginError } = await login(state.email, state.password, state.remember)
     if (loginError) throw loginError

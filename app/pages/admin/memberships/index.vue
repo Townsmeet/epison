@@ -149,7 +149,25 @@
 
     <!-- Memberships Table -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-      <div class="overflow-x-auto">
+      <!-- Loading state -->
+      <div v-if="membersPending" class="p-8 text-center">
+        <div class="inline-flex items-center space-x-2">
+          <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600" />
+          <span class="text-gray-600 dark:text-gray-400">Loading members...</span>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div v-else-if="!members.length" class="p-8 text-center">
+        <div class="text-gray-500 dark:text-gray-400">
+          <UIcon name="i-heroicons-users" class="w-12 h-12 mx-auto mb-4 text-gray-300" />
+          <h3 class="text-lg font-medium mb-2">No members found</h3>
+          <p class="text-sm">Try adjusting your search filters or add a new member.</p>
+        </div>
+      </div>
+
+      <!-- Table content -->
+      <div v-else class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
@@ -185,7 +203,7 @@
           </thead>
           <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             <tr
-              v-for="member in filteredMemberships"
+              v-for="member in members"
               :key="member.id"
               class="hover:bg-gray-50 dark:hover:bg-gray-700"
             >
@@ -196,21 +214,21 @@
                       class="h-10 w-10 rounded-full bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center"
                     >
                       <span class="text-white font-semibold text-sm">{{
-                        getInitials(member.name)
+                        getInitials(getFullName(member))
                       }}</span>
                     </div>
                   </div>
                   <div class="ml-4">
                     <div class="text-sm font-medium text-gray-900 dark:text-white">
-                      {{ member.name }}
+                      {{ getFullName(member) }}
                     </div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">{{ member.email }}</div>
                   </div>
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <UBadge :color="getTypeColor(member.type)" size="sm">{{
-                  typeLabelFromValue(typeValueFromLabel(member.type))
+                <UBadge :color="getTypeColor(member.membershipType)" size="sm">{{
+                  member.membershipType
                 }}</UBadge>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
@@ -237,6 +255,58 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination -->
+      <div
+        v-if="members.length"
+        class="bg-white dark:bg-gray-800 px-4 py-3 border-t border-gray-200 dark:border-gray-700 sm:px-6"
+      >
+        <div class="flex items-center justify-between">
+          <div class="flex-1 flex justify-between sm:hidden">
+            <UButton
+              :disabled="!pagination.hasPrev"
+              color="neutral"
+              variant="outline"
+              @click="goToPage(currentPage - 1)"
+            >
+              Previous
+            </UButton>
+            <UButton
+              :disabled="!pagination.hasNext"
+              color="neutral"
+              variant="outline"
+              @click="goToPage(currentPage + 1)"
+            >
+              Next
+            </UButton>
+          </div>
+          <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm text-gray-700 dark:text-gray-300">
+                Showing
+                <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span>
+                to
+                <span class="font-medium">{{
+                  Math.min(currentPage * pageSize, pagination.total)
+                }}</span>
+                of
+                <span class="font-medium">{{ pagination.total }}</span>
+                results
+              </p>
+            </div>
+            <div>
+              <UPagination
+                v-model="currentPage"
+                :page-count="pageSize"
+                :total="pagination.total"
+                :max="7"
+                show-last
+                show-first
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -519,23 +589,11 @@
 
 <script setup lang="ts">
 import type { RadioGroupItem, DropdownMenuItem } from '@nuxt/ui'
+import type { MemberListItem } from '../../../../types/members'
 
 definePageMeta({
   layout: 'admin',
 })
-
-// Local types
-interface Member {
-  id: number
-  name: string
-  email: string
-  type: string
-  status: string
-  joinedDate: string
-  expiryDate: string
-  fees: number
-  organization: string
-}
 
 const isCreateMembershipOpen = ref(false)
 const isCreating = ref(false)
@@ -547,9 +605,23 @@ const confirmationModal = ref({
   confirmColor: 'primary' as const,
   onConfirm: () => {},
 })
+// Composable for API calls
+const {
+  getMembers,
+  getMemberStats,
+  deleteMember,
+  activateMember,
+  suspendMember,
+  renewMember,
+  refreshStats,
+} = useMembers()
+
+// Filter state
 const searchQuery = ref('')
 const selectedTypeItem = ref<{ label: string; value: string } | undefined>(undefined)
 const selectedStatusItem = ref<{ label: string; value: string } | undefined>(undefined)
+const currentPage = ref(1)
+const pageSize = ref(20)
 
 // Wizard state
 const currentStep = ref(1)
@@ -590,15 +662,51 @@ const newMembership = ref({
   fees: '',
 })
 
+// Reactive query for members list
+const membersQuery = computed(() => ({
+  page: currentPage.value,
+  limit: pageSize.value,
+  search: searchQuery.value || undefined,
+  status: selectedTypeItem.value?.value !== 'all' ? selectedStatusItem.value?.value : undefined,
+  type: selectedTypeItem.value?.value !== 'all' ? selectedTypeItem.value?.value : undefined,
+  sortBy: 'nameFamily',
+  sortOrder: 'asc' as const,
+}))
+
+// Fetch data using composables
+const {
+  data: membersData,
+  pending: membersPending,
+  refresh: refreshMembers,
+} = getMembers(membersQuery.value)
+const { data: statsData, pending: _statsPending } = getMemberStats()
+
+// Computed properties for UI
+const members = computed(() => membersData.value?.data || [])
+const pagination = computed(
+  () =>
+    membersData.value?.pagination || {
+      page: 1,
+      limit: 20,
+      total: 0,
+      totalPages: 0,
+      hasNext: false,
+      hasPrev: false,
+    }
+)
+
 const membershipStats = computed(() => {
-  const list = memberships.value
-  const total = list.length
-  const active = list.filter(m => m.status === 'active').length
-  const pending = list.filter(m => m.status === 'pending').length
-  const expired = list.filter(m => m.status === 'expired').length
-  const suspended = list.filter(m => m.status === 'suspended').length
-  const inactive = expired + suspended
-  return { total, active, pending, expired, suspended, inactive }
+  const stats = statsData.value?.data
+  if (!stats) return { total: 0, active: 0, pending: 0, expired: 0, suspended: 0, inactive: 0 }
+
+  return {
+    total: stats.total,
+    active: stats.byStatus.active || 0,
+    pending: stats.byStatus.pending || 0,
+    expired: stats.byStatus.expired || 0,
+    suspended: stats.byStatus.suspended || 0,
+    inactive: (stats.byStatus.expired || 0) + (stats.byStatus.suspended || 0),
+  }
 })
 
 // Set default status selection when the modal opens (after refs are initialized)
@@ -611,81 +719,24 @@ watch(isCreateMembershipOpen, open => {
   }
 })
 
-// Mock memberships data
-const memberships = ref<Member[]>([
-  {
-    id: 1,
-    name: 'Dr. John Doe',
-    email: 'john.doe@example.com',
-    type: 'Regular Membership (EPiSON only)',
-    status: 'active',
-    joinedDate: '2023-01-15',
-    expiryDate: '2024-01-15',
-    fees: 30000,
-    organization: 'Lagos University Teaching Hospital',
-  },
-  {
-    id: 2,
-    name: 'Dr. Jane Smith',
-    email: 'jane.smith@example.com',
-    type: 'Regular Membership (Joint IEA - EPiSON)',
-    status: 'active',
-    joinedDate: '2023-03-20',
-    expiryDate: '2024-03-20',
-    fees: 50000,
-    organization: 'University of Ibadan',
-  },
-  {
-    id: 3,
-    name: 'Michael Brown',
-    email: 'michael.brown@student.edu',
-    type: 'Early Career Membership (EPiSON only)',
-    status: 'pending',
-    joinedDate: '2024-08-01',
-    expiryDate: '2025-08-01',
-    fees: 15000,
-    organization: 'University of Lagos',
-  },
-])
+// Watch for filter changes and refresh data
+let refreshTimeout: NodeJS.Timeout | null = null
+watch([searchQuery, selectedTypeItem, selectedStatusItem], () => {
+  if (refreshTimeout) clearTimeout(refreshTimeout)
+  refreshTimeout = setTimeout(() => {
+    currentPage.value = 1 // Reset to first page when filters change
+    refreshMembers()
+  }, 300)
+})
 
-const selectedTypeValue = computed(() => selectedTypeItem.value?.value ?? 'all')
-const selectedStatusValue = computed(() => selectedStatusItem.value?.value ?? 'all')
+// Note: selectedTypeItem/selectedStatusItem are used directly in membersQuery
 
 function typeValueFromLabel(label: string): string {
   const found = membershipTypeOptions.find(o => o.label === label)
   return found ? found.value : label
 }
 
-function typeLabelFromValue(value: string): string {
-  const found = membershipTypeOptions.find(o => o.value === value)
-  return found ? found.label : value
-}
-
-const filteredMemberships = computed(() => {
-  let filtered = memberships.value
-
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(
-      member =>
-        member.name.toLowerCase().includes(query) ||
-        member.email.toLowerCase().includes(query) ||
-        member.organization.toLowerCase().includes(query)
-    )
-  }
-
-  if (selectedTypeValue.value !== 'all') {
-    filtered = filtered.filter(
-      member => typeValueFromLabel(member.type) === selectedTypeValue.value
-    )
-  }
-
-  if (selectedStatusValue.value !== 'all') {
-    filtered = filtered.filter(member => member.status === selectedStatusValue.value)
-  }
-
-  return filtered
-})
+// typeLabelFromValue not currently used
 
 function getInitials(name: string): string {
   return name
@@ -693,6 +744,10 @@ function getInitials(name: string): string {
     .map(n => n[0])
     .join('')
     .toUpperCase()
+}
+
+function getFullName(member: MemberListItem): string {
+  return `${member.nameFirst} ${member.nameFamily}`
 }
 
 function getTypeColor(
@@ -734,13 +789,19 @@ function formatDate(dateString: string): string {
   })
 }
 
-function getMemberActions(member: Member) {
+function getMemberActions(member: MemberListItem) {
   return [
     [
       { label: 'View Profile', icon: 'i-heroicons-eye', click: () => viewMember(member.id) },
       { label: 'Edit Member', icon: 'i-heroicons-pencil', click: () => editMember(member.id) },
     ],
     [
+      {
+        label: 'Activate Member',
+        icon: 'i-heroicons-check-circle',
+        click: () => confirmActivateMember(member),
+        show: member.status !== 'active',
+      },
       {
         label: 'Renew Membership',
         icon: 'i-heroicons-arrow-path',
@@ -757,6 +818,7 @@ function getMemberActions(member: Member) {
         label: 'Suspend Member',
         icon: 'i-heroicons-no-symbol',
         click: () => confirmSuspendMember(member),
+        show: member.status === 'active',
       },
       {
         label: 'Delete Member',
@@ -767,16 +829,18 @@ function getMemberActions(member: Member) {
   ]
 }
 
-function getMemberMenuItems(member: Member): DropdownMenuItem[][] {
+function getMemberMenuItems(member: MemberListItem): DropdownMenuItem[][] {
   const groups = getMemberActions(member)
   return groups.map(group =>
-    group.map(item => ({
-      label: item.label,
-      icon: item.icon,
-      onSelect: (_e: Event) => {
-        if (item.click) item.click()
-      },
-    }))
+    group
+      .filter(item => item.show !== false)
+      .map(item => ({
+        label: item.label,
+        icon: item.icon,
+        onSelect: (_e: Event) => {
+          if (item.click) item.click()
+        },
+      }))
   )
 }
 
@@ -794,86 +858,159 @@ function exportMemberships() {
   })
 }
 
-function viewMember(id: number) {
+function viewMember(id: string) {
   navigateTo(`/admin/memberships/${id}`)
 }
 
-function editMember(id: number) {
+function editMember(id: string) {
   navigateTo(`/admin/memberships/${id}/edit`)
 }
 
-function confirmRenewMembership(member: Member) {
+function confirmActivateMember(member: MemberListItem) {
+  confirmationModal.value = {
+    isOpen: true,
+    title: 'Activate Member',
+    message: `Are you sure you want to activate ${getFullName(member)}? They will gain access to member benefits.`,
+    confirmText: 'Activate',
+    confirmColor: 'primary',
+    onConfirm: () => activateMemberAction(member.id),
+  }
+}
+
+function confirmRenewMembership(member: MemberListItem) {
   confirmationModal.value = {
     isOpen: true,
     title: 'Renew Membership',
-    message: `Are you sure you want to renew the membership for ${member.name}? This will extend their membership period.`,
+    message: `Are you sure you want to renew the membership for ${getFullName(member)}? This will extend their membership period.`,
     confirmText: 'Renew',
     confirmColor: 'primary',
-    onConfirm: () => renewMembership(member.id),
+    onConfirm: () => renewMembershipAction(member.id),
   }
 }
 
-function confirmSuspendMember(member: Member) {
+function confirmSuspendMember(member: MemberListItem) {
   confirmationModal.value = {
     isOpen: true,
     title: 'Suspend Member',
-    message: `Are you sure you want to suspend ${member.name}? They will lose access to member benefits.`,
+    message: `Are you sure you want to suspend ${getFullName(member)}? They will lose access to member benefits.`,
     confirmText: 'Suspend',
     confirmColor: 'primary',
-    onConfirm: () => suspendMember(member.id),
+    onConfirm: () => suspendMemberAction(member.id),
   }
 }
 
-function confirmDeleteMember(member: Member) {
+function confirmDeleteMember(member: MemberListItem) {
   confirmationModal.value = {
     isOpen: true,
     title: 'Delete Member',
-    message: `Are you sure you want to permanently delete ${member.name}? This action cannot be undone.`,
+    message: `Are you sure you want to permanently delete ${getFullName(member)}? This action cannot be undone.`,
     confirmText: 'Delete',
     confirmColor: 'primary',
-    onConfirm: () => deleteMember(member.id),
+    onConfirm: () => deleteMemberAction(member.id),
   }
 }
 
-function confirmSendReminder(member: Member) {
+function confirmSendReminder(member: MemberListItem) {
   confirmationModal.value = {
     isOpen: true,
     title: 'Send Reminder',
-    message: `Send a renewal reminder email to ${member.name}?`,
+    message: `Send a renewal reminder email to ${getFullName(member)}?`,
     confirmText: 'Send',
     confirmColor: 'primary',
     onConfirm: () => sendReminder(member.id),
   }
 }
 
-function renewMembership(_id: number) {
-  confirmationModal.value.isOpen = false
-  useToast().add({
-    title: 'Membership renewed',
-    description: 'Membership has been renewed successfully',
-    color: 'success',
-  })
+async function activateMemberAction(id: string) {
+  try {
+    await activateMember(id, { reason: 'Activated via admin panel' })
+    confirmationModal.value.isOpen = false
+    await refreshMembers()
+    await refreshStats()
+    await refreshStatsData()
+    await refreshNuxtData('member-stats')
+    useToast().add({
+      title: 'Member activated',
+      description: 'Member has been activated successfully',
+      color: 'success',
+    })
+  } catch (error: unknown) {
+    const description = extractApiMessage(error, 'Failed to activate member')
+    useToast().add({
+      title: 'Error',
+      description,
+      color: 'error',
+    })
+  }
 }
 
-function suspendMember(_id: number) {
-  confirmationModal.value.isOpen = false
-  useToast().add({
-    title: 'Member suspended',
-    description: 'Member has been suspended',
-    color: 'warning',
-  })
+async function renewMembershipAction(id: string) {
+  try {
+    await renewMember(id, { reason: 'Renewed via admin panel', period: '1 year' })
+    confirmationModal.value.isOpen = false
+    await refreshMembers()
+    await refreshStats()
+    await refreshStatsData()
+    useToast().add({
+      title: 'Membership renewed',
+      description: 'Membership has been renewed successfully',
+      color: 'success',
+    })
+  } catch (error: unknown) {
+    const description = extractApiMessage(error, 'Failed to renew membership')
+    useToast().add({
+      title: 'Error',
+      description,
+      color: 'error',
+    })
+  }
 }
 
-function deleteMember(_id: number) {
-  confirmationModal.value.isOpen = false
-  useToast().add({
-    title: 'Member deleted',
-    description: 'Member has been removed from the system',
-    color: 'error',
-  })
+async function suspendMemberAction(id: string) {
+  try {
+    await suspendMember(id, { reason: 'Suspended via admin panel' })
+    confirmationModal.value.isOpen = false
+    await refreshMembers()
+    await refreshStats()
+    await refreshStatsData()
+    useToast().add({
+      title: 'Member suspended',
+      description: 'Member has been suspended',
+      color: 'warning',
+    })
+  } catch (error: unknown) {
+    const description = extractApiMessage(error, 'Failed to suspend member')
+    useToast().add({
+      title: 'Error',
+      description,
+      color: 'error',
+    })
+  }
 }
 
-function sendReminder(_id: number) {
+async function deleteMemberAction(id: string) {
+  try {
+    await deleteMember(id)
+    confirmationModal.value.isOpen = false
+    await refreshMembers()
+    await refreshStats()
+    await refreshStatsData()
+    useToast().add({
+      title: 'Member deleted',
+      description: 'Member has been removed from the system',
+      color: 'error',
+    })
+  } catch (error: unknown) {
+    const description = extractApiMessage(error, 'Failed to delete member')
+    useToast().add({
+      title: 'Error',
+      description,
+      color: 'error',
+    })
+  }
+}
+
+function sendReminder(_id: string) {
   confirmationModal.value.isOpen = false
   useToast().add({
     title: 'Reminder sent',
@@ -881,6 +1018,19 @@ function sendReminder(_id: number) {
     color: 'info',
   })
 }
+
+// Pagination functions
+function goToPage(page: number) {
+  if (page >= 1 && page <= pagination.value.totalPages) {
+    currentPage.value = page
+    refreshMembers()
+  }
+}
+
+// Watch for page changes
+watch(currentPage, () => {
+  refreshMembers()
+})
 
 // Wizard validation
 const canProceedToStep2 = computed(() => {

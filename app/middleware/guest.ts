@@ -1,12 +1,11 @@
 export default defineNuxtRouteMiddleware(to => {
-  // Basic guest middleware: if a user is considered authenticated, redirect away from auth pages
-  // Adjust the cookie/key logic to match your auth implementation.
-  const authCookie = useCookie<string | null>('auth_token')
-  const isAuthenticated = Boolean(authCookie.value)
+  // Use the shared auth state so checks are consistent app-wide
+  const { isAuthenticated } = useAuth()
 
-  // If already logged in and trying to access guest-only routes (e.g. /auth/*), redirect to admin
-  if (isAuthenticated && to.path.startsWith('/auth')) {
-    return navigateTo('/admin')
+  // If already logged in and trying to access guest-only routes (e.g. /auth/*), redirect
+  if (isAuthenticated.value && to.path.startsWith('/auth')) {
+    const redirect = (to.query.redirect as string) || '/admin'
+    return navigateTo(redirect)
   }
 
   // Otherwise, allow navigation

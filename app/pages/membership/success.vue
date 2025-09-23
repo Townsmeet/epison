@@ -47,10 +47,10 @@
 
         <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
           Questions?
-          <a
-            href="mailto:membership@epison.org.ng"
+          <NuxtLink
+            to="/contact"
             class="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
-            >Contact our membership team</a
+            >Contact our membership team</NuxtLink
           >
         </p>
       </div>

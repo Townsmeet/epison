@@ -20,13 +20,14 @@ export default defineEventHandler(async (event: H3Event) => {
       throw createError({ statusCode: 400, statusMessage: 'No form data provided' })
     }
 
-    const filePart = form.find(p => p.type === 'file')
+    // In h3, file parts have a filename set; fields do not
+    const filePart = form.find(p => p.filename && p.data)
     if (!filePart || !filePart.filename || !filePart.data) {
       throw createError({ statusCode: 400, statusMessage: 'No file provided' })
     }
 
-    const keyPart = form.find(p => p.type === 'field' && p.name === 'key')
-    const folderPart = form.find(p => p.type === 'field' && p.name === 'folder')
+    const keyPart = form.find(p => !p.filename && p.name === 'key')
+    const folderPart = form.find(p => !p.filename && p.name === 'folder')
 
     const contentType = filePart.type || 'application/octet-stream'
 

@@ -2,24 +2,30 @@ import { authClient } from '~/utils/auth-client'
 import type { User } from 'better-auth'
 
 export const useAuth = () => {
-  const user = ref<User | null>(null)
+  const user = useState<User | null>('auth_user', () => null)
   const isAuthenticated = computed(() => !!user.value)
-  const isLoading = ref(true)
+  const isLoading = useState<boolean>('auth_loading', () => false)
+  const initialized = useState<boolean>('auth_initialized', () => false)
 
-  // Initialize auth state
+  // Initialize auth state once
   const init = async () => {
+    if (initialized.value) return
+    // If we already have a user (e.g., just logged in), mark initialized and skip network
+    if (user.value) {
+      initialized.value = true
+      return
+    }
     try {
+      isLoading.value = true
       const { data } = await authClient.getSession()
       user.value = data?.user || null
     } catch {
       user.value = null
     } finally {
       isLoading.value = false
+      initialized.value = true
     }
   }
-
-  // Initialize on setup
-  init()
 
   // Login with email/password
   const login = async (email: string, password: string, rememberMe = false) => {
@@ -30,12 +36,7 @@ export const useAuth = () => {
         password,
         rememberMe,
       })
-
-      if (error) {
-        // Extract error message from the error object
-        const errorMessage = error.message || 'Authentication failed'
-        throw new Error(errorMessage)
-      }
+      if (error) throw new Error(extractMessage(error) ?? 'Try again later or contact support')
 
       if (!data?.user) {
         throw new Error('No user data returned from authentication')
@@ -46,10 +47,10 @@ export const useAuth = () => {
       return { error: null }
     } catch (error: unknown) {
       user.value = null
-      // Ensure we return a proper error object with message
-      const errorMessage =
-        error instanceof Error ? error.message : 'An unknown error occurred during login'
-      return { error: new Error(errorMessage) }
+      // Preserve backend error message if present
+      const normalized =
+        error instanceof Error ? error : new Error('An unknown error occurred during login')
+      return { error: normalized }
     } finally {
       isLoading.value = false
     }
@@ -59,19 +60,17 @@ export const useAuth = () => {
   const requestPasswordReset = async (email: string) => {
     try {
       isLoading.value = true
-      const { error } = await authClient.forgetPassword({
+      const res = await authClient.forgetPassword({
         email,
         redirectTo: '/auth/reset-password',
       })
-
-      if (error) {
-        throw new Error(error.message || 'Failed to send reset email')
-      }
+      if (res?.error)
+        throw new Error(extractMessage(res.error) ?? 'Try again later or contact support')
 
       return { error: null }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to send reset email'
-      return { error: new Error(errorMessage) }
+      const normalized = error instanceof Error ? error : new Error('Failed to send reset email')
+      return { error: normalized }
     } finally {
       isLoading.value = false
     }
@@ -81,19 +80,17 @@ export const useAuth = () => {
   const resetPassword = async (token: string, password: string) => {
     try {
       isLoading.value = true
-      const { error } = await authClient.resetPassword({
+      const res = await authClient.resetPassword({
         token,
         newPassword: password,
       })
-
-      if (error) {
-        throw new Error(error.message || 'Failed to reset password')
-      }
+      if (res?.error)
+        throw new Error(extractMessage(res.error) ?? 'Try again later or contact support')
 
       return { error: null }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to reset password'
-      return { error: new Error(errorMessage) }
+      const normalized = error instanceof Error ? error : new Error('Failed to reset password')
+      return { error: normalized }
     } finally {
       isLoading.value = false
     }
@@ -105,8 +102,9 @@ export const useAuth = () => {
       await authClient.signOut()
       user.value = null
       return navigateTo('/auth/login')
-    } catch (error) {
-      return { error }
+    } catch (error: unknown) {
+      const normalized = error instanceof Error ? error : new Error('Logout failed')
+      return { error: normalized }
     }
   }
 
@@ -120,4 +118,17 @@ export const useAuth = () => {
     requestPasswordReset,
     resetPassword,
   }
+}
+
+// Helpers
+function extractMessage(val: unknown): string | null {
+  if (!val) return null
+  if (val instanceof Error) return val.message
+  if (typeof val === 'string') return val
+  if (typeof val === 'object') {
+    // common shapes: { message: string }
+    const obj = val as { message?: unknown }
+    if (typeof obj.message === 'string') return obj.message
+  }
+  return null
 }
