@@ -15,6 +15,13 @@
       "when": 1758376414991,
       "tag": "0001_gifted_iron_patriot",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1758683821682,
+      "tag": "0002_ordinary_the_fallen",
+      "breakpoints": true
     }
   ]
 }

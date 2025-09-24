@@ -154,3 +154,147 @@ export const memberHistory = sqliteTable('member_history', {
   notes: text('notes'),
   createdAt: integer('created_at', { mode: 'timestamp' }).defaultNow().notNull(),
 })
+
+// ===== Events Feature: Core =====
+export const event = sqliteTable('event', {
+  id: text('id').primaryKey(),
+  slug: text('slug').notNull().unique(),
+  title: text('title').notNull(),
+  type: text('type').notNull(), // conference | workshop | webinar | seminar | symposium
+  status: text('status').notNull(), // draft | published | registration_open | registration_closed | ongoing | completed | cancelled
+  startDate: text('start_date').notNull(),
+  endDate: text('end_date'),
+  location: text('location').notNull(),
+  capacity: integer('capacity'),
+  description: text('description'),
+  bannerUrl: text('banner_url'),
+  membersOnly: integer('members_only', { mode: 'boolean' }).default(false).notNull(),
+  collectsSubmissions: integer('collects_submissions', { mode: 'boolean' })
+    .default(false)
+    .notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).defaultNow().notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+})
+
+export const eventTicket = sqliteTable('event_ticket', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id')
+    .notNull()
+    .references(() => event.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  price: integer('price').notNull(), // amount in kobo
+  quantity: integer('quantity').notNull(),
+  salesStart: text('sales_start'),
+  salesEnd: text('sales_end'),
+  description: text('description'),
+  isPublic: integer('is_public', { mode: 'boolean' }).default(true).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).defaultNow().notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+})
+
+// ===== Events Feature: Sponsors/Speakers/Media =====
+export const eventSponsor = sqliteTable('event_sponsor', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id')
+    .notNull()
+    .references(() => event.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  tier: text('tier'), // platinum | gold | silver | bronze | partner | string
+  logoUrl: text('logo_url').notNull(),
+  website: text('website'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).defaultNow().notNull(),
+})
+
+export const eventSpeaker = sqliteTable('event_speaker', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id')
+    .notNull()
+    .references(() => event.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  title: text('title'),
+  org: text('org'),
+  photoUrl: text('photo_url'),
+  bio: text('bio'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).defaultNow().notNull(),
+})
+
+export const eventMedia = sqliteTable('event_media', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id')
+    .notNull()
+    .references(() => event.id, { onDelete: 'cascade' }),
+  url: text('url').notNull(),
+  caption: text('caption'),
+  type: text('type'), // image | video
+  createdAt: integer('created_at', { mode: 'timestamp' }).defaultNow().notNull(),
+})
+
+export const eventCommitteeMember = sqliteTable('event_committee_member', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id')
+    .notNull()
+    .references(() => event.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  role: text('role'),
+  email: text('email'),
+  phone: text('phone'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).defaultNow().notNull(),
+})
+
+export const eventRegistration = sqliteTable('event_registration', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id')
+    .notNull()
+    .references(() => event.id, { onDelete: 'cascade' }),
+  attendeeName: text('attendee_name').notNull(),
+  attendeeEmail: text('attendee_email').notNull(),
+
+  // Attendee category independent from ticket
+  category: text('category'), // Member | Non-Member | Student | Speaker | Sponsor
+
+  // Ticket relationship (optional) and commercial snapshots
+  ticketId: text('ticket_id').references(() => eventTicket.id, { onDelete: 'set null' }),
+  ticketName: text('ticket_name'),
+  unitPrice: integer('unit_price'), // in kobo
+  quantity: integer('quantity').default(1).notNull(),
+  currency: text('currency').default('NGN').notNull(),
+  totalAmount: integer('total_amount').default(0).notNull(), // in kobo
+
+  // Payment lifecycle
+  paymentStatus: text('payment_status').default('Pending').notNull(), // Pending | Paid | Cancelled | Refunded
+  reference: text('reference'),
+  paymentProvider: text('payment_provider'), // e.g., 'paystack'
+  paymentMetaJson: text('payment_meta_json'), // raw provider payload (JSON string)
+  paidAt: integer('paid_at', { mode: 'timestamp' }),
+  refundedAt: integer('refunded_at', { mode: 'timestamp' }),
+
+  // Audit
+  registeredAt: integer('registered_at', { mode: 'timestamp' }).defaultNow().notNull(),
+  notes: text('notes'),
+})
+
+export const abstractSubmission = sqliteTable('abstract_submission', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id')
+    .notNull()
+    .references(() => event.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  abstract: text('abstract').notNull(),
+  authorsJson: text('authors_json').notNull(), // JSON string of string[]
+  correspondingAuthorName: text('corresponding_author_name').notNull(),
+  correspondingAuthorEmail: text('corresponding_author_email').notNull(),
+  correspondingAuthorAffiliation: text('corresponding_author_affiliation').notNull(),
+  correspondingAuthorPhone: text('corresponding_author_phone'),
+  keywordsJson: text('keywords_json').notNull(), // JSON string of string[]
+  category: text('category').notNull(), // oral | poster | workshop
+  notes: text('notes'),
+  submissionDate: integer('submission_date', { mode: 'timestamp' }).defaultNow().notNull(),
+  status: text('status').default('pending').notNull(), // pending | under_review | accepted | rejected | revision_required
+  reviewerComments: text('reviewer_comments'),
+})

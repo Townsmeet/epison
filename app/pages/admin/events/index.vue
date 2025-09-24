@@ -201,8 +201,8 @@
               </UFormField>
 
               <div class="flex items-center space-x-4">
-                <UCheckbox v-model="newEvent.isPublic" label="Public Event" />
                 <UCheckbox v-model="newEvent.membersOnly" label="Members Only" />
+                <UCheckbox v-model="newEvent.collectsSubmissions" label="Collect Submissions" />
               </div>
             </UForm>
 
@@ -274,6 +274,7 @@ const newEvent = ref({
   bannerImage: '',
   isPublic: true,
   membersOnly: false,
+  collectsSubmissions: false,
 })
 
 const filteredEvents = computed<EventItem[]>(() => {
@@ -445,6 +446,7 @@ async function createEvent() {
       bannerImage: '',
       isPublic: true,
       membersOnly: false,
+      collectsSubmissions: false,
     }
 
     isCreateEventOpen.value = false

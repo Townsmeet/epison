@@ -85,6 +85,9 @@
           :event-id="event.id"
         />
 
+        <!-- Committee Tab -->
+        <AdminEventsCommitteeTab v-if="event" v-show="currentTab === 'Committee'" :event="event" />
+
         <!-- Sponsors Tab -->
         <AdminEventsSponsorsTab v-if="event" v-show="currentTab === 'Sponsors'" :event="event" />
 
@@ -118,15 +121,23 @@ const route = useRoute()
 const id = computed(() => Number(route.params.id))
 
 const { events }: { events: Ref<EventItem[]> } = useEvents()
-const { getEventSubmissions, _updateSubmissionStatus } = useSubmissions()
+const { getEventSubmissions, updateSubmissionStatus } = useSubmissions()
 const event = computed(() => events.value.find(e => e.id === id.value))
 
 // Image URL computation is now handled in the component where it's needed
 
 // Tabs
-const tabs = ['Details', 'Tickets', 'Sponsors', 'Registrations', 'Submissions', 'Gallery']
+const tabs = [
+  'Details',
+  'Tickets',
+  'Sponsors',
+  'Registrations',
+  'Submissions',
+  'Committee',
+  'Gallery',
+]
 const currentTab = ref<
-  'Details' | 'Tickets' | 'Registrations' | 'Sponsors' | 'Submissions' | 'Gallery'
+  'Details' | 'Tickets' | 'Registrations' | 'Sponsors' | 'Submissions' | 'Committee' | 'Gallery'
 >('Details')
 
 // Occupancy computation is now handled in the DetailsTab component
@@ -733,14 +744,11 @@ function _getSubmissionActions(submission: AbstractSubmission) {
 }
 
 function changeSubmissionStatus(submissionId: number, newStatus: AbstractSubmission['status']) {
-  const submission = allSubmissions.value.find(s => s.id === submissionId)
-  if (submission) {
-    submission.status = newStatus
-    useToast().add({
-      title: 'Submission Updated',
-      description: `Status changed to ${newStatus.replace('_', ' ')}`,
-      color: 'success',
-    })
-  }
+  updateSubmissionStatus(submissionId, newStatus)
+  useToast().add({
+    title: 'Submission Updated',
+    description: `Status changed to ${newStatus.replace('_', ' ')}`,
+    color: 'success',
+  })
 }
 </script>

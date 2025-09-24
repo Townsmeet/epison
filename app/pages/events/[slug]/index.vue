@@ -148,6 +148,42 @@
           <!-- Sidebar -->
           <div class="mt-12 lg:mt-0 lg:pl-8">
             <div class="space-y-6">
+              <!-- Organizing Committee -->
+              <div
+                v-if="event?.committee && event.committee.length"
+                class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
+              >
+                <div class="p-6">
+                  <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                    Organizing Committee
+                  </h3>
+                  <ul class="space-y-4">
+                    <li v-for="m in event.committee" :key="m.id" class="flex items-start gap-3">
+                      <UIcon name="i-heroicons-user" class="h-5 w-5 text-gray-400 mt-0.5" />
+                      <div>
+                        <div class="font-medium text-gray-900 dark:text-white">{{ m.name }}</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-300">
+                          <span v-if="m.role">{{ m.role }}</span>
+                          <span v-if="m.role && (m.email || m.phone)" class="mx-2">•</span>
+                          <NuxtLink
+                            v-if="m.email"
+                            :to="`mailto:${m.email}`"
+                            class="hover:underline"
+                            >{{ m.email }}</NuxtLink
+                          >
+                          <span v-if="m.phone">
+                            <span v-if="m.email" class="mx-2">•</span>
+                            <NuxtLink :to="`tel:${m.phone}`" class="hover:underline">{{
+                              m.phone
+                            }}</NuxtLink>
+                          </span>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
               <!-- Sponsors (always show; placeholder when empty) -->
               <div
                 v-if="event?.sponsors?.length"
@@ -355,7 +391,7 @@
                     Institution/Organization *
                   </label>
                   <UInput
-                    v-model="submissionForm.institution"
+                    v-model="submissionForm.correspondingAuthor.affiliation"
                     placeholder="Enter your institution or organization"
                     class="w-full"
                     required
@@ -395,7 +431,7 @@
                   <div class="space-y-2">
                     <div class="flex gap-2">
                       <UInput
-                        v-model="keywordInput"
+                        v-model="keywordsInput"
                         placeholder="Add a keyword and press Enter"
                         class="flex-1"
                         @keydown.enter.prevent="updateKeywords"
@@ -530,7 +566,7 @@ const isSubmitting = ref(false)
 const keywordsInput = ref('')
 
 const canSubmitAbstract = computed(() => {
-  return event.value && isSubmissionOpen(event.value.id)
+  return !!(event.value && event.value.collectsSubmissions && isSubmissionOpen(event.value.id))
 })
 
 const submissionForm = reactive({
@@ -546,6 +582,7 @@ const submissionForm = reactive({
   },
   keywords: [] as string[],
   category: 'oral' as 'oral' | 'poster' | 'workshop',
+  notes: '',
 })
 
 const selectedCategory = computed(() => {
@@ -613,6 +650,7 @@ async function submitAbstractForm() {
       },
       keywords: submissionForm.keywords,
       category: submissionForm.category,
+      notes: submissionForm.notes?.trim() || undefined,
     })
 
     useToast().add({
@@ -637,6 +675,7 @@ async function submitAbstractForm() {
       },
       keywords: [],
       category: 'oral',
+      notes: '',
     })
     keywordsInput.value = ''
   } catch {

@@ -12,6 +12,16 @@ export type EventItem = {
   registrations: number
   revenue: number
   description: string
+  // Whether this event collects submissions/abstracts
+  collectsSubmissions?: boolean
+  // Committee members organizing the event
+  committee?: Array<{
+    id: number
+    name: string
+    role?: string
+    email?: string
+    phone?: string
+  }>
   // New: optional sponsors list for the event
   sponsors?: Array<{
     id: number
@@ -54,6 +64,24 @@ export function useEvents() {
       revenue: 12250000,
       description:
         'Join us for the biggest epidemiological conference in Nigeria featuring international speakers and cutting-edge research presentations.',
+      collectsSubmissions: true,
+      committee: [
+        {
+          id: 5001,
+          name: 'Dr. Adaeze Okafor',
+          role: 'Chair',
+          email: 'adaeze.okafor@example.com',
+          phone: '+234 803 000 0001',
+        },
+        { id: 5002, name: 'Prof. Tunde Alabi', role: 'Co-Chair', email: 'tunde.alabi@example.com' },
+        {
+          id: 5003,
+          name: 'Chinwe Eze',
+          role: 'Secretary',
+          email: 'chinwe.eze@example.com',
+          phone: '+234 802 111 2222',
+        },
+      ],
       sponsors: [
         {
           id: 1001,
@@ -105,6 +133,10 @@ export function useEvents() {
       revenue: 2250000,
       description:
         'Hands-on workshop covering statistical analysis methods for epidemiological research using R and SPSS.',
+      collectsSubmissions: false,
+      committee: [
+        { id: 5004, name: 'Musa Ibrahim', role: 'Coordinator', email: 'musa.ibrahim@example.com' },
+      ],
       sponsors: [],
       gallery: [],
     },
@@ -121,6 +153,8 @@ export function useEvents() {
       revenue: 6000000,
       description:
         'Forum discussing current public health challenges and policy recommendations for Nigeria.',
+      collectsSubmissions: false,
+      committee: [],
       sponsors: [
         {
           id: 1002,
@@ -145,6 +179,10 @@ export function useEvents() {
       revenue: 0,
       description:
         'Online presentation of latest COVID-19 research findings and their implications for public health policy.',
+      collectsSubmissions: true,
+      committee: [
+        { id: 5005, name: 'Sarah Johnson', role: 'Program Lead', email: 'sarah.j@example.com' },
+      ],
       sponsors: [],
       gallery: [],
     },

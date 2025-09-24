@@ -12,6 +12,8 @@ export interface AbstractSubmission {
   }
   keywords: string[]
   category: 'oral' | 'poster' | 'workshop'
+  // Optional notes provided by the submitter
+  notes?: string
   submissionDate: string
   status: 'pending' | 'under_review' | 'accepted' | 'rejected' | 'revision_required'
   reviewerComments?: string
