@@ -99,9 +99,9 @@
           </div>
 
           <div class="flex items-center space-x-4">
-            <!-- Notifications -->
-            <UButton variant="ghost" color="neutral" size="sm" icon="i-heroicons-bell">
-              <UBadge color="error" size="xs" class="absolute -top-1 -right-1">3</UBadge>
+            <!-- View Website -->
+            <UButton color="primary" variant="soft" size="sm" icon="i-heroicons-globe-alt" to="/">
+              View Website
             </UButton>
 
             <!-- Color mode switcher -->

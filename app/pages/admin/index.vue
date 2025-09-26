@@ -96,7 +96,20 @@
             </UButton>
           </div>
           <div class="divide-y divide-gray-200 dark:divide-gray-700">
-            <div v-for="event in upcomingEvents" :key="event.id" class="px-6 py-4">
+            <div
+              v-if="upcomingLoading"
+              class="px-6 py-6 text-center text-gray-600 dark:text-gray-300"
+            >
+              <UIcon name="i-heroicons-arrow-path" class="h-5 w-5 inline-block animate-spin mr-2" />
+              Loading upcoming events...
+            </div>
+            <div
+              v-else-if="upcomingEvents.length === 0"
+              class="px-6 py-6 text-center text-gray-600 dark:text-gray-300"
+            >
+              No upcoming events
+            </div>
+            <div v-for="event in upcomingEvents" v-else :key="event.id" class="px-6 py-4">
               <div class="flex items-start">
                 <div class="flex-shrink-0 bg-blue-100 dark:bg-blue-900 rounded-md p-2">
                   <UIcon
@@ -185,7 +198,21 @@
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            <tr v-for="registration in recentRegistrations" :key="registration.id">
+            <tr v-if="recentLoading" class="">
+              <td colspan="6" class="px-6 py-6 text-center text-gray-600 dark:text-gray-300">
+                <UIcon
+                  name="i-heroicons-arrow-path"
+                  class="h-5 w-5 inline-block animate-spin mr-2"
+                />
+                Loading recent registrations...
+              </td>
+            </tr>
+            <tr v-else-if="recentRegistrations.length === 0">
+              <td colspan="6" class="px-6 py-6 text-center text-gray-600 dark:text-gray-300">
+                No recent registrations
+              </td>
+            </tr>
+            <tr v-for="registration in recentRegistrations" v-else :key="registration.id">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="flex-shrink-0 h-10 w-10">
@@ -307,84 +334,69 @@ const recentActivities = [
   },
 ]
 
-// Upcoming events
-const upcomingEvents = [
-  {
-    id: 1,
-    title: 'Annual Scientific Conference 2024',
-    date: '2024-11-15',
-    status: 'Upcoming',
-    registrations: 245,
-  },
-  {
-    id: 2,
-    title: 'Workshop on Data Analysis',
-    date: '2024-10-15',
-    status: 'Registration Open',
-    registrations: 45,
-  },
-  {
-    id: 3,
-    title: 'Public Health Forum',
-    date: '2024-09-20',
-    status: 'Registration Open',
-    registrations: 120,
-  },
-]
+// Upcoming events via API
+const { getEvents } = useEvents()
+const { data: upcomingResponse, pending: upcomingLoading } = getEvents({
+  upcoming: true,
+  limit: 5,
+  sort: 'startDate',
+})
 
-// Recent registrations
-const recentRegistrations = [
-  {
-    id: 1,
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    event: 'Annual Conference 2024',
-    type: 'Member',
-    date: '2023-08-15',
-    status: 'Paid',
-    amount: 50000,
-  },
-  {
-    id: 2,
-    name: 'Jane Smith',
-    email: 'jane.smith@example.com',
-    event: 'Workshop on Data Analysis',
-    type: 'Non-Member',
-    date: '2023-08-14',
-    status: 'Pending',
-    amount: 75000,
-  },
-  {
-    id: 3,
-    name: 'Dr. Michael Brown',
-    email: 'michael.brown@example.com',
-    event: 'Public Health Forum',
-    type: 'Student',
-    date: '2023-08-13',
-    status: 'Paid',
-    amount: 15000,
-  },
-  {
-    id: 4,
-    name: 'Dr. Sarah Johnson',
-    email: 'sarah.j@example.com',
-    event: 'Annual Conference 2024',
-    type: 'Member',
-    date: '2023-08-12',
-    status: 'Paid',
-    amount: 50000,
-  },
-  {
-    id: 5,
-    name: 'Dr. David Wilson',
-    email: 'david.w@example.com',
-    event: 'Workshop on Data Analysis',
-    type: 'Non-Member',
-    date: '2023-08-11',
-    status: 'Pending',
-    amount: 75000,
-  },
-]
+function toStatusLabel(status?: string): string {
+  if (!status) return 'Upcoming'
+  // Convert snake_case to Title Case
+  const pretty = status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+  // Map to existing badge classes keys when needed
+  if (pretty === 'Registration Open') return 'Registration Open'
+  if (pretty === 'Registration Closed') return 'Completed'
+  if (pretty === 'Published') return 'Upcoming'
+  return pretty
+}
+
+const upcomingEvents = computed(() => {
+  const rows =
+    (upcomingResponse.value?.data as
+      | { id: string; title: string; startDate: string; status?: string }[]
+      | undefined) ?? []
+  return rows.map((e: { id: string; title: string; startDate: string; status?: string }) => ({
+    id: e.id,
+    title: e.title,
+    date: e.startDate,
+    status: toStatusLabel(e.status),
+  }))
+})
+
+// Recent registrations via API
+const { getRegistrations } = useEvents()
+const { data: recentResponse, pending: recentLoading } = getRegistrations({
+  page: 1,
+  limit: 5,
+  sort: '-registeredAt',
+})
+
+type RecentReg = {
+  id: string
+  attendeeName: string
+  attendeeEmail: string
+  eventId: string
+  category?: string
+  registeredAt: string
+  paymentStatus: string
+  reference?: string
+}
+
+const recentRegistrations = computed(() => {
+  const rows = (recentResponse.value?.data as RecentReg[] | undefined) ?? []
+  return rows.map((r: RecentReg & { eventTitle?: string }) => ({
+    id: r.id,
+    name: r.attendeeName,
+    email: r.attendeeEmail,
+    event: r.eventTitle || 'Event',
+    type: r.category || 'Member',
+    date: r.registeredAt,
+    status: r.paymentStatus,
+  }))
+})
 
 // New event UI was removed from dashboard
 

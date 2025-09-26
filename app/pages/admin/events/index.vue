@@ -31,8 +31,25 @@
       </div>
     </div>
 
+    <!-- Loading State -->
+    <div v-if="eventsLoading" class="flex justify-center py-12">
+      <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin" />
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="eventsError" class="text-center py-12">
+      <UIcon name="i-heroicons-exclamation-triangle" class="w-12 h-12 mx-auto text-red-500 mb-4" />
+      <p class="text-gray-600 dark:text-gray-400">Failed to load events</p>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="!filteredEvents.length" class="text-center py-12">
+      <UIcon name="i-heroicons-calendar-days" class="w-12 h-12 mx-auto text-gray-400 mb-4" />
+      <p class="text-gray-600 dark:text-gray-400">No events found</p>
+    </div>
+
     <!-- Events Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div
         v-for="event in filteredEvents"
         :key="event.id"
@@ -96,6 +113,11 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Pagination -->
+    <div v-if="totalPages > 1" class="flex justify-center mt-8">
+      <UPagination v-model="currentPage" :page-count="totalPages" :total="totalEvents" />
     </div>
 
     <!-- Create Event Modal -->
@@ -191,6 +213,10 @@
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Upload a JPG/PNG banner. Recommended aspect ratio ~3:2. Max ~2MB.
                 </p>
+                <div v-if="isUploadingBanner" class="mt-2 flex items-center gap-2">
+                  <UIcon name="i-heroicons-arrow-path" class="w-4 h-4 animate-spin" />
+                  <span class="text-xs text-gray-500 dark:text-gray-400">Uploading banner...</span>
+                </div>
                 <div v-if="newEvent.bannerImage" class="mt-3">
                   <img
                     :src="newEvent.bannerImage"
@@ -211,7 +237,12 @@
                 <UButton color="neutral" variant="ghost" @click="isCreateEventOpen = false">
                   Cancel
                 </UButton>
-                <UButton color="primary" :loading="isCreating" @click="createEvent">
+                <UButton
+                  color="primary"
+                  :loading="isCreating || isUploadingBanner"
+                  :disabled="isUploadingBanner"
+                  @click="handleCreateEvent"
+                >
                   Create Event
                 </UButton>
               </div>
@@ -225,8 +256,8 @@
 
 <script setup lang="ts">
 // Types
-import type { Ref } from 'vue'
-import type { EventItem } from '../../../composables/useEvents'
+import type { EventItem, EventListQuery } from '../../../composables/useEvents'
+import type { CreateEventForm } from '../../../../types/event'
 
 definePageMeta({
   layout: 'admin',
@@ -234,12 +265,62 @@ definePageMeta({
 
 const isCreateEventOpen = ref(false)
 const isCreating = ref(false)
+const _isEditing = ref(false)
+const _editingEventId = ref<string | null>(null)
+const isUploadingBanner = ref(false)
 const searchQuery = ref('')
 const selectedStatus = ref('all')
 const selectedType = ref('all')
+const currentPage = ref(1)
+const perPage = ref(12)
 
-// Shared events data source
-const { events }: { events: Ref<EventItem[]> } = useEvents()
+// Events API composable
+const { getEvents, createEvent, deleteEvent, refreshEvents } = useEvents()
+
+// Reactive query for API calls
+const eventsQuery = computed<EventListQuery>(() => ({
+  page: currentPage.value,
+  limit: perPage.value,
+  q: searchQuery.value || undefined,
+  status: selectedStatus.value !== 'all' ? selectedStatus.value : undefined,
+  type: selectedType.value !== 'all' ? selectedType.value : undefined,
+  sort: '-startDate',
+}))
+
+// Fetch events data
+const {
+  data: eventsResponse,
+  pending: eventsLoading,
+  error: eventsError,
+} = await getEvents(eventsQuery.value)
+
+// Watch for filter changes and refetch data
+// Use a debounced watcher for filter changes
+let debounceTimer: NodeJS.Timeout
+watch([searchQuery, selectedStatus, selectedType], async () => {
+  clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(async () => {
+    currentPage.value = 1
+    await refreshEvents(eventsQuery.value)
+  }, 300)
+})
+
+watch(currentPage, async () => {
+  await refreshEvents(eventsQuery.value)
+})
+
+// Transform API data to match EventItem interface
+const events = computed(() => {
+  if (!eventsResponse.value?.data) return []
+  return eventsResponse.value.data.map(event => ({
+    ...event,
+    registrations: (event as { registrationCount?: number }).registrationCount || 0,
+    revenue: (event as { revenue?: number }).revenue || 0,
+  }))
+})
+
+const totalPages = computed(() => eventsResponse.value?.pagination?.totalPages || 0)
+const totalEvents = computed(() => eventsResponse.value?.pagination?.total || 0)
 
 const statusOptions = [
   { label: 'All Status', value: 'all' },
@@ -272,45 +353,49 @@ const newEvent = ref({
   capacity: '',
   description: '',
   bannerImage: '',
+  // not sent to API; used for upload
+  bannerFile: null as File | null,
   isPublic: true,
   membersOnly: false,
   collectsSubmissions: false,
 })
 
-const filteredEvents = computed<EventItem[]>(() => {
-  let filtered = events.value
-
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(
-      event =>
-        event.title.toLowerCase().includes(query) ||
-        event.description.toLowerCase().includes(query) ||
-        event.location.toLowerCase().includes(query)
-    )
-  }
-
-  if (selectedStatus.value !== 'all') {
-    filtered = filtered.filter(event => event.status === selectedStatus.value)
-  }
-
-  if (selectedType.value !== 'all') {
-    filtered = filtered.filter(event => event.type === selectedType.value)
-  }
-
-  return filtered
-})
+// Events are already filtered by the API, so we use them directly
+const filteredEvents = computed(() => events.value)
 
 function onBannerSelected(e: Event) {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
+  // Validate file type and size (<= 2MB)
+  const allowed = new Set(['image/jpeg', 'image/png'])
+  if (!allowed.has(file.type)) {
+    useToast().add({
+      title: 'Invalid file type',
+      description: 'Please upload a JPG or PNG image.',
+      color: 'warning',
+    })
+    input.value = ''
+    return
+  }
+  const maxBytes = 2 * 1024 * 1024
+  if (file.size > maxBytes) {
+    useToast().add({
+      title: 'File too large',
+      description: 'Image must be 2MB or less.',
+      color: 'warning',
+    })
+    input.value = ''
+    return
+  }
   const reader = new FileReader()
   reader.onload = () => {
     const result = reader.result as string
     newEvent.value.bannerImage = result
   }
   reader.readAsDataURL(file)
+  // store file for upload
+  newEvent.value.bannerFile = file
 }
 
 function getStatusColor(
@@ -373,7 +458,11 @@ function getEventActions(event: EventItem) {
     ],
     [
       { label: 'Cancel Event', icon: 'i-heroicons-x-circle', click: () => cancelEvent(event.id) },
-      { label: 'Delete Event', icon: 'i-heroicons-trash', click: () => deleteEvent(event.id) },
+      {
+        label: 'Delete Event',
+        icon: 'i-heroicons-trash',
+        click: () => handleDeleteEvent(event.id),
+      },
     ],
   ]
 }
@@ -384,19 +473,19 @@ function clearFilters() {
   selectedType.value = 'all'
 }
 
-function viewEvent(id: number) {
+function viewEvent(id: string) {
   navigateTo(`/admin/events/${id}`)
 }
 
-function editEvent(id: number) {
+function editEvent(id: string) {
   navigateTo(`/admin/events/${id}/edit`)
 }
 
-function viewRegistrations(id: number) {
+function viewRegistrations(id: string) {
   navigateTo(`/admin/registrations?event=${id}`)
 }
 
-function duplicateEvent(_id: number) {
+function duplicateEvent(_id: string) {
   useToast().add({
     title: 'Event duplicated',
     description: 'Event has been duplicated successfully',
@@ -404,7 +493,7 @@ function duplicateEvent(_id: number) {
   })
 }
 
-function exportEvent(_id: number) {
+function exportEvent(_id: string) {
   useToast().add({
     title: 'Export started',
     description: 'Event data is being exported...',
@@ -412,7 +501,7 @@ function exportEvent(_id: number) {
   })
 }
 
-function cancelEvent(_id: number) {
+function cancelEvent(_id: string) {
   useToast().add({
     title: 'Event cancelled',
     description: 'Event has been cancelled',
@@ -420,23 +509,101 @@ function cancelEvent(_id: number) {
   })
 }
 
-function deleteEvent(_id: number) {
-  useToast().add({
-    title: 'Event deleted',
-    description: 'Event has been removed permanently',
-    color: 'error',
-  })
+async function handleDeleteEvent(id: string) {
+  try {
+    await deleteEvent(id)
+    await refreshEvents(eventsQuery.value)
+    useToast().add({
+      title: 'Event deleted',
+      description: 'Event has been removed permanently',
+      color: 'success',
+    })
+  } catch (error) {
+    console.error('Error deleting event:', error)
+    useToast().add({
+      title: 'Error',
+      description: 'Failed to delete event',
+      color: 'error',
+    })
+  }
 }
 
-async function createEvent() {
+async function handleCreateEvent() {
   isCreating.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // Generate slug from title
+    const slug = newEvent.value.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+
+    // Convert datetime-local values to ISO strings expected by the API
+    const startISO = newEvent.value.startDate
+      ? new Date(newEvent.value.startDate).toISOString()
+      : ''
+    const endISO = newEvent.value.endDate
+      ? new Date(newEvent.value.endDate).toISOString()
+      : undefined
+
+    // If a banner file is selected, upload to S3 and use the returned URL
+    let bannerUrl: string | undefined = undefined
+    if (newEvent.value.bannerFile) {
+      isUploadingBanner.value = true
+      const file = newEvent.value.bannerFile
+      const ext = file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')) : ''
+      const key = `${slug}-${Date.now()}${ext}`
+      const form = new FormData()
+      form.append('file', file)
+      form.append('folder', 'events/banners')
+      form.append('key', key)
+      try {
+        const uploadResp = await $fetch<{ url: string }>(`/api/uploads`, {
+          method: 'POST',
+          body: form,
+          credentials: 'include',
+        })
+        bannerUrl = uploadResp.url
+      } catch (err) {
+        console.error('Banner upload failed:', err)
+        useToast().add({
+          title: 'Upload failed',
+          description: 'Could not upload banner image. Please try again.',
+          color: 'error',
+        })
+        throw err
+      } finally {
+        isUploadingBanner.value = false
+      }
+    }
+
+    const eventData: CreateEventForm = {
+      title: newEvent.value.title,
+      slug,
+      type: newEvent.value.type as 'webinar' | 'conference' | 'workshop' | 'seminar' | 'symposium',
+      status: newEvent.value.status as
+        | 'draft'
+        | 'published'
+        | 'registration_open'
+        | 'registration_closed'
+        | 'ongoing'
+        | 'completed'
+        | 'cancelled',
+      startDate: startISO,
+      endDate: endISO,
+      location: newEvent.value.location,
+      capacity: newEvent.value.capacity ? parseInt(newEvent.value.capacity) : undefined,
+      description: newEvent.value.description || undefined,
+      bannerUrl,
+      membersOnly: newEvent.value.membersOnly,
+      collectsSubmissions: newEvent.value.collectsSubmissions,
+    }
+
+    await createEvent(eventData)
 
     // Reset form
     newEvent.value = {
       title: '',
-      type: '',
+      type: 'webinar',
       status: 'draft',
       startDate: '',
       endDate: '',
@@ -444,6 +611,7 @@ async function createEvent() {
       capacity: '',
       description: '',
       bannerImage: '',
+      bannerFile: null,
       isPublic: true,
       membersOnly: false,
       collectsSubmissions: false,
@@ -451,17 +619,43 @@ async function createEvent() {
 
     isCreateEventOpen.value = false
 
+    // Ensure the list refreshes after modal closes
+    await refreshEvents(eventsQuery.value)
+
     useToast().add({
       title: 'Event created',
       description: 'New event has been created successfully',
       color: 'success',
     })
-  } catch {
+  } catch (error) {
+    console.error('Error creating event:', error)
+    const e = error as {
+      data?: { statusMessage?: string; message?: string }
+      statusMessage?: string
+      message?: string
+      statusCode?: number
+    }
+    const apiMessage =
+      e?.data?.statusMessage ||
+      e?.data?.message ||
+      e?.statusMessage ||
+      e?.message ||
+      'Failed to create event'
     useToast().add({
       title: 'Error',
-      description: 'Failed to create event',
+      description: apiMessage,
       color: 'error',
     })
+    // If unauthorised, prompt re-login
+    if (e?.statusCode === 401) {
+      useToast().add({
+        title: 'Authentication required',
+        description: 'Your session may have expired. Please sign in again.',
+        color: 'warning',
+      })
+      // Optionally navigate to login page if you have one
+      // navigateTo('/auth/sign-in')
+    }
   } finally {
     isCreating.value = false
   }

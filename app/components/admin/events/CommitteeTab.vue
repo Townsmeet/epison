@@ -22,7 +22,13 @@
         </UFormField>
       </div>
       <div class="mt-4 flex justify-end">
-        <UButton :disabled="!canAdd" icon="i-heroicons-plus" @click="addMember">Add Member</UButton>
+        <UButton
+          :disabled="!canAdd"
+          :loading="isCreating"
+          icon="i-heroicons-plus"
+          @click="addMember"
+          >Add Member</UButton
+        >
       </div>
     </UCard>
 
@@ -30,12 +36,24 @@
     <UCard>
       <template #header>
         <div class="flex items-center justify-between">
-          <h3 class="text-base font-semibold">Current Committee</h3>
+          <div class="flex items-center gap-2">
+            <h3 class="text-base font-semibold">Current Committee</h3>
+            <UIcon
+              v-if="isSyncing"
+              name="i-heroicons-arrow-path"
+              class="w-4 h-4 animate-spin text-gray-400"
+            />
+          </div>
           <span class="text-sm text-gray-500">{{ list.length }} total</span>
         </div>
       </template>
 
-      <div v-if="list.length === 0" class="p-6 text-sm text-gray-500">
+      <!-- Loading State -->
+      <div v-if="committeeLoading" class="flex justify-center py-8">
+        <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin" />
+      </div>
+
+      <div v-else-if="list.length === 0" class="p-6 text-sm text-gray-500">
         No committee members yet.
       </div>
 
@@ -47,11 +65,11 @@
         >
           <div>
             <div class="font-medium text-gray-900 dark:text-white">{{ m.name }}</div>
-            <div class="text-sm text-gray-500 dark:text-gray-300">
+            <div class="text-sm text-gray-500 dark:text-gray-300 break-words">
               <span v-if="m.role">{{ m.role }}</span>
               <span v-if="m.role && (m.email || m.phone)" class="mx-2">•</span>
-              <span v-if="m.email">{{ m.email }}</span>
-              <span v-if="m.phone" class="ml-2">{{ m.phone }}</span>
+              <span v-if="m.email" class="break-all">{{ m.email }}</span>
+              <span v-if="m.phone" class="ml-2 break-all">{{ m.phone }}</span>
             </div>
           </div>
           <div class="flex items-center gap-2">
@@ -121,24 +139,23 @@
 
 <script setup lang="ts">
 import type { EventItem } from '~/composables/useEvents'
+import type { EventCommitteeMember } from '../../../../types/event'
 
 const props = defineProps<{ event: EventItem }>()
 
-type CommitteeMember = { id: number; name: string; role?: string; email?: string; phone?: string }
+// Use the events API composable
+const {
+  getEventCommittee,
+  createEventCommitteeMember,
+  deleteEventCommitteeMember,
+  refreshEventCommittee,
+} = useEvents()
 
-// Local editable copy to avoid mutating prop directly
-const list = ref<CommitteeMember[]>(
-  props.event.committee ? [...(props.event.committee as CommitteeMember[])] : []
+// Fetch committee data from API
+const { data: committeeResponse, pending: committeeLoading } = await getEventCommittee(
+  props.event.id
 )
-
-// Keep local list in sync if parent prop changes
-watch(
-  () => props.event.committee,
-  val => {
-    list.value = val ? [...(val as CommitteeMember[])] : []
-  },
-  { deep: true }
-)
+const list = computed(() => committeeResponse.value?.data || [])
 
 const newMember = reactive({
   name: '',
@@ -149,31 +166,70 @@ const newMember = reactive({
 
 const canAdd = computed(() => newMember.name.trim().length > 0)
 
-function addMember() {
-  if (!canAdd.value) return
-  const m = {
-    id: Date.now(),
-    name: newMember.name.trim(),
-    role: newMember.role?.trim() || undefined,
-    email: newMember.email?.trim() || undefined,
-    phone: newMember.phone?.trim() || undefined,
+const isCreating = ref(false)
+const isSyncing = ref(false)
+
+async function addMember() {
+  if (!canAdd.value || isCreating.value) return
+
+  isCreating.value = true
+  try {
+    const memberData = {
+      name: newMember.name.trim(),
+      role: newMember.role?.trim() || undefined,
+      email: newMember.email?.trim() || undefined,
+      phone: newMember.phone?.trim() || undefined,
+    }
+
+    const created = await createEventCommitteeMember(props.event.id, memberData)
+    // Optimistically update local list
+    if (committeeResponse.value) {
+      const current = Array.isArray(committeeResponse.value.data)
+        ? committeeResponse.value.data
+        : []
+      committeeResponse.value.data = [created as unknown as EventCommitteeMember, ...current]
+    }
+    // Refresh from API for consistency
+    isSyncing.value = true
+    await refreshEventCommittee(props.event.id)
+    // Additionally force Nuxt to refresh this key in case cookie-based trigger isn't immediate
+    if (typeof refreshNuxtData === 'function') {
+      await refreshNuxtData(`event-committee-${props.event.id}`)
+    }
+    isSyncing.value = false
+
+    Object.assign(newMember, { name: '', role: '', email: '', phone: '' })
+    useToast().add({ title: 'Member added', color: 'success' })
+  } catch (error) {
+    console.error('Error adding committee member:', error)
+    useToast().add({ title: 'Error adding member', color: 'error' })
+  } finally {
+    isCreating.value = false
   }
-  list.value.push(m)
-  Object.assign(newMember, { name: '', role: '', email: '', phone: '' })
-  useToast().add({ title: 'Member added', color: 'success' })
 }
 
-function removeMember(id: number) {
-  const idx = list.value.findIndex(m => m.id === id)
-  if (idx >= 0) {
-    list.value.splice(idx, 1)
-    useToast().add({ title: 'Member removed', color: 'neutral' })
+async function removeMember(id: string) {
+  try {
+    await deleteEventCommitteeMember(props.event.id, id)
+    // Optimistically remove from local list
+    if (committeeResponse.value && Array.isArray(committeeResponse.value.data)) {
+      committeeResponse.value.data = committeeResponse.value.data.filter(
+        m => String(m.id) !== String(id)
+      )
+    }
+    isSyncing.value = true
+    await refreshEventCommittee(props.event.id)
+    isSyncing.value = false
+    useToast().add({ title: 'Member removed', color: 'success' })
+  } catch (error) {
+    console.error('Error removing committee member:', error)
+    useToast().add({ title: 'Error removing member', color: 'error' })
   }
 }
 
 const isEditing = ref(false)
 const editMember = reactive<{
-  id?: number
+  id?: string
   name: string
   role?: string
   email?: string
@@ -186,24 +242,20 @@ const editMember = reactive<{
   phone: '',
 })
 
-function startEdit(m: { id: number; name: string; role?: string; email?: string; phone?: string }) {
+function startEdit(m: EventCommitteeMember) {
   Object.assign(editMember, m)
   isEditing.value = true
 }
 
 function applyEdit() {
   if (!editMember.id) return
-  const idx = list.value.findIndex(m => m.id === editMember.id)
-  if (idx >= 0) {
-    list.value[idx] = {
-      id: editMember.id,
-      name: editMember.name.trim(),
-      role: editMember.role?.trim() || undefined,
-      email: editMember.email?.trim() || undefined,
-      phone: editMember.phone?.trim() || undefined,
-    }
-    useToast().add({ title: 'Member updated', color: 'success' })
-  }
+  // Note: Update functionality would require an UPDATE endpoint
+  // For now, we'll just close the modal
+  useToast().add({
+    title: 'Feature not available',
+    description: 'Update committee member functionality will be available soon',
+    color: 'warning',
+  })
   isEditing.value = false
 }
 </script>

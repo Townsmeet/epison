@@ -2,19 +2,27 @@
   <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <h3 class="text-lg font-semibold">Gallery</h3>
-        <UBadge v-if="event.gallery?.length" color="neutral" variant="subtle">
-          {{ event.gallery.length }} items
+        <div class="flex items-center gap-2">
+          <h3 class="text-lg font-semibold">Gallery</h3>
+          <UIcon
+            v-if="isSyncing"
+            name="i-heroicons-arrow-path"
+            class="w-4 h-4 animate-spin text-gray-400"
+          />
+        </div>
+        <UBadge v-if="gallery.length" color="neutral" variant="subtle">
+          {{ gallery.length }} items
         </UBadge>
       </div>
     </template>
     <div class="space-y-6">
-      <div
-        v-if="event.gallery && event.gallery.length"
-        class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
-      >
+      <!-- Loading State -->
+      <div v-if="mediaLoading" class="flex justify-center py-8">
+        <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin" />
+      </div>
+      <div v-else-if="gallery.length" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div
-          v-for="m in event.gallery"
+          v-for="m in gallery"
           :key="m.id"
           class="group relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
         >
@@ -114,20 +122,23 @@
 
 <script setup lang="ts">
 import type { EventItem } from '../../../composables/useEvents'
+import type { EventMedia } from '../../../../types/event'
 
 const props = defineProps<{ event: EventItem }>()
-type MediaItem = {
-  id: number
-  type: 'image' | 'video'
-  url: string
-  caption?: string
-}
 
 const emit = defineEmits<{
   'update:event': [event: EventItem]
-  'media-added': [media: MediaItem]
-  'media-removed': [id: number]
+  'media-added': [media: EventMedia]
+  'media-removed': [id: string]
 }>()
+
+// Use the events API composable
+const { getEventMedia, createEventMedia, deleteEventMedia, refreshEventMedia } = useEvents()
+
+// Fetch media data from API
+const { data: mediaResponse, pending: mediaLoading } = await getEventMedia(props.event.id)
+const isSyncing = ref(false)
+const gallery = computed(() => mediaResponse.value?.data || [])
 const fileInput = ref<HTMLInputElement | null>(null)
 const isUploading = ref(false)
 
@@ -195,48 +206,40 @@ async function addMedia() {
     return
   }
 
-  // Emit an event to update the parent with an empty gallery if it doesn't exist
-  if (!props.event.gallery) {
-    emit('update:event', {
-      ...props.event,
-      gallery: [],
-    })
-  }
-
   isUploading.value = true
 
   try {
-    // In a real app, you would upload the file to your server here
-    // Example:
-    // const formData = new FormData()
-    // formData.append('file', newMedia.file)
-    // formData.append('type', newMedia.type)
-    // formData.append('caption', newMedia.caption)
-    //
-    // const { data } = await useFetch('/api/upload', {
-    //   method: 'POST',
-    //   body: formData
-    // })
-
     // For demo purposes, we'll use the object URL
-    // In production, you should use the URL returned from your server
+    // In production, you should upload the file to your server first
+    // and use the returned URL
     const fileUrl = newMedia.previewUrl
 
-    const media = {
-      id: Date.now(),
+    const mediaData = {
       type: newMedia.type,
       url: fileUrl,
       caption: newMedia.caption.trim() || undefined,
-      // Add any additional metadata from the upload response
-      // ...data.value
     }
 
+    // Create media via API
+    const createdMedia = await createEventMedia(props.event.id, mediaData)
+
+    // Optimistically update local list
+    if (mediaResponse.value) {
+      const current = Array.isArray(mediaResponse.value.data) ? mediaResponse.value.data : []
+      mediaResponse.value.data = [createdMedia as unknown as EventMedia, ...current]
+    }
+
+    // Refresh media data from API (ensure consistency)
+    isSyncing.value = true
+    await refreshEventMedia(props.event.id)
+    // Additionally force Nuxt to refresh this key in case cookie-based trigger isn't immediate
+    if (typeof refreshNuxtData === 'function') {
+      await refreshNuxtData(`event-media-${props.event.id}`)
+    }
+    isSyncing.value = false
+
     // Emit the media added event
-    emit('media-added', media)
-    emit('update:event', {
-      ...props.event,
-      gallery: [media, ...(props.event.gallery || [])],
-    })
+    emit('media-added', createdMedia)
 
     useToast().add({
       title: 'Media added',
@@ -246,11 +249,11 @@ async function addMedia() {
 
     resetForm()
   } catch (error) {
-    console.error('Error uploading file:', error)
+    console.error('Error adding media:', error)
 
     useToast().add({
       title: 'Upload failed',
-      description: error instanceof Error ? error.message : 'An error occurred while uploading',
+      description: error instanceof Error ? error.message : 'An error occurred while adding media',
       color: 'error',
       icon: 'i-heroicons-exclamation-triangle',
     })
@@ -259,23 +262,29 @@ async function addMedia() {
   }
 }
 
-function removeMedia(id: number) {
-  if (!Array.isArray(props.event.gallery)) return
+async function removeMedia(id: string) {
+  try {
+    // Revoke object URL if it's a local file
+    const media = gallery.value.find(m => m.id === id)
+    if (media?.url?.startsWith('blob:')) {
+      URL.revokeObjectURL(media.url)
+    }
 
-  // Revoke object URL if it's a local file
-  const media = props.event.gallery.find(m => m.id === id)
-  if (media?.url?.startsWith('blob:')) {
-    URL.revokeObjectURL(media.url)
+    await deleteEventMedia(props.event.id, id)
+    // Optimistically remove from local list
+    if (mediaResponse.value && Array.isArray(mediaResponse.value.data)) {
+      mediaResponse.value.data = mediaResponse.value.data.filter(m => String(m.id) !== String(id))
+    }
+    isSyncing.value = true
+    await refreshEventMedia(props.event.id)
+    isSyncing.value = false
+
+    emit('media-removed', id)
+    useToast().add({ title: 'Media removed', color: 'success' })
+  } catch (error) {
+    console.error('Error removing media:', error)
+    useToast().add({ title: 'Error removing media', color: 'error' })
   }
-
-  // Emit the media removed event
-  const updatedGallery = props.event.gallery.filter(m => m.id !== id)
-  emit('media-removed', id)
-  emit('update:event', {
-    ...props.event,
-    gallery: updatedGallery,
-  })
-  useToast().add({ title: 'Media removed', color: 'neutral' })
 }
 
 function resetForm() {

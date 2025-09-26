@@ -18,7 +18,8 @@
                 <h1
                   class="text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white sm:text-5xl md:text-6xl mt-4"
                 >
-                  <span class="block">{{ event?.title || 'Event' }}</span>
+                  <span v-if="event?.title" class="block">{{ event!.title }}</span>
+                  <span v-else class="block sr-only">Loading event...</span>
                 </h1>
                 <div v-if="event" class="mt-6 space-y-4">
                   <div class="flex items-center text-gray-500 dark:text-gray-300">
@@ -95,6 +96,7 @@
       </div>
       <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
         <img
+          v-if="event"
           class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full"
           :src="heroImage"
           :alt="event?.title || 'Event cover'"
@@ -118,12 +120,15 @@
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Speakers</h3>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div
-                  v-for="sp in event!.speakers!"
+                  v-for="sp in event?.speakers || []"
                   :key="sp.id"
                   class="flex items-start gap-4 p-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
                 >
                   <img
-                    :src="sp.photoUrl || `https://picsum.photos/seed/speaker-${sp.id}/160/160`"
+                    :src="
+                      normalizeUrl(sp.photoUrl) ||
+                      `https://picsum.photos/seed/speaker-${sp.id}/160/160`
+                    "
                     :alt="sp.name"
                     class="h-16 w-16 rounded-full object-cover"
                     @error="onSpeakerImgError"
@@ -193,14 +198,14 @@
                   <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Sponsors</h3>
                   <div class="grid grid-cols-2 gap-4">
                     <a
-                      v-for="s in event!.sponsors!"
+                      v-for="s in event?.sponsors || []"
                       :key="s.id"
                       :href="s.website || '#'"
                       target="_blank"
                       class="flex items-center justify-center p-2 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
                     >
                       <img
-                        :src="s.logoUrl"
+                        :src="normalizeUrl(s.logoUrl) || ''"
                         :alt="s.name"
                         class="h-10 object-contain"
                         @error="onSponsorImgError"
@@ -230,9 +235,9 @@
                   <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Gallery</h3>
                   <div class="grid grid-cols-2 gap-2">
                     <img
-                      v-for="g in event!.gallery!.filter(g => g.type !== 'video')"
+                      v-for="g in (event?.gallery || []).filter(g => g.type !== 'video')"
                       :key="g.id"
-                      :src="g.url"
+                      :src="normalizeUrl(g.url) || ''"
                       :alt="g.caption || 'Event image'"
                       class="rounded object-cover h-24 w-full"
                     />
@@ -490,13 +495,14 @@
 
 <script setup lang="ts">
 import { submissionCategories } from '../../../../types/submissions'
+import type { Event as ApiEvent } from '../../../../types/event'
 
 const route = useRoute()
-const { events } = useEvents()
+const { getPublicEventBySlug } = useEvents()
 const { isSubmissionOpen, submitAbstract } = useSubmissions()
 const slug = computed(() => route.params.slug as string)
 
-function slugify(s: string) {
+function _slugify(s: string) {
   return s
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
@@ -504,7 +510,112 @@ function slugify(s: string) {
     .replace(/\s+/g, '-')
 }
 
-const event = computed(() => events.value.find(e => slugify(e.title) === slug.value))
+// Normalize potentially relative URLs from backend to absolute URLs for <img src>
+function normalizeUrl(u?: string | null): string | undefined {
+  if (!u) return undefined
+  if (/^https?:\/\//i.test(u)) return u
+  try {
+    const origin = typeof window !== 'undefined' ? window.location.origin : ''
+    return origin && u.startsWith('/') ? `${origin}${u}` : u
+  } catch {
+    return u
+  }
+}
+
+// Extend API Event with optional fields used in this page
+type ExtendedEvent = ApiEvent & {
+  speakers?: Array<{
+    id: number
+    name: string
+    title?: string
+    org?: string
+    photoUrl?: string
+    bio?: string
+  }>
+  committee?: Array<{
+    id: number
+    name: string
+    role?: string
+    email?: string
+    phone?: string
+  }>
+  sponsors?: Array<{
+    id: number
+    name: string
+    logoUrl: string
+    website?: string
+    tier?: string
+  }>
+  gallery?: Array<{
+    id: number
+    url: string
+    caption?: string
+    type?: 'image' | 'video'
+  }>
+  bannerUrl?: string
+}
+
+// Types for event normalization
+type MediaItem = { url?: string; [key: string]: unknown }
+type SponsorItem = {
+  logoUrl?: string
+  logo_url?: string
+  website?: string
+  website_url?: string
+  [key: string]: unknown
+}
+type SpeakerItem = {
+  photoUrl?: string
+  photo_url?: string
+  [key: string]: unknown
+}
+
+// Fetch public single event by slug
+const { data: eventResponse, refresh: refreshPublicEvent } = await getPublicEventBySlug(slug.value)
+
+// Normalize server 'media' field to 'gallery' expected by the template
+const event = computed<ExtendedEvent | null>(() => {
+  const e = eventResponse.value as
+    | (ExtendedEvent & {
+        media?: MediaItem[]
+        banner_url?: string
+        logo_url?: string
+        photo_url?: string
+      })
+    | null
+
+  if (!e) return null
+
+  // Normalize arrays with proper type assertions
+  const gallery = ((e.gallery ?? e.media ?? []) as MediaItem[]).map(m => ({
+    ...m,
+    url: m.url ? normalizeUrl(m.url) : m.url,
+  }))
+
+  const sponsors = ((e.sponsors ?? []) as SponsorItem[]).map(s => ({
+    ...s,
+    logoUrl: s.logoUrl || s.logo_url ? normalizeUrl(s.logoUrl || s.logo_url || '') : undefined,
+    website: s.website || s.website_url || '',
+  }))
+
+  const speakers = ((e.speakers ?? []) as SpeakerItem[]).map(sp => ({
+    ...sp,
+    photoUrl:
+      sp.photoUrl || sp.photo_url ? normalizeUrl(sp.photoUrl || sp.photo_url || '') : undefined,
+  }))
+  return {
+    ...e,
+    gallery,
+    sponsors,
+    speakers,
+    bannerUrl: normalizeUrl(e.bannerUrl || e.banner_url) || e.bannerUrl || e.banner_url,
+  } as ExtendedEvent
+})
+
+// Refresh if slug changes while staying on the same component instance
+watch(slug, async () => {
+  await refreshPublicEvent()
+})
 
 const typeLabel = computed(() =>
   event.value ? event.value.type.charAt(0).toUpperCase() + event.value.type.slice(1) : 'Event'
@@ -513,12 +624,13 @@ const typeLabel = computed(() =>
 // Whether the event is a conference (used to show sponsors/speakers)
 const _isConference = computed(() => (event.value?.type || '').toLowerCase() === 'conference')
 
-const heroImage = computed(
-  () =>
-    event.value?.gallery?.find(g => g.type !== 'video')?.url ||
-    // Seed with slug for deterministic placeholder per event
-    `https://picsum.photos/seed/${slug.value || 'epison'}/1600/900`
-)
+const heroImage = computed(() => {
+  const banner = normalizeUrl(event.value?.bannerUrl)
+  const firstImage = normalizeUrl(
+    event.value?.gallery?.find(g => (g.type ?? 'image') !== 'video')?.url
+  )
+  return banner || firstImage || `https://picsum.photos/seed/${slug.value || 'epison'}/1600/900`
+})
 
 // Register route path for this event
 const registerPath = computed(() => `/events/${slug.value}/register`)
@@ -566,7 +678,10 @@ const isSubmitting = ref(false)
 const keywordsInput = ref('')
 
 const canSubmitAbstract = computed(() => {
-  return !!(event.value && event.value.collectsSubmissions && isSubmissionOpen(event.value.id))
+  if (!event.value) return false
+  const eid = Number(event.value.id)
+  if (!Number.isFinite(eid)) return false
+  return !!(event.value.collectsSubmissions && isSubmissionOpen(eid))
 })
 
 const submissionForm = reactive({
@@ -637,8 +752,9 @@ async function submitAbstractForm() {
 
   isSubmitting.value = true
   try {
+    const eid = Number(event.value.id)
     await submitAbstract({
-      eventId: event.value.id,
+      eventId: eid,
       title: submissionForm.title.trim(),
       abstract: submissionForm.abstract.trim(),
       authors: submissionForm.authors.filter(a => a.trim()).map(a => a.trim()),

@@ -134,35 +134,8 @@ export interface EventWithDetails extends Event {
 }
 
 // API Response types
-export interface EventListResponse {
-  data: Event[]
-  meta: {
-    page: number
-    perPage: number
-    total: number
-    totalPages: number
-  }
-}
-
-export interface RegistrationListResponse {
-  data: EventRegistration[]
-  meta: {
-    page: number
-    perPage: number
-    total: number
-    totalPages: number
-  }
-}
-
-export interface SubmissionListResponse {
-  data: AbstractSubmission[]
-  meta: {
-    page: number
-    perPage: number
-    total: number
-    totalPages: number
-  }
-}
+// Deprecated: Use ApiResponse and PaginatedResponse from types/api.ts instead of
+// defining response shapes here.
 
 // Form types for creating/updating
 export interface CreateEventForm {

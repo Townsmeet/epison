@@ -60,6 +60,13 @@ export const createEventCommitteeMemberSchema = z.object({
   phone: z.string().max(50).optional(),
 })
 
+// ===== Event Media =====
+export const createEventMediaSchema = z.object({
+  url: z.string().url().min(1),
+  caption: z.string().max(500).optional(),
+  type: z.enum(['image', 'video']).optional(),
+})
+
 // ===== Event Registrations =====
 export const registrationCategorySchema = z.enum([
   'Member',
@@ -113,7 +120,7 @@ export const eventListQuerySchema = z.object({
   upcoming: z.coerce.boolean().optional(),
   sort: z.string().default('-startDate'), // e.g., 'title', '-title', 'startDate', '-startDate', 'createdAt', '-createdAt'
   page: z.coerce.number().int().positive().default(1),
-  perPage: z.coerce.number().int().positive().max(100).default(20),
+  limit: z.coerce.number().int().positive().max(100).default(20),
 })
 
 // Registrations list query (admin)
@@ -123,7 +130,7 @@ export const registrationListQuerySchema = z.object({
   paymentStatus: z.enum(['Pending', 'Paid', 'Cancelled', 'Refunded']).optional(),
   sort: z.string().default('-registeredAt'), // 'attendeeName' | '-attendeeName' | 'registeredAt' | '-registeredAt'
   page: z.coerce.number().int().positive().default(1),
-  perPage: z.coerce.number().int().positive().max(100).default(20),
+  limit: z.coerce.number().int().positive().max(100).default(20),
 })
 
 // Submissions list query (admin)
@@ -135,7 +142,7 @@ export const submissionListQuerySchema = z.object({
   category: z.enum(['oral', 'poster', 'workshop']).optional(),
   sort: z.string().default('-submissionDate'), // 'title' | '-title' | 'submissionDate' | '-submissionDate'
   page: z.coerce.number().int().positive().default(1),
-  perPage: z.coerce.number().int().positive().max(100).default(20),
+  limit: z.coerce.number().int().positive().max(100).default(20),
 })
 
 // ===== Types =====

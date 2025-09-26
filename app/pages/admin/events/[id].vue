@@ -20,7 +20,7 @@
           @click="currentTab = 'Registrations' as any"
           >Registrations</UButton
         >
-        <UButton color="error" variant="outline" icon="i-heroicons-trash" @click="deleteEvent"
+        <UButton color="error" variant="outline" icon="i-heroicons-trash" @click="handleDeleteEvent"
           >Delete</UButton
         >
       </div>
@@ -70,19 +70,15 @@
         <!-- Registrations Tab -->
         <AdminEventsRegistrationsTab
           v-show="currentTab === 'Registrations'"
+          :event-id="event.id"
           :event-title="event.title"
-          :rows="allRegistrations"
-          :format-date="_formatDate"
-          :get-status-badge-class="_getStatusBadgeClass"
-          :get-type-badge-class="_getTypeBadgeClass"
-          :get-reg-action-items="_getRegActionItems"
         />
 
         <!-- Submissions Tab -->
         <AdminEventsSubmissionsTab
           v-if="event"
           v-show="currentTab === 'Submissions'"
-          :event-id="event.id"
+          :event-id="parseInt(event.id)"
         />
 
         <!-- Committee Tab -->
@@ -109,22 +105,199 @@
         <AdminEventsSidebarMeta v-if="event" :event="event" />
       </div>
     </div>
+
+    <!-- Edit Event Modal -->
+    <UModal v-model:open="isEditOpen" :title="modalTitle" :description="modalDescription">
+      <template #content>
+        <div class="h-[85vh] max-h-[85vh] flex flex-col">
+          <UCard
+            class="h-full flex flex-col"
+            :ui="{
+              body: 'flex-1 overflow-y-auto',
+              header: 'sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur',
+              footer: 'sticky bottom-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur',
+            }"
+          >
+            <template #header>
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold">Edit Event</h3>
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-heroicons-x-mark"
+                  @click="isEditOpen = false"
+                />
+              </div>
+            </template>
+
+            <UForm :state="editEventForm" class="space-y-6">
+              <UFormField label="Event Title" name="title" required>
+                <UInput
+                  v-model="editEventForm.title"
+                  placeholder="Enter event title"
+                  class="w-full"
+                />
+              </UFormField>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <UFormField label="Event Type" name="type" required>
+                  <USelect
+                    v-model="editEventForm.type"
+                    :items="[
+                      { label: 'Conference', value: 'conference' },
+                      { label: 'Workshop', value: 'workshop' },
+                      { label: 'Webinar', value: 'webinar' },
+                      { label: 'Seminar', value: 'seminar' },
+                      { label: 'Symposium', value: 'symposium' },
+                    ]"
+                    placeholder="Select event type"
+                    class="w-full"
+                  />
+                </UFormField>
+
+                <UFormField label="Status" name="status" required>
+                  <USelect
+                    v-model="editEventForm.status"
+                    :items="[
+                      { label: 'Draft', value: 'draft' },
+                      { label: 'Published', value: 'published' },
+                      { label: 'Registration Open', value: 'registration_open' },
+                      { label: 'Registration Closed', value: 'registration_closed' },
+                      { label: 'Ongoing', value: 'ongoing' },
+                      { label: 'Completed', value: 'completed' },
+                      { label: 'Cancelled', value: 'cancelled' },
+                    ]"
+                    placeholder="Select status"
+                    class="w-full"
+                  />
+                </UFormField>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <UFormField label="Start Date" name="startDate" required>
+                  <UInput v-model="editEventForm.startDate" type="datetime-local" class="w-full" />
+                </UFormField>
+
+                <UFormField label="End Date" name="endDate">
+                  <UInput v-model="editEventForm.endDate" type="datetime-local" class="w-full" />
+                </UFormField>
+              </div>
+
+              <UFormField label="Location" name="location" required>
+                <UInput
+                  v-model="editEventForm.location"
+                  placeholder="Event location"
+                  class="w-full"
+                />
+              </UFormField>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <UFormField label="Capacity" name="capacity">
+                  <UInput
+                    v-model="editEventForm.capacity"
+                    type="number"
+                    placeholder="Maximum attendees"
+                    class="w-full"
+                  />
+                </UFormField>
+              </div>
+
+              <UFormField label="Description" name="description">
+                <UTextarea
+                  v-model="editEventForm.description"
+                  placeholder="Event description"
+                  :rows="4"
+                  class="w-full"
+                />
+              </UFormField>
+
+              <!-- Banner Image -->
+              <UFormField label="Event Banner Image" name="bannerImage">
+                <input
+                  type="file"
+                  accept="image/*"
+                  class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:text-gray-300 dark:file:bg-primary-900/20 dark:file:text-primary-300"
+                  @change="onEditBannerSelected"
+                />
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Upload a JPG/PNG banner. Recommended aspect ratio ~3:2. Max ~2MB.
+                </p>
+                <div v-if="isUploadingBanner" class="mt-2 flex items-center gap-2">
+                  <UIcon name="i-heroicons-arrow-path" class="w-4 h-4 animate-spin" />
+                  <span class="text-xs text-gray-500 dark:text-gray-400">Uploading banner...</span>
+                </div>
+                <div v-if="bannerPreview" class="mt-3">
+                  <img
+                    :src="bannerPreview"
+                    alt="Banner preview"
+                    class="w-full h-40 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                  />
+                </div>
+              </UFormField>
+
+              <div class="flex items-center space-x-4">
+                <UCheckbox v-model="editEventForm.membersOnly" label="Members Only" />
+                <UCheckbox
+                  v-model="editEventForm.collectsSubmissions"
+                  label="Collect Submissions"
+                />
+              </div>
+            </UForm>
+
+            <template #footer>
+              <div class="flex justify-end space-x-3">
+                <UButton color="neutral" variant="ghost" @click="isEditOpen = false"
+                  >Cancel</UButton
+                >
+                <UButton
+                  color="primary"
+                  :loading="isSavingEdit || isUploadingBanner"
+                  :disabled="isUploadingBanner"
+                  @click="handleUpdateEvent"
+                  >Save Changes</UButton
+                >
+              </div>
+            </template>
+          </UCard>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { nextTick } from 'vue'
 import type { AbstractSubmission } from '../../../../types/submissions'
+import type { EventItem } from '../../../composables/useEvents'
+import type { CreateEventForm } from '../../../../types/event'
+
 definePageMeta({ layout: 'admin' })
 
 const route = useRoute()
-const id = computed(() => Number(route.params.id))
+const id = computed(() => route.params.id as string)
 
-const { events }: { events: Ref<EventItem[]> } = useEvents()
+const { getEvent, deleteEvent, refreshEvent, updateEvent } = useEvents()
 const { getEventSubmissions, updateSubmissionStatus } = useSubmissions()
-const event = computed(() => events.value.find(e => e.id === id.value))
+
+// Fetch event data from API
+const { data: eventResponse, pending: _eventLoading, error: _eventError } = await getEvent(id.value)
+
+// Transform API response to EventItem format for backward compatibility
+const event = computed(() => {
+  const e = eventResponse.value?.data
+  if (!e) return null
+  return {
+    ...e,
+    registrations: e.registrationCount || 0,
+    revenue: e.revenue || 0,
+  } as EventItem
+})
 
 // Image URL computation is now handled in the component where it's needed
+
+// Modal a11y title/description
+const modalTitle = computed(() => 'Edit Event')
+const modalDescription = computed(() => `Update details for "${event.value?.title ?? ''}"`)
 
 // Tabs
 const tabs = [
@@ -186,8 +359,186 @@ function _onImgError(e: Event) {
 function goBack() {
   navigateTo('/admin/events')
 }
+// Edit modal state
+const isEditOpen = ref(false)
+const isSavingEdit = ref(false)
+const isUploadingBanner = ref(false)
+const bannerPreview = ref<string>('')
+const bannerFile = ref<File | null>(null)
+
+// Local edit form state
+const editEventForm = reactive({
+  title: '',
+  type: 'webinar',
+  status: 'draft',
+  startDate: '',
+  endDate: '',
+  location: '',
+  capacity: '' as string | number,
+  description: '',
+  membersOnly: false,
+  collectsSubmissions: false,
+})
+
+function preloadEditForm() {
+  const e = event.value
+  if (!e) return
+  editEventForm.title = e.title || ''
+  editEventForm.type =
+    (e.type as 'webinar' | 'conference' | 'workshop' | 'seminar' | 'symposium') || 'webinar'
+  editEventForm.status =
+    (e.status as
+      | 'draft'
+      | 'published'
+      | 'registration_open'
+      | 'registration_closed'
+      | 'ongoing'
+      | 'completed'
+      | 'cancelled') || 'draft'
+  // Convert API ISO strings to input datetime-local values
+  const toLocalInput = (iso?: string) => (iso ? new Date(iso).toISOString().slice(0, 16) : '')
+  editEventForm.startDate = toLocalInput(e.startDate)
+  editEventForm.endDate = toLocalInput(e.endDate)
+  editEventForm.location = e.location || ''
+  editEventForm.capacity = (e.capacity as number | string) ?? ''
+  editEventForm.description = e.description || ''
+  editEventForm.membersOnly = !!e.membersOnly
+  editEventForm.collectsSubmissions = !!e.collectsSubmissions
+  // Preload existing banner preview
+  const existing =
+    (e as EventItem & { bannerUrl?: string }).bannerUrl ||
+    e.gallery?.find(g => (g.type ?? 'image') !== 'video')?.url ||
+    ''
+  bannerPreview.value = existing || ''
+  bannerFile.value = null
+}
+
 function editEvent() {
-  if (event.value) navigateTo(`/admin/events/${event.value.id}/edit`)
+  if (!event.value) return
+  preloadEditForm()
+  isEditOpen.value = true
+}
+
+async function handleUpdateEvent() {
+  if (!event.value) return
+  isSavingEdit.value = true
+  try {
+    // Convert datetime-local values back to ISO strings
+    const toISO = (val?: string) => (val ? new Date(val).toISOString() : undefined)
+    const payload: Partial<CreateEventForm> = {
+      title: editEventForm.title.trim() || undefined,
+      type: editEventForm.type as 'webinar' | 'conference' | 'workshop' | 'seminar' | 'symposium',
+      status: editEventForm.status as
+        | 'draft'
+        | 'published'
+        | 'registration_open'
+        | 'registration_closed'
+        | 'ongoing'
+        | 'completed'
+        | 'cancelled',
+      startDate: toISO(editEventForm.startDate)!,
+      endDate: toISO(editEventForm.endDate),
+      location: editEventForm.location.trim() || undefined,
+      capacity:
+        editEventForm.capacity !== '' && editEventForm.capacity !== null
+          ? Number(editEventForm.capacity)
+          : undefined,
+      description: editEventForm.description?.trim() || undefined,
+      membersOnly: !!editEventForm.membersOnly,
+      collectsSubmissions: !!editEventForm.collectsSubmissions,
+    }
+
+    // If a new banner was selected, upload and include bannerUrl
+    if (bannerFile.value) {
+      isUploadingBanner.value = true
+      const file = bannerFile.value
+      const e = event.value
+      const slugBase = (e as EventItem & { slug?: string }).slug || e.title
+      const ext = file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')) : ''
+      const key = `${slugBase}-${Date.now()}${ext}`
+      const form = new FormData()
+      form.append('file', file)
+      form.append('folder', 'events/banners')
+      form.append('key', key)
+      try {
+        const uploadResp = await $fetch<{ url: string }>(`/api/uploads`, {
+          method: 'POST',
+          body: form,
+          credentials: 'include',
+        })
+        ;(payload as Partial<CreateEventForm> & { bannerUrl?: string }).bannerUrl = uploadResp.url
+      } catch (err) {
+        console.error('Banner upload failed:', err)
+        useToast().add({
+          title: 'Upload failed',
+          description: 'Could not upload banner image. Please try again.',
+          color: 'error',
+        })
+        throw err
+      } finally {
+        isUploadingBanner.value = false
+      }
+    }
+
+    await updateEvent(event.value.id, payload)
+    await refreshEvent(event.value.id)
+    isEditOpen.value = false
+    useToast().add({
+      title: 'Event updated',
+      description: 'Changes saved successfully',
+      color: 'success',
+    })
+  } catch (error) {
+    console.error('Error updating event:', error)
+    const e = error as {
+      data?: { statusMessage?: string; message?: string }
+      statusMessage?: string
+      message?: string
+    }
+    const msg =
+      e?.data?.statusMessage ||
+      e?.data?.message ||
+      e?.statusMessage ||
+      e?.message ||
+      'Failed to update event'
+    useToast().add({ title: 'Error', description: msg, color: 'error' })
+  } finally {
+    isSavingEdit.value = false
+  }
+}
+
+function onEditBannerSelected(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  // Validate file type and size (<= 2MB)
+  const allowed = new Set(['image/jpeg', 'image/png'])
+  if (!allowed.has(file.type)) {
+    useToast().add({
+      title: 'Invalid file type',
+      description: 'Please upload a JPG or PNG image.',
+      color: 'warning',
+    })
+    input.value = ''
+    return
+  }
+  const maxBytes = 2 * 1024 * 1024
+  if (file.size > maxBytes) {
+    useToast().add({
+      title: 'File too large',
+      description: 'Image must be 2MB or less.',
+      color: 'warning',
+    })
+    input.value = ''
+    return
+  }
+  const reader = new FileReader()
+  reader.onload = () => {
+    const result = reader.result as string
+    bannerPreview.value = result
+  }
+  reader.readAsDataURL(file)
+  bannerFile.value = file
 }
 
 function duplicateEvent() {
@@ -219,14 +570,25 @@ function cancelEvent() {
   })
 }
 
-function deleteEvent() {
+async function handleDeleteEvent() {
   if (!event.value) return
-  useToast().add({
-    title: 'Event deleted',
-    description: `Deleted "${event.value.title}"`,
-    color: 'error',
-  })
-  navigateTo('/admin/events')
+
+  try {
+    await deleteEvent(event.value.id)
+    useToast().add({
+      title: 'Event deleted',
+      description: `Deleted "${event.value.title}"`,
+      color: 'success',
+    })
+    navigateTo('/admin/events')
+  } catch (error) {
+    console.error('Error deleting event:', error)
+    useToast().add({
+      title: 'Error',
+      description: 'Failed to delete event',
+      color: 'error',
+    })
+  }
 }
 
 // Tickets management
@@ -369,7 +731,7 @@ function _addSponsor() {
 }
 function _removeSponsor(sponsorId: number) {
   if (!event.value?.sponsors) return
-  event.value.sponsors = event.value.sponsors.filter(s => s.id !== sponsorId)
+  event.value.sponsors = event.value.sponsors.filter((s: { id: number }) => s.id !== sponsorId)
   useToast().add({ title: 'Sponsor removed', color: 'neutral' })
 }
 
@@ -399,7 +761,7 @@ function _addMedia() {
 }
 function _removeMedia(mediaId: number) {
   if (!event.value?.gallery) return
-  event.value.gallery = event.value.gallery.filter(m => m.id !== mediaId)
+  event.value.gallery = event.value.gallery.filter((m: { id: number }) => m.id !== mediaId)
   useToast().add({ title: 'Media removed', color: 'neutral' })
 }
 
@@ -629,7 +991,7 @@ const _submissionStatusFilter = ref('')
 const _submissionCategoryFilter = ref('')
 
 const eventSubmissions = computed<AbstractSubmission[]>(() => {
-  return event.value ? (getEventSubmissions(event.value.id) as AbstractSubmission[]) : []
+  return event.value ? (getEventSubmissions(parseInt(event.value.id)) as AbstractSubmission[]) : []
 })
 
 const _submissionStatusOptions = [

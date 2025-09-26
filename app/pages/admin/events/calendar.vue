@@ -29,7 +29,27 @@
       </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+    <div v-if="eventsLoading" class="flex items-center justify-center py-16">
+      <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin" />
+      <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">Loading events…</span>
+    </div>
+
+    <div v-else-if="eventsError" class="text-center py-12">
+      <UIcon name="i-heroicons-exclamation-triangle" class="w-12 h-12 mx-auto text-red-500 mb-3" />
+      <p class="text-gray-600 dark:text-gray-400">Failed to load events for this month.</p>
+      <div class="mt-4">
+        <UButton color="neutral" variant="outline" @click="refreshEvents(eventsQuery)"
+          >Try Again</UButton
+        >
+      </div>
+    </div>
+
+    <div v-else-if="events.length === 0" class="text-center py-12">
+      <UIcon name="i-heroicons-calendar" class="w-12 h-12 mx-auto text-gray-400 mb-3" />
+      <p class="text-gray-600 dark:text-gray-400">No events scheduled this month.</p>
+    </div>
+
+    <div v-else class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
       <div class="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700">
         <div
           v-for="d in weekDays"
@@ -114,11 +134,11 @@
 
 <script setup lang="ts">
 // Types
-import type { Ref } from 'vue'
+import type { EventItem, EventListQuery } from '../../../composables/useEvents'
 
 definePageMeta({ layout: 'admin' })
 
-const { events }: { events: Ref<EventItem[]> } = useEvents()
+const { getEvents, refreshEvents } = useEvents()
 
 const isCreateEventOpen = ref(false)
 const today = new Date()
@@ -150,6 +170,44 @@ function isSameDate(a: Date, b: Date) {
 function formatMonthYear(d: Date) {
   return d.toLocaleString('en-US', { month: 'long', year: 'numeric' })
 }
+
+// Build month date range
+const monthStart = computed(
+  () => new Date(viewDate.value.getFullYear(), viewDate.value.getMonth(), 1)
+)
+const monthEnd = computed(
+  () => new Date(viewDate.value.getFullYear(), viewDate.value.getMonth() + 1, 0)
+)
+
+function toIsoStart(d: Date) {
+  const x = new Date(d)
+  x.setHours(0, 0, 0, 0)
+  return x.toISOString()
+}
+function toIsoEnd(d: Date) {
+  const x = new Date(d)
+  x.setHours(23, 59, 59, 999)
+  return x.toISOString()
+}
+
+// Query to load events for the visible month
+const eventsQuery = computed<EventListQuery>(() => ({
+  page: 1,
+  limit: 100,
+  from: toIsoStart(monthStart.value),
+  to: toIsoEnd(monthEnd.value),
+  sort: 'startDate',
+}))
+
+// Fetch events for the calendar month
+const {
+  data: eventsResponse,
+  pending: eventsLoading,
+  error: eventsError,
+} = await getEvents(eventsQuery.value)
+
+// Computed events list for this view
+const events = computed<EventItem[]>(() => (eventsResponse.value?.data as EventItem[]) ?? [])
 
 const eventsByDay = computed<Record<string, EventItem[]>>(() => {
   const map: Record<string, EventItem[]> = {}
@@ -193,7 +251,12 @@ function goToday() {
   viewDate.value = new Date(today.getFullYear(), today.getMonth(), 1)
 }
 
-function viewEvent(id: number) {
+// Refetch when the visible month changes
+watch(viewDate, async () => {
+  await refreshEvents(eventsQuery.value)
+})
+
+function viewEvent(id: string) {
   navigateTo(`/admin/events/${id}`)
 }
 function viewDay(_d: Date) {

@@ -82,37 +82,36 @@ import { z } from 'zod'
 
 const route = useRoute()
 const slug = computed(() => route.params.slug as string)
-const { events } = useEvents()
-const event = computed(() =>
-  events.value.find(
-    e =>
-      e &&
-      e.title &&
-      e.title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-') === slug.value
-  )
-)
+const { getPublicEventBySlug, createPublicEventRegistration } = useEvents()
+// Fetch the public event by slug (same as detail page)
+const { data: eventResponse } = await getPublicEventBySlug(slug.value)
+const event = computed(() => eventResponse.value)
 
 const submitting = ref(false)
 
-// Single unified pricing for all events (amount in kobo)
-const BASE_AMOUNT_KOBO = 10000 * 100 // ₦10,000
+// Types
+type Ticket = {
+  label: string
+  value: string
+  amount: number
+}
 
-const tickets = [
-  { label: 'Standard (₦10,000)', value: 'standard', amount: BASE_AMOUNT_KOBO },
-  { label: 'Premium (₦20,000)', value: 'premium', amount: BASE_AMOUNT_KOBO * 2 },
-  { label: 'Platinum (₦50,000)', value: 'platinum', amount: BASE_AMOUNT_KOBO * 5 },
-]
+// Derive tickets from event.tickets (public tickets already filtered server-side)
+const tickets = computed<Ticket[]>(() => {
+  const eventTickets = event.value?.tickets ?? []
+  return eventTickets.map(t => ({
+    label: `${t.name} (₦${(Number(t.price) / 100).toLocaleString()})`,
+    value: String(t.id),
+    amount: Number(t.price),
+  }))
+})
 
 const form = reactive({
   name: '',
   email: '',
   org: '',
   phone: '',
-  ticket: tickets[0]?.value as string,
+  ticket: '' as string,
 })
 
 const schema = z.object({
@@ -136,8 +135,16 @@ function validate() {
   return
 }
 
-const selectedAmount = computed(
-  () => tickets.find(t => t.value === form.ticket)?.amount ?? BASE_AMOUNT_KOBO
+// Initialize selected ticket when tickets load
+watchEffect(() => {
+  const [firstTicket] = tickets.value
+  if (!form.ticket && firstTicket) {
+    form.ticket = firstTicket.value
+  }
+})
+
+const selectedAmount = computed<number>(
+  () => tickets.value.find(t => t.value === form.ticket)?.amount ?? 0
 )
 
 const { initializePayment } = usePaystack()
@@ -148,22 +155,47 @@ async function onSubmit() {
   submitting.value = true
 
   try {
-    const amountNaira = selectedAmount.value / 100 // Convert from kobo to Naira
-    // Await payment result and then navigate in page context
+    // 1) Create registration on the server to generate a payment reference
+    const registration = await createPublicEventRegistration(
+      String((event.value as { id?: string | number })?.id || ''),
+      {
+        attendeeName: form.name,
+        attendeeEmail: form.email,
+        ticketId: form.ticket || undefined,
+        quantity: 1,
+      }
+    )
+
+    // If totalAmount is 0, no payment required – navigate to success
+    if (!registration.totalAmount || registration.totalAmount <= 0) {
+      const url = `/events/${slug.value}/register-success?reference=${encodeURIComponent(registration.paymentReference || '')}&email=${encodeURIComponent(form.email)}`
+      try {
+        await navigateTo(url, { replace: true })
+      } catch {
+        if (typeof window !== 'undefined') window.location.href = url
+      }
+      return
+    }
+
+    // 2) Initialize Paystack using server-provided payment data
+    const ref = registration.paymentData?.reference || registration.paymentReference || ''
+    const amountNaira = (registration.paymentData?.amount ?? registration.totalAmount) / 100
+
     const result = await initializePayment({
       email: form.email,
       amount: amountNaira,
+      reference: ref,
       metadata: {
+        eventId: String((event.value as { id?: string | number })?.id || ''),
         eventSlug: slug.value,
         eventTitle: event.value?.title,
         registrantName: form.name,
         organization: form.org,
         phone: form.phone,
-        ticketType: form.ticket,
+        ticketId: form.ticket,
         type: 'event_registration',
       },
       onCancel: () => {
-        // Payment was cancelled, keep user on form
         console.log('Payment cancelled by user')
       },
       onError: error => {

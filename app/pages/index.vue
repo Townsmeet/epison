@@ -368,41 +368,39 @@
 </template>
 
 <script setup lang="ts">
-const upcomingEvents = [
-  {
-    id: 'annual-conference-2024',
-    title: 'Annual Scientific Conference 2024',
-    type: 'Conference',
-    date: '2024-11-15',
-    location: 'Abuja, Nigeria',
-    description:
-      'Join us for the premier epidemiology event of the year, featuring keynote speakers, workshops, and networking opportunities.',
-    image:
-      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-  },
-  {
-    id: 'public-health-workshop',
-    title: 'Public Health Data Analysis Workshop',
-    type: 'Workshop',
-    date: '2024-09-22',
-    location: 'Lagos, Nigeria',
-    description:
-      'Hands-on training in advanced data analysis techniques for public health professionals and researchers.',
-    image:
-      'https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-  },
-  {
-    id: 'research-symposium',
-    title: 'Epidemiology Research Symposium',
-    type: 'Symposium',
-    date: '2024-10-05',
-    location: 'Online',
-    description:
-      'Virtual symposium showcasing the latest research in epidemiology and public health from across Nigeria.',
-    image:
-      'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-  },
-]
+const { getPublicEvents } = useEvents()
+
+// Fetch up to 3 upcoming public events
+const { data: eventsResponse } = await getPublicEvents({
+  limit: 3,
+  upcoming: true,
+  sort: 'startDate',
+})
+
+function slugify(s: string) {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+}
+
+function toTitleCase(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+const upcomingEvents = computed(() => {
+  const list = eventsResponse.value?.data || []
+  return list.map(e => ({
+    id: e.id,
+    title: e.title,
+    type: toTitleCase(e.type),
+    date: e.startDate,
+    location: e.location,
+    description: e.description || '',
+    image: e.bannerUrl || `https://picsum.photos/seed/${slugify(e.slug || e.title)}/1200/800`,
+  }))
+})
 
 const features = [
   {

@@ -56,10 +56,10 @@ export default defineEventHandler(async eventHandler => {
       .where(whereExpr)
 
     const total = totalResult[0]?.count || 0
-    const totalPages = Math.ceil(total / query.perPage)
+    const totalPages = Math.ceil(total / query.limit)
 
     // Get paginated results with parsed JSON fields
-    const offset = (query.page - 1) * query.perPage
+    const offset = (query.page - 1) * query.limit
     const submissions = await db
       .select()
       .from(abstractSubmission)
@@ -73,7 +73,7 @@ export default defineEventHandler(async eventHandler => {
               ? asc(abstractSubmission.submissionDate)
               : desc(abstractSubmission.submissionDate)
       )
-      .limit(query.perPage)
+      .limit(query.limit)
       .offset(offset)
 
     // Parse JSON fields for response
@@ -90,12 +90,15 @@ export default defineEventHandler(async eventHandler => {
     }))
 
     return {
+      success: true,
       data: parsedSubmissions,
-      meta: {
+      pagination: {
         page: query.page,
-        perPage: query.perPage,
+        limit: query.limit,
         total,
         totalPages,
+        hasNext: query.page < totalPages,
+        hasPrev: query.page > 1,
       },
     }
   } catch (error: unknown) {

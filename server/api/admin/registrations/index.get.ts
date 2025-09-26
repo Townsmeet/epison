@@ -1,23 +1,15 @@
-import { eq, and, like, desc, asc, sql, or } from 'drizzle-orm'
-import { getRouterParam, createError } from 'h3'
-import { db } from '../../../../../utils/drizzle'
-import { isH3Error } from '../../../../../utils/errors'
-import { eventRegistration } from '../../../../../db/schema'
-import { requireAuthUser } from '../../../../../utils/auth-helpers'
-import { registrationListQuerySchema } from '../../../../../validators/event'
-import { validateQuery } from '../../../../../validators'
+import { and, asc, desc, like, or, sql } from 'drizzle-orm'
+import { defineEventHandler, createError } from 'h3'
+import { db } from '../../../utils/drizzle'
+import { isH3Error } from '../../../utils/errors'
+import { eventRegistration } from '../../../db/schema'
+import { requireAuthUser } from '../../../utils/auth-helpers'
+import { registrationListQuerySchema } from '../../../validators/event'
+import { validateQuery } from '../../../validators'
 
 export default defineEventHandler(async eventHandler => {
   // Auth check
   requireAuthUser(eventHandler)
-
-  const eventId = getRouterParam(eventHandler, 'id')
-  if (!eventId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Event ID is required',
-    })
-  }
 
   const query = validateQuery(
     eventHandler,
@@ -27,31 +19,31 @@ export default defineEventHandler(async eventHandler => {
 
   try {
     // Build where conditions
-    const conditions = [eq(eventRegistration.eventId, eventId)]
+    const conditions: ReturnType<typeof like | typeof or>[] = []
 
-    // Search query
+    // Search across attendee name, email and reference
     if (query.q) {
       const search = `%${query.q}%`
-      const searchExpr = or(
-        like(eventRegistration.attendeeName, search),
-        like(eventRegistration.attendeeEmail, search),
-        like(eventRegistration.reference, search)
-      )!
-      conditions.push(searchExpr)
+      conditions.push(
+        or(
+          like(eventRegistration.attendeeName, search),
+          like(eventRegistration.attendeeEmail, search),
+          like(eventRegistration.reference, search)
+        )
+      )
     }
 
     // Category filter
     if (query.category) {
-      conditions.push(eq(eventRegistration.category, query.category))
+      conditions.push(like(eventRegistration.category, query.category))
     }
 
     // Payment status filter
     if (query.paymentStatus) {
-      conditions.push(eq(eventRegistration.paymentStatus, query.paymentStatus))
+      conditions.push(like(eventRegistration.paymentStatus, query.paymentStatus))
     }
 
-    // Compute where expression safely (avoid SQL | undefined)
-    const whereExpr = conditions.length > 1 ? and(...conditions) : conditions[0]
+    const whereExpr = conditions.length > 0 ? and(...conditions) : undefined
 
     // Get total count
     const totalResult = await db
@@ -62,9 +54,11 @@ export default defineEventHandler(async eventHandler => {
     const total = totalResult[0]?.count || 0
     const totalPages = Math.ceil(total / query.limit)
 
-    // Get paginated results
+    // Pagination
     const offset = (query.page - 1) * query.limit
-    const registrations = await db
+
+    // Get results
+    const rows = await db
       .select()
       .from(eventRegistration)
       .where(whereExpr)
@@ -82,7 +76,7 @@ export default defineEventHandler(async eventHandler => {
 
     return {
       success: true,
-      data: registrations,
+      data: rows,
       pagination: {
         page: query.page,
         limit: query.limit,

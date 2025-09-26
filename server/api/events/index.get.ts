@@ -82,10 +82,10 @@ export default defineEventHandler(async eventHandler => {
       .where(and(...conditions))
 
     const total = totalResult[0]?.count || 0
-    const totalPages = Math.ceil(total / query.perPage)
+    const totalPages = Math.ceil(total / query.limit)
 
     // Get paginated results
-    const offset = (query.page - 1) * query.perPage
+    const offset = (query.page - 1) * query.limit
     const events = await db
       .select({
         id: event.id,
@@ -107,16 +107,19 @@ export default defineEventHandler(async eventHandler => {
       .from(event)
       .where(and(...conditions))
       .orderBy(orderBy)
-      .limit(query.perPage)
+      .limit(query.limit)
       .offset(offset)
 
     return {
+      success: true,
       data: events,
-      meta: {
+      pagination: {
         page: query.page,
-        perPage: query.perPage,
+        limit: query.limit,
         total,
         totalPages,
+        hasNext: query.page < totalPages,
+        hasPrev: query.page > 1,
       },
     }
   } catch (error) {

@@ -2,20 +2,29 @@
   <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <h3 class="text-lg font-semibold">Sponsors</h3>
-        <UBadge v-if="event.sponsors?.length" color="neutral" variant="subtle">
-          {{ event.sponsors.length }} total
+        <div class="flex items-center gap-2">
+          <h3 class="text-lg font-semibold">Sponsors</h3>
+          <UIcon
+            v-if="isSyncing"
+            name="i-heroicons-arrow-path"
+            class="w-4 h-4 animate-spin text-gray-400"
+          />
+        </div>
+        <UBadge v-if="sponsors.length" color="neutral" variant="subtle">
+          {{ sponsors.length }} total
         </UBadge>
       </div>
     </template>
 
     <div class="space-y-6">
-      <div
-        v-if="event.sponsors && event.sponsors.length"
-        class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
-      >
+      <!-- Loading State -->
+      <div v-if="sponsorsLoading" class="flex justify-center py-8">
+        <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin" />
+      </div>
+
+      <div v-else-if="sponsors.length" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div
-          v-for="s in event.sponsors"
+          v-for="s in sponsors"
           :key="s.id"
           class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700"
         >
@@ -72,6 +81,7 @@
         <div class="mt-3 flex justify-end">
           <UButton
             :disabled="!newSponsor.name || !logoFile"
+            :loading="isCreating"
             icon="i-heroicons-plus"
             @click="addSponsor"
           >
@@ -85,21 +95,24 @@
 
 <script setup lang="ts">
 import type { EventItem } from '../../../composables/useEvents'
+import type { EventSponsor } from '../../../../types/event'
 
 const props = defineProps<{ event: EventItem }>()
-type Sponsor = {
-  id: number
-  name: string
-  tier?: string
-  logoUrl: string
-  website?: string
-}
 
 const emit = defineEmits<{
   'update:event': [event: EventItem]
-  'sponsor-added': [sponsor: Sponsor]
-  'sponsor-removed': [id: number]
+  'sponsor-added': [sponsor: EventSponsor]
+  'sponsor-removed': [id: string]
 }>()
+
+// Use the events API composable
+const { getEventSponsors, createEventSponsor, deleteEventSponsor, refreshEventSponsors } =
+  useEvents()
+
+// Fetch sponsors data from API
+const { data: sponsorsResponse, pending: sponsorsLoading } = await getEventSponsors(props.event.id)
+const isSyncing = ref(false)
+const sponsors = computed(() => sponsorsResponse.value?.data || [])
 
 const sponsorTierOptions = [
   { label: 'Platinum', value: 'platinum' },
@@ -131,43 +144,114 @@ function onLogoSelected(e: Event) {
   logoPreview.value = url
 }
 
-function addSponsor() {
-  if (!logoFile.value) return
-  const objectUrl = logoPreview.value || ''
-  const sponsor = {
-    id: Date.now(),
-    name: newSponsor.name.trim(),
-    tier: newSponsor.tier,
-    logoUrl: objectUrl,
-    website: newSponsor.website?.trim() || undefined,
-  }
+const isCreating = ref(false)
 
-  if (!sponsor.name || !sponsor.logoUrl) return
-
-  // Emit events
-  emit('sponsor-added', sponsor)
-  emit('update:event', {
-    ...props.event,
-    sponsors: [...(props.event.sponsors || []), sponsor],
-  })
-
-  // Reset form
-  Object.assign(newSponsor, { name: '', tier: undefined, website: '' })
-  logoFile.value = null
-  logoPreview.value = null
-  useToast().add({ title: 'Sponsor added', color: 'success' })
+function _slugify(s: string) {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
 }
 
-function removeSponsor(id: number) {
-  if (!props.event.sponsors) return
+async function addSponsor() {
+  if (!logoFile.value || isCreating.value) return
 
-  // Emit events
-  const updatedSponsors = props.event.sponsors.filter(s => s.id !== id)
-  emit('sponsor-removed', id)
-  emit('update:event', {
-    ...props.event,
-    sponsors: updatedSponsors,
-  })
-  useToast().add({ title: 'Sponsor removed', color: 'neutral' })
+  isCreating.value = true
+  try {
+    // Upload logo to S3 via uploads endpoint
+    const file = logoFile.value
+    const ext = file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')) : ''
+    const base = props.event.slug || _slugify(props.event.title)
+    const key = `sponsor-${base}-${Date.now()}${ext}`
+    const form = new FormData()
+    form.append('file', file)
+    form.append('folder', 'events/sponsors')
+    form.append('key', key)
+
+    let uploadedUrl = ''
+    try {
+      const uploadResp = await $fetch<{ url: string }>(`/api/uploads`, {
+        method: 'POST',
+        body: form,
+        credentials: 'include',
+      })
+      uploadedUrl = uploadResp.url
+    } catch (err) {
+      console.error('Sponsor logo upload failed:', err)
+      useToast().add({
+        title: 'Upload failed',
+        description: 'Could not upload sponsor logo. Please try again.',
+        color: 'error',
+      })
+      throw err
+    }
+
+    const sponsorData = {
+      name: newSponsor.name.trim(),
+      tier: newSponsor.tier,
+      logoUrl: uploadedUrl,
+      website: newSponsor.website?.trim() || undefined,
+    }
+
+    if (!sponsorData.name || !sponsorData.logoUrl) return
+
+    // Create sponsor via API
+    const createdSponsor = await createEventSponsor(props.event.id, sponsorData)
+
+    // Optimistically update local list
+    if (sponsorsResponse.value) {
+      const current = Array.isArray(sponsorsResponse.value.data) ? sponsorsResponse.value.data : []
+      sponsorsResponse.value.data = [createdSponsor as unknown as EventSponsor, ...current]
+    }
+
+    // Refresh sponsors data from API (ensure consistency)
+    isSyncing.value = true
+    await refreshEventSponsors(props.event.id)
+    // Additionally force Nuxt to refresh this key in case cookie-based trigger isn't immediate
+    if (typeof refreshNuxtData === 'function') {
+      await refreshNuxtData(`event-sponsors-${props.event.id}`)
+    }
+    isSyncing.value = false
+
+    // Emit events
+    emit('sponsor-added', createdSponsor)
+
+    // Reset form
+    Object.assign(newSponsor, { name: '', tier: undefined, website: '' })
+    logoFile.value = null
+    logoPreview.value = null
+
+    useToast().add({ title: 'Sponsor added', color: 'success' })
+  } catch (error) {
+    console.error('Error adding sponsor:', error)
+    useToast().add({ title: 'Error adding sponsor', color: 'error' })
+  } finally {
+    isCreating.value = false
+  }
+}
+
+async function removeSponsor(id: string) {
+  try {
+    await deleteEventSponsor(props.event.id, id)
+    // Optimistically remove from local list
+    if (sponsorsResponse.value && Array.isArray(sponsorsResponse.value.data)) {
+      sponsorsResponse.value.data = sponsorsResponse.value.data.filter(
+        s => String(s.id) !== String(id)
+      )
+    }
+    isSyncing.value = true
+    await refreshEventSponsors(props.event.id)
+    // Additionally force Nuxt to refresh this key in case cookie-based trigger isn't immediate
+    if (typeof refreshNuxtData === 'function') {
+      await refreshNuxtData(`event-sponsors-${props.event.id}`)
+    }
+    isSyncing.value = false
+    emit('sponsor-removed', id)
+    useToast().add({ title: 'Sponsor removed', color: 'success' })
+  } catch (error) {
+    console.error('Error removing sponsor:', error)
+    useToast().add({ title: 'Error removing sponsor', color: 'error' })
+  }
 }
 </script>

@@ -57,7 +57,7 @@
           </div>
           <div>
             <div class="text-2xl font-semibold text-gray-900 dark:text-white">
-              ₦{{ (event.revenue / 1000).toFixed(0) }}k
+              ₦{{ ((event.revenue ?? 0) / 1000).toFixed(0) }}k
             </div>
             <div class="text-xs text-gray-500 dark:text-gray-400">Revenue</div>
           </div>
@@ -78,8 +78,13 @@ const props = defineProps<{ event: EventItem }>()
 
 const imageUrl = computed(() => {
   const e = props.event
+  // Prefer the bannerUrl returned from backend when present
+  if (e.bannerUrl && e.bannerUrl.trim().length > 0) return e.bannerUrl
+  // Fallback to first non-video gallery image
   const galleryImage = e.gallery?.find(g => (g.type ?? 'image') !== 'video')?.url
-  return galleryImage || `https://picsum.photos/seed/${slugify(e.title)}/1200/800`
+  if (galleryImage && galleryImage.trim().length > 0) return galleryImage
+  // Final fallback placeholder
+  return `https://picsum.photos/seed/${slugify(e.title)}/1200/800`
 })
 
 const occupancy = computed(() => {

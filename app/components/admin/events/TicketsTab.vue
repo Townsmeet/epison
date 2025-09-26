@@ -2,15 +2,27 @@
   <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <h3 class="text-lg font-semibold">Tickets</h3>
-        <UBadge v-if="tickets.length" color="neutral" variant="subtle"
-          >{{ tickets.length }} total</UBadge
-        >
+        <div class="flex items-center gap-2">
+          <h3 class="text-lg font-semibold">Tickets</h3>
+          <UIcon
+            v-if="isSyncing"
+            name="i-heroicons-arrow-path"
+            class="w-4 h-4 animate-spin text-gray-400"
+          />
+        </div>
+        <UBadge v-if="tickets.length" color="neutral" variant="subtle">
+          {{ tickets.length }} total
+        </UBadge>
       </div>
     </template>
     <div class="space-y-6">
+      <!-- Loading State -->
+      <div v-if="ticketsLoading" class="flex justify-center py-8">
+        <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin" />
+      </div>
+
       <!-- Existing Tickets -->
-      <div v-if="tickets.length" class="grid gap-4">
+      <div v-else-if="tickets.length" class="grid gap-4">
         <div
           v-for="t in tickets"
           :key="t.id"
@@ -71,9 +83,14 @@
           </div>
         </div>
         <div class="mt-3 flex justify-end">
-          <UButton :disabled="!canAddTicket" icon="i-heroicons-plus" @click="addTicket"
-            >Add Ticket</UButton
+          <UButton
+            :disabled="!canAddTicket"
+            :loading="isCreating"
+            icon="i-heroicons-plus"
+            @click="addTicket"
           >
+            Add Ticket
+          </UButton>
         </div>
       </div>
     </div>
@@ -82,27 +99,16 @@
 
 <script setup lang="ts">
 import type { EventItem } from '../../../composables/useEvents'
+import type { EventTicket } from '../../../../types/event'
 
 const props = defineProps<{ event: EventItem }>()
 
-type EventTicket = {
-  id: number
-  name: string
-  price: number
-  quantity: number
-  salesStart?: string
-  salesEnd?: string
-  description?: string
-  isPublic: boolean
-}
+// Use the events API composable
+const { getEventTickets, createEventTicket, deleteEventTicket, refreshEventTickets } = useEvents()
 
-// reactive tickets on the event object
-const tickets = computed<EventTicket[]>(() => {
-  type EventWithTickets = EventItem & { tickets?: EventTicket[] }
-  const e = props.event as EventWithTickets
-  if (!Array.isArray(e.tickets)) e.tickets = []
-  return e.tickets as EventTicket[]
-})
+// Fetch tickets data from API
+const { data: ticketsResponse, pending: ticketsLoading } = await getEventTickets(props.event.id)
+const tickets = computed(() => ticketsResponse.value?.data || [])
 
 const newTicket = reactive({
   name: '',
@@ -118,38 +124,101 @@ const canAddTicket = computed(
   () => !!newTicket.name && Number(newTicket.price) >= 0 && Number(newTicket.quantity) >= 0
 )
 
-function addTicket() {
-  const e = props.event as EventItem & { tickets?: EventTicket[] }
-  if (!Array.isArray(e.tickets)) e.tickets = []
-  if (!canAddTicket.value) return
-  const t: EventTicket = {
-    id: Date.now(),
-    name: String(newTicket.name).trim(),
-    price: Number(newTicket.price) || 0,
-    quantity: Number(newTicket.quantity) || 0,
-    salesStart: newTicket.salesStart || undefined,
-    salesEnd: newTicket.salesEnd || undefined,
-    description: newTicket.description?.trim() || undefined,
-    isPublic: true,
+const isCreating = ref(false)
+const isSyncing = ref(false)
+
+async function addTicket() {
+  if (!canAddTicket.value || isCreating.value) return
+
+  isCreating.value = true
+  try {
+    const ticketData = {
+      name: String(newTicket.name).trim(),
+      price: Number(newTicket.price) || 0,
+      quantity: Number(newTicket.quantity) || 0,
+      salesStart: newTicket.salesStart || undefined,
+      salesEnd: newTicket.salesEnd || undefined,
+      description: newTicket.description?.trim() || undefined,
+      isPublic: true,
+    }
+
+    // Create ticket via API
+    const created = await createEventTicket(props.event.id, ticketData)
+    const createdWithId: EventTicket = {
+      ...(created as EventTicket),
+      id: (created as EventTicket)?.id ?? String(Date.now()),
+    }
+
+    // Optimistically update local list
+    if (!ticketsResponse.value) {
+      // Initialize response container if absent so UI updates immediately
+      ticketsResponse.value = { data: [] as EventTicket[] }
+    }
+    const current = Array.isArray(ticketsResponse.value.data) ? ticketsResponse.value.data : []
+    ticketsResponse.value.data = [createdWithId, ...current]
+
+    // Refresh tickets data from API (ensure consistency)
+    isSyncing.value = true
+    await refreshEventTickets(props.event.id)
+    // Additionally force Nuxt to refresh this key in case cookie-based trigger isn't immediate
+    if (typeof refreshNuxtData === 'function') {
+      await refreshNuxtData(`event-tickets-${props.event.id}`)
+    }
+    // Reconcile in case API response is stale and doesn't include the new ticket yet
+    try {
+      const list = ticketsResponse.value?.data as EventTicket[] | undefined
+      const cid = (created as EventTicket)?.id ?? createdWithId.id
+      if (Array.isArray(list) && cid) {
+        const found = list.some(t => String(t.id) === String(cid))
+        if (!found) {
+          ticketsResponse.value!.data = [created as EventTicket, ...list]
+        }
+      }
+    } finally {
+      isSyncing.value = false
+    }
+
+    // Reset form
+    Object.assign(newTicket, {
+      name: '',
+      price: '',
+      quantity: '',
+      salesStart: '',
+      salesEnd: '',
+      description: '',
+      isPublic: true,
+    })
+
+    useToast().add({ title: 'Ticket added', color: 'success' })
+  } catch (error) {
+    console.error('Error adding ticket:', error)
+    useToast().add({ title: 'Error adding ticket', color: 'error' })
+  } finally {
+    isCreating.value = false
   }
-  e.tickets!.push(t)
-  Object.assign(newTicket, {
-    name: '',
-    price: '',
-    quantity: '',
-    salesStart: '',
-    salesEnd: '',
-    description: '',
-    isPublic: true,
-  })
-  useToast().add({ title: 'Ticket added', color: 'success' })
 }
 
-function removeTicket(id: number) {
-  const e = props.event as EventItem & { tickets?: EventTicket[] }
-  if (!Array.isArray(e.tickets)) return
-  e.tickets = e.tickets.filter(t => t.id !== id)
-  useToast().add({ title: 'Ticket removed', color: 'neutral' })
+async function removeTicket(id: string) {
+  try {
+    await deleteEventTicket(props.event.id, id)
+    // Optimistically remove from local list
+    if (ticketsResponse.value && Array.isArray(ticketsResponse.value.data)) {
+      ticketsResponse.value.data = ticketsResponse.value.data.filter(
+        t => String(t.id) !== String(id)
+      )
+    }
+    isSyncing.value = true
+    await refreshEventTickets(props.event.id)
+    // Additionally force Nuxt to refresh this key in case cookie-based trigger isn't immediate
+    if (typeof refreshNuxtData === 'function') {
+      await refreshNuxtData(`event-tickets-${props.event.id}`)
+    }
+    isSyncing.value = false
+    useToast().add({ title: 'Ticket removed', color: 'success' })
+  } catch (error) {
+    console.error('Error removing ticket:', error)
+    useToast().add({ title: 'Error removing ticket', color: 'error' })
+  }
 }
 
 function formatDate(dateString: string): string {

@@ -23,7 +23,7 @@
                   ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
                   : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
               "
-              @click="activeTab = 'upcoming'"
+              @click="switchTab('upcoming')"
             >
               Upcoming
             </button>
@@ -34,7 +34,7 @@
                   ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
                   : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
               "
-              @click="activeTab = 'past'"
+              @click="switchTab('past')"
             >
               Past
             </button>
@@ -137,7 +137,36 @@
 </template>
 
 <script setup lang="ts">
-const { events } = useEvents()
+const route = useRoute()
+const router = useRouter()
+const { getPublicEvents } = useEvents()
+
+// Params
+const limit = 12
+const activeTab = ref<'upcoming' | 'past'>(
+  route.query.upcoming === 'false' ||
+    route.query.upcoming === '0' ||
+    route.query.upcoming === 'past'
+    ? 'past'
+    : 'upcoming'
+)
+const page = ref<number>(Number(route.query.page || 1) || 1)
+
+// Fetch public events from API with filters
+const query = computed(() => ({
+  page: page.value,
+  limit,
+  upcoming: activeTab.value === 'upcoming',
+  sort: 'startDate',
+}))
+
+const { data: eventsResponse, refresh: refreshPublicEvents } = await getPublicEvents(query.value)
+
+// Transform API response to match expected format
+const events = computed(() => {
+  if (!eventsResponse.value?.data) return []
+  return eventsResponse.value.data
+})
 
 const eventsWithSlug = computed(() =>
   events.value.map(e => ({
@@ -145,15 +174,14 @@ const eventsWithSlug = computed(() =>
     // Normalize type label and image fallback
     type: toTitleCase(e.type),
     image:
-      e.gallery?.find(g => g.type !== 'video')?.url ||
+      e.bannerUrl ||
       // Prefer picsum for higher reliability
       `https://picsum.photos/seed/${slugify(e.title)}/1200/800`,
-    slug: slugify(e.title),
+    slug: e.slug || slugify(e.title),
   }))
 )
 
-const activeTab = ref<'upcoming' | 'past'>('upcoming')
-
+// Derived display collections (client-side) remain, as API already filters by upcoming
 const upcomingEvents = computed(() =>
   eventsWithSlug.value
     .filter(e => !isPast(e))
@@ -169,6 +197,27 @@ const pastEvents = computed(() =>
 const displayedEvents = computed(() =>
   activeTab.value === 'upcoming' ? upcomingEvents.value : pastEvents.value
 )
+
+// Keep URL query in sync and refresh when filters change
+watch([activeTab, page], async () => {
+  // Push query without navigating away
+  router.replace({
+    query: {
+      ...route.query,
+      upcoming: activeTab.value === 'upcoming' ? 'true' : 'false',
+      page: String(page.value),
+    },
+  })
+
+  // Re-fetch with new query parameters
+  await refreshPublicEvents()
+})
+
+function switchTab(tab: 'upcoming' | 'past') {
+  if (activeTab.value === tab) return
+  activeTab.value = tab
+  page.value = 1
+}
 
 function formatDateRange(start?: string, end?: string) {
   if (!start) return ''

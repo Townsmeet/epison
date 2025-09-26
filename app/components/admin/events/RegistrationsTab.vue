@@ -83,13 +83,13 @@
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span
                     class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                    :class="(props.getTypeBadgeClass || _getTypeBadgeClass)(reg.type)"
+                    :class="_getTypeBadgeClass(reg.type)"
                   >
                     {{ reg.type }}
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                  {{ (props.formatDate || _formatDate)(reg.date) }}
+                  {{ _formatDate(reg.date) }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                   ₦{{ reg.amount.toLocaleString() }}
@@ -97,19 +97,13 @@
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span
                     class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                    :class="(props.getStatusBadgeClass || _getStatusBadgeClass)(reg.status)"
+                    :class="_getStatusBadgeClass(reg.status)"
                   >
                     {{ reg.status }}
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <UDropdownMenu
-                    :items="
-                      props.getRegActionItems
-                        ? props.getRegActionItems(reg)
-                        : _getRegActionItems(reg)
-                    "
-                  >
+                  <UDropdownMenu :items="_getRegActionItems(reg)">
                     <UButton
                       color="neutral"
                       variant="ghost"
@@ -177,15 +171,56 @@ export type RegistrationRow = {
 }
 
 const props = defineProps<{
+  eventId: string
   eventTitle: string
-  rows: RegistrationRow[]
-  formatDate?: (date: string) => string
-  getStatusBadgeClass?: (status: string) => string
-  getTypeBadgeClass?: (type: string) => string
-  getRegActionItems?: (
-    reg: RegistrationRow
-  ) => { label: string; icon: string; to?: string; click?: () => void }[][]
 }>()
+
+// Use the events API composable
+const { getEventRegistrations, refreshEventRegistrations } = useEvents()
+
+// Define search and pagination BEFORE using them in computed/fetch
+const search = ref('')
+const pagination = ref({
+  currentPage: 1,
+  perPage: 5,
+  total: 0,
+  get from() {
+    return this.total === 0 ? 0 : (this.currentPage - 1) * this.perPage + 1
+  },
+  get to() {
+    return Math.min(this.currentPage * this.perPage, this.total)
+  },
+})
+
+// Reactive query for registrations
+const registrationsQuery = computed(() => ({
+  page: pagination.value.currentPage,
+  limit: pagination.value.perPage,
+  q: search.value || undefined,
+}))
+
+// Fetch registrations data from API
+const { data: registrationsResponse, pending: _registrationsLoading } = await getEventRegistrations(
+  props.eventId,
+  registrationsQuery.value
+)
+
+// Transform API data to match RegistrationRow format
+const registrations = computed(() => {
+  if (!registrationsResponse.value?.data) return []
+  return registrationsResponse.value.data.map(reg => ({
+    id: reg.id,
+    name: reg.attendeeName,
+    email: reg.attendeeEmail,
+    event: props.eventTitle,
+    eventDate: '',
+    type: reg.category || 'Member',
+    date: reg.registeredAt,
+    amount: reg.totalAmount,
+    status: reg.paymentStatus,
+    reference: reg.reference || '',
+  }))
+})
 
 const _formatDate = (date: string) => {
   if (!date) return ''
@@ -227,46 +262,40 @@ const _getRegActionItems = (reg: RegistrationRow) => {
   ]
 }
 
-const search = ref('')
-const pagination = ref({
-  currentPage: 1,
-  perPage: 5,
-  total: 0,
-  get from() {
-    return this.total === 0 ? 0 : (this.currentPage - 1) * this.perPage + 1
-  },
-  get to() {
-    return Math.min(this.currentPage * this.perPage, this.total)
-  },
-})
+// (moved earlier)
 
-const filteredRows = computed<RegistrationRow[]>(() => {
-  const rows = props.rows.filter(r => r.event === props.eventTitle)
-  if (!search.value) return rows
-  const q = search.value.toLowerCase()
-  return rows.filter(
-    r =>
-      r.name.toLowerCase().includes(q) ||
-      r.email.toLowerCase().includes(q) ||
-      r.reference.toLowerCase().includes(q)
-  )
-})
+// Registrations are already filtered by the API
+const filteredRows = computed(() => registrations.value)
 
-const paginatedRows = computed<RegistrationRow[]>(() => {
-  const start = (pagination.value.currentPage - 1) * pagination.value.perPage
-  const end = start + pagination.value.perPage
-  return filteredRows.value.slice(start, end)
-})
-
+// Update pagination total from API response
 watch(
-  filteredRows,
-  rows => {
-    pagination.value.total = rows.length
-    if ((pagination.value.currentPage - 1) * pagination.value.perPage >= rows.length) {
-      pagination.value.currentPage = 1
+  registrationsResponse,
+  response => {
+    if (response?.pagination) {
+      pagination.value.total = response.pagination.total
     }
   },
   { immediate: true }
+)
+
+// Data is already paginated by the API
+const paginatedRows = computed(() => filteredRows.value)
+
+// Watch for search changes and refetch data
+let debounceTimer: NodeJS.Timeout
+watch(search, async () => {
+  clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(async () => {
+    pagination.value.currentPage = 1
+    await refreshEventRegistrations(props.eventId, registrationsQuery.value)
+  }, 300)
+})
+
+watch(
+  () => pagination.value.currentPage,
+  async () => {
+    await refreshEventRegistrations(props.eventId, registrationsQuery.value)
+  }
 )
 
 // Functions are now provided via props with underscore-prefixed versions as fallbacks

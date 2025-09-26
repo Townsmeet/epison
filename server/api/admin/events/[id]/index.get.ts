@@ -61,15 +61,18 @@ export default defineEventHandler(async eventHandler => {
     ])
 
     return {
-      ...eventData,
-      tickets,
-      sponsors,
-      speakers,
-      media,
-      committee,
-      registrationCount: stats[0]?.registrationCount || 0,
-      submissionCount: stats[0]?.submissionCount || 0,
-      revenue: stats[0]?.revenue || 0,
+      success: true,
+      data: {
+        ...eventData,
+        tickets,
+        sponsors,
+        speakers,
+        media,
+        committee,
+        registrationCount: stats[0]?.registrationCount || 0,
+        submissionCount: stats[0]?.submissionCount || 0,
+        revenue: stats[0]?.revenue || 0,
+      },
     }
   } catch (error: unknown) {
     if (isH3Error(error)) throw error

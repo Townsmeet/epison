@@ -9,12 +9,7 @@
           placeholder="Search activities..."
           class="w-72"
         />
-        <USelect
-          v-model="selectedType"
-          :options="typeOptions"
-          placeholder="All types"
-          class="w-44"
-        />
+        <USelect v-model="selectedType" :items="typeOptions" placeholder="All types" class="w-44" />
       </div>
       <div class="text-sm text-gray-500 dark:text-gray-400">
         {{ filteredActivities.length }} activities

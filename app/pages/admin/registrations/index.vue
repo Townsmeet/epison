@@ -141,7 +141,7 @@
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            <tr v-for="registration in paginatedRegistrations" :key="registration.id">
+            <tr v-for="registration in registrations" :key="registration.id">
               <td class="px-6 py-4 whitespace-nowrap">
                 <UCheckbox
                   :model-value="selectedRegistrations.includes(registration.id)"
@@ -178,7 +178,7 @@
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-gray-900 dark:text-white">{{ registration.event }}</div>
                 <div class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ formatDate(registration.eventDate) }}
+                  {{ registration.eventDateFormatted }}
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
@@ -190,7 +190,7 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                {{ formatDate(registration.date) }}
+                {{ registration.dateFormatted }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                 ₦{{ registration.amount.toLocaleString() }}
@@ -215,7 +215,7 @@
                 </UDropdownMenu>
               </td>
             </tr>
-            <tr v-if="paginatedRegistrations.length === 0">
+            <tr v-if="registrations.length === 0">
               <td colspan="8" class="px-6 py-12 text-center">
                 <UIcon name="i-heroicons-inbox" class="mx-auto h-12 w-12 text-gray-400" />
                 <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -353,6 +353,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import StatCard from '~/components/admin/StatCard.vue'
+import { debounce } from '~/utils/debounce'
+
 definePageMeta({
   layout: 'admin',
 })
@@ -371,13 +374,13 @@ const selectAll = computed({
       // Only select the currently visible (paginated) registrations
       selectedRegistrations.value = [
         ...selectedRegistrations.value,
-        ...paginatedRegistrations.value
+        ...registrations.value
           .map(reg => reg.id)
           .filter(id => !selectedRegistrations.value.includes(id)),
       ]
     } else {
       // Only deselect the currently visible (paginated) registrations
-      const paginatedIds = new Set(paginatedRegistrations.value.map(reg => reg.id))
+      const paginatedIds = new Set(registrations.value.map(reg => reg.id))
       selectedRegistrations.value = selectedRegistrations.value.filter(id => !paginatedIds.has(id))
     }
   },
@@ -408,13 +411,61 @@ const isDeleteModalOpen = ref(false)
 const isDeleting = ref(false)
 const searchQuery = ref('')
 
+// Bulk actions
+const bulkActions = [
+  [
+    {
+      label: 'Mark as Paid',
+      icon: 'i-heroicons-check-circle',
+      click: () => updateStatus('Paid'),
+    },
+    {
+      label: 'Mark as Pending',
+      icon: 'i-heroicons-clock',
+      click: () => updateStatus('Pending'),
+    },
+    {
+      label: 'Mark as Cancelled',
+      icon: 'i-heroicons-x-circle',
+      click: () => updateStatus('Cancelled'),
+    },
+  ],
+  [
+    {
+      label: 'Send Payment Reminder',
+      icon: 'i-heroicons-envelope',
+      click: () => sendPaymentReminder(),
+    },
+  ],
+]
+
+// API composable
+const { getRegistrations } = useEvents()
+
+// Date formatting utility
+const formatDate = (dateString: string) => {
+  if (!dateString) return 'N/A'
+  try {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })
+  } catch {
+    return 'Invalid Date'
+  }
+}
+
+// Filtered registrations for select all functionality
+const filteredRegistrations = computed(() => registrations.value)
+
 // Pagination
 const pagination = ref({
   currentPage: 1,
   perPage: 10,
   total: 0,
   get from() {
-    return (this.currentPage - 1) * this.perPage + 1
+    return this.total === 0 ? 0 : (this.currentPage - 1) * this.perPage + 1
   },
   get to() {
     return Math.min(this.currentPage * this.perPage, this.total)
@@ -430,243 +481,94 @@ const stats = ref({
   cancelled: 5,
 })
 
-// Sample data - in a real app, this would come from an API
-const registrations = ref([
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    event: 'Annual Conference 2024',
-    eventDate: '2024-11-15',
-    type: 'Member',
-    date: '2023-08-15',
-    amount: 50000,
-    status: 'Paid',
-    paymentMethod: 'Bank Transfer',
-    reference: 'TX123456789',
-  },
-  {
-    id: '2',
-    name: 'Jane Smith',
-    email: 'jane.smith@example.com',
-    event: 'Workshop on Data Analysis',
-    eventDate: '2024-10-15',
-    type: 'Non-Member',
-    date: '2023-08-14',
-    amount: 75000,
-    status: 'Pending',
-    paymentMethod: 'Paystack',
-    reference: 'PS987654321',
-  },
-  {
-    id: '3',
-    name: 'Dr. Michael Brown',
-    email: 'michael.brown@example.com',
-    event: 'Public Health Forum',
-    eventDate: '2024-09-20',
-    type: 'Student',
-    date: '2023-08-13',
-    amount: 15000,
-    status: 'Paid',
-    paymentMethod: 'Bank Transfer',
-    reference: 'TX987654321',
-  },
-  {
-    id: '4',
-    name: 'Dr. Sarah Johnson',
-    email: 'sarah.j@example.com',
-    event: 'Annual Conference 2024',
-    eventDate: '2024-11-15',
-    type: 'Member',
-    date: '2023-08-12',
-    amount: 50000,
-    status: 'Paid',
-    paymentMethod: 'Paystack',
-    reference: 'PS123456789',
-  },
-  {
-    id: '5',
-    name: 'Dr. David Wilson',
-    email: 'david.w@example.com',
-    event: 'Workshop on Data Analysis',
-    eventDate: '2024-10-15',
-    type: 'Non-Member',
-    date: '2023-08-11',
-    amount: 75000,
-    status: 'Pending',
-    paymentMethod: 'Bank Transfer',
-    reference: 'TX456789123',
-  },
-  {
-    id: '6',
-    name: 'Dr. Emily Davis',
-    email: 'emily.d@example.com',
-    event: 'Public Health Forum',
-    eventDate: '2024-09-20',
-    type: 'Speaker',
-    date: '2023-08-10',
-    amount: 0,
-    status: 'Paid',
-    paymentMethod: 'Waived',
-    reference: 'N/A',
-  },
-  {
-    id: '7',
-    name: 'Dr. Robert Thompson',
-    email: 'robert.t@example.com',
-    event: 'Annual Conference 2024',
-    eventDate: '2024-11-15',
-    type: 'Sponsor',
-    date: '2023-08-09',
-    amount: 150000,
-    status: 'Paid',
-    paymentMethod: 'Bank Transfer',
-    reference: 'TX789123456',
-  },
-  {
-    id: '8',
-    name: 'Dr. Jennifer Lee',
-    email: 'jennifer.l@example.com',
-    event: 'Workshop on Data Analysis',
-    eventDate: '2024-10-15',
-    type: 'Member',
-    date: '2023-08-08',
-    amount: 50000,
-    status: 'Cancelled',
-    paymentMethod: 'Paystack',
-    reference: 'PS456789123',
-  },
-  {
-    id: '9',
-    name: 'Dr. James Wilson',
-    email: 'james.w@example.com',
-    event: 'Public Health Forum',
-    eventDate: '2024-09-20',
-    type: 'Non-Member',
-    date: '2023-08-07',
-    amount: 75000,
-    status: 'Paid',
-    paymentMethod: 'Bank Transfer',
-    reference: 'TX321654987',
-  },
-  {
-    id: '10',
-    name: 'Dr. Patricia Brown',
-    email: 'patricia.b@example.com',
-    event: 'Annual Conference 2024',
-    eventDate: '2024-11-15',
-    type: 'Student',
-    date: '2023-08-06',
-    amount: 15000,
-    status: 'Paid',
-    paymentMethod: 'Paystack',
-    reference: 'PS789123456',
-  },
-])
-
-// Computed
-const filteredRegistrations = computed(() => {
-  let result = [...registrations.value]
-
-  // Text search
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    result = result.filter(
-      reg =>
-        reg.name.toLowerCase().includes(query) ||
-        reg.email.toLowerCase().includes(query) ||
-        reg.event.toLowerCase().includes(query) ||
-        reg.reference.toLowerCase().includes(query)
-    )
-  }
-
-  // Status filter
-  const statusVal = selectedStatusItem.value?.value ?? 'all'
-  if (statusVal !== 'all') {
-    result = result.filter(reg => reg.status === statusVal)
-  }
-
-  // Type filter
-  const typeVal = selectedTypeItem.value?.value ?? 'all'
-  if (typeVal !== 'all') {
-    result = result.filter(reg => reg.type === typeVal)
-  }
-
-  // Event filter
-  if (eventFilter.value) {
-    const q = eventFilter.value.toLowerCase()
-    result = result.filter(reg => reg.event.toLowerCase().includes(q))
-  }
-
-  // Date range filter (registration date)
-  if (dateFrom.value) {
-    const from = new Date(dateFrom.value)
-    result = result.filter(reg => new Date(reg.date) >= from)
-  }
-  if (dateTo.value) {
-    const to = new Date(dateTo.value)
-    // Include the whole end day
-    to.setHours(23, 59, 59, 999)
-    result = result.filter(reg => new Date(reg.date) <= to)
-  }
-
-  return result
-})
-
-// Handle pagination
-const paginatedRegistrations = computed(() => {
-  const start = (pagination.value.currentPage - 1) * pagination.value.perPage
-  const end = start + pagination.value.perPage
-  return filteredRegistrations.value.slice(start, end)
-})
-
-// Update total count when filtered results change
-watch(filteredRegistrations, newVal => {
-  pagination.value.total = newVal.length
-})
-
-// Bulk actions
-const bulkActions = [
-  [
-    {
-      label: 'Mark as Paid',
-      icon: 'i-heroicons-check-circle',
-      click: () => updateStatus('Paid'),
-    },
-  ],
-  [
-    {
-      label: 'Mark as Pending',
-      icon: 'i-heroicons-clock',
-      click: () => updateStatus('Pending'),
-    },
-  ],
-  [
-    {
-      label: 'Mark as Cancelled',
-      icon: 'i-heroicons-x-circle',
-      click: () => updateStatus('Cancelled'),
-    },
-  ],
-  [
-    {
-      label: 'Send Payment Reminder',
-      icon: 'i-heroicons-envelope',
-      click: sendPaymentReminder,
-    },
-  ],
-]
-
-// Methods
-function formatDate(dateString: string): string {
-  if (!dateString) return ''
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }
-  return new Date(dateString).toLocaleDateString('en-US', options)
+// API integration
+type RegistrationListItem = {
+  id: string
+  attendeeName: string
+  attendeeEmail: string
+  eventId: string
+  category?: string
+  registeredAt: string
+  totalAmount: number
+  paymentStatus: string
+  reference?: string
 }
+
+const regQuery = computed(() => ({
+  page: pagination.value.currentPage,
+  limit: pagination.value.perPage,
+  q: searchQuery.value || undefined,
+  category:
+    (selectedTypeItem.value?.value ?? 'all') !== 'all' ? selectedTypeItem.value?.value : undefined,
+  paymentStatus:
+    (selectedStatusItem.value?.value ?? 'all') !== 'all'
+      ? selectedStatusItem.value?.value
+      : undefined,
+  sort: '-registeredAt',
+}))
+
+const {
+  data: registrationsResponse,
+  pending: _registrationsLoading,
+  error: _registrationsError,
+  refresh: refreshData,
+} = getRegistrations(regQuery.value)
+
+// Update pagination when data changes
+watch(
+  registrationsResponse,
+  newResponse => {
+    if (newResponse?.pagination) {
+      pagination.value.total = newResponse.pagination.total
+      pagination.value.currentPage = newResponse.pagination.page
+    }
+  },
+  { immediate: true }
+)
+
+// Watch for filter changes and refresh data (debounced)
+const refreshDebounced = debounce(() => {
+  if (refreshData) {
+    refreshData()
+  }
+}, 300)
+
+watch([searchQuery, selectedStatusItem, selectedTypeItem, eventFilter, dateFrom, dateTo], () => {
+  refreshDebounced()
+})
+
+// Watch pagination changes
+watch(
+  () => pagination.value.currentPage,
+  () => {
+    if (refreshData) {
+      refreshData()
+    }
+  }
+)
+
+// Raw server list
+const registrationsRaw = computed<RegistrationListItem[]>(
+  () => (registrationsResponse.value?.data as RegistrationListItem[]) ?? []
+)
+
+// Map server fields to UI fields consumed by the table template
+const registrations = computed(() =>
+  registrationsRaw.value.map((r: RegistrationListItem) => ({
+    id: r.id,
+    name: r.attendeeName,
+    email: r.attendeeEmail,
+    event: (r as RegistrationListItem & { eventTitle?: string }).eventTitle || 'Unknown Event',
+    eventDateFormatted: formatDate(
+      (r as RegistrationListItem & { eventDate?: string }).eventDate || ''
+    ),
+    type: r.category || 'Member',
+    status: r.paymentStatus,
+    amount: r.totalAmount / 100, // Convert from kobo to naira
+    dateFormatted: formatDate(r.registeredAt),
+    reference: r.reference || '',
+  }))
+)
 
 function getStatusBadgeClass(status: string): string {
   const statusClasses: Record<string, string> = {
@@ -775,15 +677,15 @@ async function deleteRegistrations() {
     await new Promise(resolve => setTimeout(resolve, 1000))
 
     // In a real app, this would delete the registrations from the server
-    registrations.value = registrations.value.filter(
-      reg => !selectedRegistrations.value.includes(reg.id)
-    )
 
     // Clear selection
     selectedRegistrations.value = []
 
     // Close modal
     isDeleteModalOpen.value = false
+    if (refreshData) {
+      await refreshData()
+    }
 
     // Show success message
     useToast().add({

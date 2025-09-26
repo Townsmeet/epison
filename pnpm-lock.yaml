@@ -68,6 +68,9 @@ importers:
       '@iconify-json/heroicons':
         specifier: ^1.2.3
         version: 1.2.3
+      '@iconify-json/lucide':
+        specifier: ^1.2.68
+        version: 1.2.68
       '@pinia-plugin-persistedstate/nuxt':
         specifier: ^1.2.1
         version: 1.2.1(@pinia/nuxt@0.11.2(magicast@0.3.5)(pinia@3.0.3(typescript@5.9.2)(vue@3.5.18(typescript@5.9.2))))(magicast@0.3.5)(pinia@3.0.3(typescript@5.9.2)(vue@3.5.18(typescript@5.9.2)))
@@ -1553,6 +1556,12 @@ packages:
     resolution:
       {
         integrity: sha512-n+vmCEgTesRsOpp5AB5ILB6srsgsYK+bieoQBNlafvoEhjVXLq8nIGN4B0v/s4DUfa0dOrjwE/cKJgIKdJXOEg==,
+      }
+
+  '@iconify-json/lucide@1.2.68':
+    resolution:
+      {
+        integrity: sha512-lR5xNJdn2CT0iR7lM25G4SewBO4G2hbr3fTWOc3AE9BspflEcneh02E3l9TBaCU/JOHozTJevWLrxBGypD7Tng==,
       }
 
   '@iconify/collections@1.0.583':
@@ -11674,6 +11683,10 @@ snapshots:
   '@humanwhocodes/retry@0.4.3': {}
 
   '@iconify-json/heroicons@1.2.3':
+    dependencies:
+      '@iconify/types': 2.0.0
+
+  '@iconify-json/lucide@1.2.68':
     dependencies:
       '@iconify/types': 2.0.0
 
