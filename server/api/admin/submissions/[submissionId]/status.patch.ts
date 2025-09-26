@@ -4,6 +4,7 @@ import { db } from '../../../../utils/drizzle'
 import { abstractSubmission } from '../../../../db/schema'
 import { validateBody } from '../../../../validators'
 import { z } from 'zod'
+import { addActivity } from '../../../../utils/activity'
 
 const updateSubmissionStatusSchema = z.object({
   status: z.enum(['pending', 'under_review', 'accepted', 'rejected', 'revision_required']),
@@ -50,6 +51,16 @@ export default defineEventHandler(async eventHandler => {
         reviewerComments: body.reviewerComments,
       })
       .where(eq(abstractSubmission.id, submissionId))
+
+    // Activity log
+    await addActivity({
+      type: 'Event',
+      title: 'Submission status updated',
+      description: `Submission ${submissionId} → ${body.status}`,
+      entityType: 'event',
+      entityId: updatedSubmission[0].eventId,
+      metadata: { previous: existingSubmission[0].status, next: body.status },
+    })
 
     // Return updated submission
     const updatedSubmission = await db

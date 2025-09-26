@@ -4,6 +4,7 @@ import { db } from '../../../../utils/drizzle'
 import { eventRegistration } from '../../../../db/schema'
 import { validateBody } from '../../../../validators'
 import { z } from 'zod'
+import { addActivity } from '../../../../utils/activity'
 
 const updateRegistrationStatusSchema = z.object({
   paymentStatus: z.enum(['Pending', 'Paid', 'Cancelled', 'Refunded']),
@@ -61,6 +62,16 @@ export default defineEventHandler(async eventHandler => {
       .update(eventRegistration)
       .set(updateData)
       .where(eq(eventRegistration.id, registrationId))
+
+    // Activity log
+    await addActivity({
+      type: 'Payment',
+      title: 'Registration payment status updated',
+      description: `${existingRegistration[0].attendeeName} → ${body.paymentStatus}`,
+      entityType: 'registration',
+      entityId: registrationId,
+      metadata: { previous: existingRegistration[0].paymentStatus, next: body.paymentStatus },
+    })
 
     // Return updated registration
     const updatedRegistration = await db

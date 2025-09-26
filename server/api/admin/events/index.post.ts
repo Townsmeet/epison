@@ -6,10 +6,11 @@ import { event } from '../../../db/schema'
 import { requireAuthUser } from '../../../utils/auth-helpers'
 import { createEventSchema } from '../../../validators/event'
 import { validateBody } from '../../../validators'
+import { addActivity } from '../../../utils/activity'
 
 export default defineEventHandler(async eventHandler => {
   // Auth check
-  requireAuthUser(eventHandler)
+  const auth = requireAuthUser(eventHandler)
 
   const body = await validateBody(eventHandler, createEventSchema, 'Invalid event data')
 
@@ -51,6 +52,17 @@ export default defineEventHandler(async eventHandler => {
     }
 
     await db.insert(event).values(eventData)
+
+    // Activity log
+    await addActivity({
+      type: 'Event',
+      title: 'New event created',
+      description: `${eventData.title} scheduled for ${eventData.startDate}`,
+      actorId: auth.userId,
+      entityType: 'event',
+      entityId: eventId,
+      metadata: { status: eventData.status, location: eventData.location },
+    })
 
     // Return created event
     const createdEvent = await db.select().from(event).where(eq(event.id, eventId)).limit(1)

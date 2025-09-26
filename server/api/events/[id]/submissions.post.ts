@@ -4,6 +4,7 @@ import { db } from '../../../utils/drizzle'
 import { isH3Error } from '../../../utils/errors'
 import { event, abstractSubmission } from '../../../db/schema'
 import { createAbstractSubmissionSchema } from '../../../validators/event'
+import { addActivity } from '../../../utils/activity'
 import { validateBody } from '../../../validators'
 
 export default defineEventHandler(async eventHandler => {
@@ -71,6 +72,16 @@ export default defineEventHandler(async eventHandler => {
     }
 
     await db.insert(abstractSubmission).values(submissionData)
+
+    // Activity log
+    await addActivity({
+      type: 'Event',
+      title: 'Abstract submitted',
+      description: `${body.correspondingAuthor.name} submitted an abstract to ${eventData.title}`,
+      entityType: 'event',
+      entityId: eventId,
+      metadata: { submissionId, category: body.category },
+    })
 
     return {
       id: submissionId,

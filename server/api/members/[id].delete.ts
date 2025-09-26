@@ -6,6 +6,7 @@ import { member, memberExpertise, memberPublication, memberHistory } from '../..
 import type { ApiResponse } from '../../../types/api'
 import { validateParams } from '../../validators'
 import { memberIdParamSchema } from '../../validators/member'
+import { addActivity } from '../../utils/activity'
 
 export default defineEventHandler(async (event: H3Event): Promise<ApiResponse> => {
   const params = validateParams(event, memberIdParamSchema, 'Invalid member ID')
@@ -41,6 +42,15 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse> =
 
     // Finally, delete the member
     await db.delete(member).where(eq(member.id, memberId))
+
+    // Activity log
+    await addActivity({
+      type: 'Membership',
+      title: 'Member deleted',
+      description: `${memberData.nameFirst} ${memberData.nameFamily} deleted`,
+      entityType: 'member',
+      entityId: memberId,
+    })
 
     return {
       success: true,

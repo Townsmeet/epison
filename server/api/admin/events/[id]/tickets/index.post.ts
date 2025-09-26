@@ -4,6 +4,7 @@ import { db } from '../../../../../utils/drizzle'
 import { isH3Error } from '../../../../../utils/errors'
 import { event, eventTicket } from '../../../../../db/schema'
 import { createEventTicketSchema } from '../../../../../validators/event'
+import { addActivity } from '../../../../../utils/activity'
 import { validateBody } from '../../../../../validators'
 
 export default defineEventHandler(async eventHandler => {
@@ -53,6 +54,16 @@ export default defineEventHandler(async eventHandler => {
     }
 
     await db.insert(eventTicket).values(ticketData)
+
+    // Activity log
+    await addActivity({
+      type: 'Event',
+      title: 'Ticket created',
+      description: `${body.name} added to event`,
+      entityType: 'event',
+      entityId: eventId,
+      metadata: { ticketId, price: body.price, quantity: body.quantity },
+    })
 
     // Return created ticket
     const createdTicket = await db

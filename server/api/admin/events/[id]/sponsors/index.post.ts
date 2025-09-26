@@ -4,6 +4,7 @@ import { db } from '../../../../../utils/drizzle'
 import { isH3Error } from '../../../../../utils/errors'
 import { event, eventSponsor } from '../../../../../db/schema'
 import { createEventSponsorSchema } from '../../../../../validators/event'
+import { addActivity } from '../../../../../utils/activity'
 import { validateBody } from '../../../../../validators'
 
 export default defineEventHandler(async eventHandler => {
@@ -49,6 +50,16 @@ export default defineEventHandler(async eventHandler => {
     }
 
     await db.insert(eventSponsor).values(sponsorData)
+
+    // Activity log
+    await addActivity({
+      type: 'Event',
+      title: 'Sponsor added',
+      description: `${body.name} added (${body.tier || 'sponsor'})`,
+      entityType: 'event',
+      entityId: eventId,
+      metadata: { sponsorId, name: body.name, tier: body.tier },
+    })
 
     // Return created sponsor
     const createdSponsor = await db

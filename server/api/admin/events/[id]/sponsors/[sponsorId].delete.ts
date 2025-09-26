@@ -4,6 +4,7 @@ import { db } from '../../../../../utils/drizzle'
 import { isH3Error } from '../../../../../utils/errors'
 import { eventSponsor } from '../../../../../db/schema'
 import { requireAuthUser } from '../../../../../utils/auth-helpers'
+import { addActivity } from '../../../../../utils/activity'
 
 export default defineEventHandler(async eventHandler => {
   // Auth check
@@ -45,6 +46,16 @@ export default defineEventHandler(async eventHandler => {
     await db
       .delete(eventSponsor)
       .where(and(eq(eventSponsor.id, sponsorId), eq(eventSponsor.eventId, eventId)))
+
+    // Activity log
+    await addActivity({
+      type: 'Event',
+      title: 'Sponsor deleted',
+      description: `Sponsor removed from event`,
+      entityType: 'event',
+      entityId: eventId,
+      metadata: { sponsorId },
+    })
 
     return { success: true, message: 'Sponsor deleted successfully' }
   } catch (error: unknown) {

@@ -11,9 +11,7 @@
         />
         <USelect v-model="selectedType" :items="typeOptions" placeholder="All types" class="w-44" />
       </div>
-      <div class="text-sm text-gray-500 dark:text-gray-400">
-        {{ filteredActivities.length }} activities
-      </div>
+      <div class="text-sm text-gray-500 dark:text-gray-400">{{ totalCount }} activities</div>
     </div>
 
     <!-- Activities List -->
@@ -25,7 +23,21 @@
       </div>
       <div class="divide-y divide-gray-200 dark:divide-gray-700">
         <div
+          v-if="activitiesLoading"
+          class="px-6 py-6 text-center text-gray-600 dark:text-gray-300"
+        >
+          <UIcon name="i-heroicons-arrow-path" class="h-5 w-5 inline-block animate-spin mr-2" />
+          Loading activities...
+        </div>
+        <div
+          v-else-if="pagedActivities.length === 0"
+          class="px-6 py-6 text-center text-gray-600 dark:text-gray-300"
+        >
+          No activities found
+        </div>
+        <div
           v-for="(activity, idx) in pagedActivities"
+          v-else
           :key="`${activity.id}-${idx}`"
           class="px-6 py-4"
         >
@@ -80,6 +92,8 @@
 </template>
 
 <script setup lang="ts">
+import type { ActivityLogRow } from '../../../composables/useActivities'
+
 definePageMeta({
   layout: 'admin',
 })
@@ -89,76 +103,54 @@ const search = ref('')
 const selectedType = ref<'All' | 'Registration' | 'Payment' | 'Event' | 'Membership'>('All')
 const typeOptions = ['All', 'Registration', 'Payment', 'Event', 'Membership']
 
-// Mock activities (can be replaced by API)
-const activities = ref([
-  {
-    id: 1,
-    title: 'New registration',
-    description: 'John Doe registered for Annual Conference 2024',
-    timestamp: new Date(Date.now() - 1000 * 60 * 5),
-    icon: 'i-heroicons-user-plus',
-    iconColor: 'text-green-500',
-    type: 'Registration',
-  },
-  {
-    id: 2,
-    title: 'Payment received',
-    description: 'Payment of ₦50,000 from Jane Smith',
-    timestamp: new Date(Date.now() - 1000 * 60 * 30),
-    icon: 'i-heroicons-banknotes',
-    iconColor: 'text-blue-500',
-    type: 'Payment',
-  },
-  {
-    id: 3,
-    title: 'New event created',
-    description: 'Workshop on Data Analysis scheduled for October 15',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-    icon: 'i-heroicons-calendar',
-    iconColor: 'text-purple-500',
-    type: 'Event',
-  },
-  {
-    id: 4,
-    title: 'New member',
-    description: 'Dr. Sarah Johnson joined EPISON',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5),
-    icon: 'i-heroicons-user-plus',
-    iconColor: 'text-green-500',
-    type: 'Membership',
-  },
-  {
-    id: 5,
-    title: 'Abstract submitted',
-    description: 'New abstract submitted by Dr. Michael Brown',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
-    icon: 'i-heroicons-document-text',
-    iconColor: 'text-yellow-500',
-    type: 'Event',
-  },
-])
-
-const filteredActivities = computed(() => {
-  const q = search.value.trim().toLowerCase()
-  return activities.value.filter(a => {
-    const matchesQuery =
-      !q || a.title.toLowerCase().includes(q) || a.description.toLowerCase().includes(q)
-    const matchesType = selectedType.value === 'All' || a.type === selectedType.value
-    return matchesQuery && matchesType
-  })
-})
-
-// Pagination
+// Real activities via API
 const page = ref(1)
 const pageSize = 10
-const totalPages = computed(() => Math.ceil(filteredActivities.value.length / pageSize))
-watch([filteredActivities], () => {
-  page.value = 1
+
+function defaultIcon(type?: string) {
+  if (type === 'Registration') return 'i-heroicons-user-plus'
+  if (type === 'Payment') return 'i-heroicons-banknotes'
+  if (type === 'Event') return 'i-heroicons-calendar'
+  if (type === 'Membership') return 'i-heroicons-user-plus'
+  return 'i-heroicons-information-circle'
+}
+
+function defaultIconColor(type?: string) {
+  if (type === 'Registration' || type === 'Membership') return 'text-green-500'
+  if (type === 'Payment') return 'text-blue-500'
+  if (type === 'Event') return 'text-purple-500'
+  return 'text-gray-400'
+}
+
+const query = computed(() => ({
+  q: search.value,
+  type: selectedType.value,
+  page: page.value,
+  limit: pageSize,
+  sort: '-createdAt',
+}))
+const { getActivities } = useActivities()
+const { data: activitiesResponse, pending: activitiesLoading, refresh } = getActivities(query.value)
+
+watch([search, selectedType, page], async () => {
+  if (page.value < 1) page.value = 1
+  await refresh()
 })
 
+const totalPages = computed(() => activitiesResponse.value?.pagination?.totalPages || 0)
+const totalCount = computed(() => activitiesResponse.value?.pagination?.total || 0)
+
 const pagedActivities = computed(() => {
-  const start = (page.value - 1) * pageSize
-  return filteredActivities.value.slice(start, start + pageSize)
+  const rows = (activitiesResponse.value?.data as ActivityLogRow[] | undefined) ?? []
+  return rows.map(a => ({
+    id: a.id,
+    title: a.title,
+    description: a.description ?? '',
+    timestamp: new Date(a.createdAt),
+    icon: a.icon || defaultIcon(a.type),
+    iconColor: a.iconColor || defaultIconColor(a.type),
+    type: a.type,
+  }))
 })
 
 function formatTimeAgo(date: Date): string {

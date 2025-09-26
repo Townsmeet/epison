@@ -4,6 +4,7 @@ import { db } from '../../../utils/drizzle'
 import { isH3Error } from '../../../utils/errors'
 import { event, eventTicket, eventRegistration } from '../../../db/schema'
 import { createEventRegistrationSchema } from '../../../validators/event'
+import { addActivity } from '../../../utils/activity'
 import { validateBody } from '../../../validators'
 
 export default defineEventHandler(async eventHandler => {
@@ -125,6 +126,16 @@ export default defineEventHandler(async eventHandler => {
         })
         .where(eq(eventRegistration.id, registrationId))
     }
+
+    // Activity log: Registration created
+    await addActivity({
+      type: 'Registration',
+      title: 'New registration',
+      description: `${body.attendeeName} registered for ${eventData.title}`,
+      entityType: 'registration',
+      entityId: registrationId,
+      metadata: { eventId, attendeeEmail: body.attendeeEmail, totalAmount },
+    })
 
     return {
       id: registrationId,

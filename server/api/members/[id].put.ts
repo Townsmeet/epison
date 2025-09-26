@@ -7,6 +7,7 @@ import type { ApiResponse } from '../../../types/api'
 import type { UpdateMemberRequest, MemberDetail } from '../../../types/members'
 import { validateBody } from '../../validators'
 import { updateMemberSchema } from '../../validators/member'
+import { addActivity } from '../../utils/activity'
 
 export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<MemberDetail>> => {
   try {
@@ -225,6 +226,16 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
       createdAt: memberData.createdAt.toISOString(),
       updatedAt: memberData.updatedAt.toISOString(),
     }
+
+    // Activity log
+    await addActivity({
+      type: 'Membership',
+      title: 'Member updated',
+      description: `${memberData.nameFirst} ${memberData.nameFamily} profile updated`,
+      entityType: 'member',
+      entityId: memberId,
+      metadata: { updatedFields: Object.keys(updateData) },
+    })
 
     return {
       success: true,

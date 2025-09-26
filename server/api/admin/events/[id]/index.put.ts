@@ -4,12 +4,13 @@ import { db } from '../../../../utils/drizzle'
 import { isH3Error } from '../../../../utils/errors'
 import { event } from '../../../../db/schema'
 import { updateEventSchema } from '../../../../validators/event'
+import { addActivity } from '../../../../utils/activity'
 import { requireAuthUser } from '../../../../utils/auth-helpers'
 import { validateBody } from '../../../../validators'
 
 export default defineEventHandler(async eventHandler => {
-  // Auth check
-  requireAuthUser(eventHandler)
+  const auth = requireAuthUser(eventHandler)
+  // Auth check done above
 
   const eventId = getRouterParam(eventHandler, 'id')
   if (!eventId) {
@@ -39,6 +40,16 @@ export default defineEventHandler(async eventHandler => {
     }
 
     await db.update(event).set(updateData).where(eq(event.id, eventId))
+
+    await addActivity({
+      type: 'Event',
+      title: 'Event updated',
+      description: `${existingEvent[0].title} updated`,
+      actorId: auth.userId,
+      entityType: 'event',
+      entityId: eventId,
+      metadata: updateData,
+    })
 
     // Return updated event
     const updatedEvent = await db.select().from(event).where(eq(event.id, eventId)).limit(1)

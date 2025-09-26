@@ -7,6 +7,7 @@ import type { ApiResponse } from '../../../../types/api'
 import type { MemberActionRequest, MemberDetail } from '../../../../types/members'
 import { validateBody } from '../../../validators'
 import { memberActionSchema } from '../../../validators/member'
+import { addActivity } from '../../../utils/activity'
 
 export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<MemberDetail>> => {
   try {
@@ -125,6 +126,16 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
       createdAt: updatedMemberData.createdAt.toISOString(),
       updatedAt: updatedMemberData.updatedAt.toISOString(),
     }
+
+    // Activity log
+    await addActivity({
+      type: 'Membership',
+      title: 'Member activated',
+      description: `${memberData.nameFirst} ${memberData.nameFamily} activated`,
+      entityType: 'member',
+      entityId: memberId,
+      metadata: { email: updatedMemberData.email },
+    })
 
     return {
       success: true,

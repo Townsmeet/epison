@@ -4,6 +4,7 @@ import { db } from '../../../../../utils/drizzle'
 import { isH3Error } from '../../../../../utils/errors'
 import { eventMedia } from '../../../../../db/schema'
 import { requireAuthUser } from '../../../../../utils/auth-helpers'
+import { addActivity } from '../../../../../utils/activity'
 
 export default defineEventHandler(async eventHandler => {
   // Auth check
@@ -45,6 +46,16 @@ export default defineEventHandler(async eventHandler => {
     await db
       .delete(eventMedia)
       .where(and(eq(eventMedia.id, mediaId), eq(eventMedia.eventId, eventId)))
+
+    // Activity log
+    await addActivity({
+      type: 'Event',
+      title: 'Event media deleted',
+      description: `Media removed from event`,
+      entityType: 'event',
+      entityId: eventId,
+      metadata: { mediaId },
+    })
 
     return { success: true, message: 'Media deleted successfully' }
   } catch (error: unknown) {

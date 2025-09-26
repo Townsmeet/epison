@@ -298,3 +298,28 @@ export const abstractSubmission = sqliteTable('abstract_submission', {
   status: text('status').default('pending').notNull(), // pending | under_review | accepted | rejected | revision_required
   reviewerComments: text('reviewer_comments'),
 })
+
+// ===== Activities (Audit Log) =====
+// Lightweight activity log that powers the Admin dashboard's Recent Activity
+// and the /admin/activities page. These are created automatically from user actions.
+export const activityLog = sqliteTable('activity_log', {
+  id: text('id').primaryKey(),
+  // High-level category shown in UI filters
+  // e.g. 'Registration' | 'Payment' | 'Event' | 'Membership'
+  type: text('type').notNull(),
+  // Title and description rendered in the cards/list
+  title: text('title').notNull(),
+  description: text('description'),
+  // Presentation details used by the UI
+  icon: text('icon'), // e.g. i-heroicons-user-plus
+  iconColor: text('icon_color'), // e.g. text-green-500
+  // Who performed the action (optional for system actions)
+  actorId: text('actor_id').references(() => user.id, { onDelete: 'set null' }),
+  // Optional linkage to a domain entity for deep links
+  entityType: text('entity_type'), // e.g. 'event' | 'member' | 'registration' | 'payment'
+  entityId: text('entity_id'),
+  // Arbitrary JSON serialized as text for extensibility
+  metadata: text('metadata'),
+  // Timestamp displayed in UI (time ago)
+  createdAt: integer('created_at', { mode: 'timestamp' }).defaultNow().notNull(),
+})

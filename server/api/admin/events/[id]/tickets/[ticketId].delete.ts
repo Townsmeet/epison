@@ -4,6 +4,7 @@ import { db } from '../../../../../utils/drizzle'
 import { isH3Error } from '../../../../../utils/errors'
 import { eventTicket } from '../../../../../db/schema'
 import { requireAuthUser } from '../../../../../utils/auth-helpers'
+import { addActivity } from '../../../../../utils/activity'
 
 export default defineEventHandler(async eventHandler => {
   // Auth check
@@ -45,6 +46,16 @@ export default defineEventHandler(async eventHandler => {
     await db
       .delete(eventTicket)
       .where(and(eq(eventTicket.id, ticketId), eq(eventTicket.eventId, eventId)))
+
+    // Activity log
+    await addActivity({
+      type: 'Event',
+      title: 'Ticket deleted',
+      description: `Ticket removed from event`,
+      entityType: 'event',
+      entityId: eventId,
+      metadata: { ticketId },
+    })
 
     return { success: true, message: 'Ticket deleted successfully' }
   } catch (error: unknown) {

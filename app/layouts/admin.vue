@@ -158,10 +158,6 @@ const navigation = [
 
 const userMenuItems = [
   [
-    { label: 'Profile', icon: 'i-heroicons-user', to: '/admin/profile' },
-    { label: 'Settings', icon: 'i-heroicons-cog-6-tooth', to: '/admin/settings' },
-  ],
-  [
     {
       label: 'Sign out',
       icon: 'i-heroicons-arrow-right-on-rectangle',

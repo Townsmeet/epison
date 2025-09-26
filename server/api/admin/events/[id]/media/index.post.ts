@@ -5,6 +5,7 @@ import { isH3Error } from '../../../../../utils/errors'
 import { event, eventMedia } from '../../../../../db/schema'
 import { requireAuthUser } from '../../../../../utils/auth-helpers'
 import { createEventMediaSchema } from '../../../../../validators/event'
+import { addActivity } from '../../../../../utils/activity'
 import { validateBody } from '../../../../../validators'
 
 export default defineEventHandler(async eventHandler => {
@@ -50,6 +51,16 @@ export default defineEventHandler(async eventHandler => {
     }
 
     await db.insert(eventMedia).values(mediaData)
+
+    // Activity log
+    await addActivity({
+      type: 'Event',
+      title: 'Event media added',
+      description: `Media added to event`,
+      entityType: 'event',
+      entityId: eventId,
+      metadata: { mediaId, type: body.type },
+    })
 
     // Return created media
     const createdMedia = await db

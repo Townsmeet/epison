@@ -54,7 +54,25 @@
             </UButton>
           </div>
           <div class="divide-y divide-gray-200 dark:divide-gray-700">
-            <div v-for="(activity, index) in recentActivities" :key="index" class="px-6 py-4">
+            <div
+              v-if="activitiesLoading"
+              class="px-6 py-6 text-center text-gray-600 dark:text-gray-300"
+            >
+              <UIcon name="i-heroicons-arrow-path" class="h-5 w-5 inline-block animate-spin mr-2" />
+              Loading recent activity...
+            </div>
+            <div
+              v-else-if="recentActivities.length === 0"
+              class="px-6 py-6 text-center text-gray-600 dark:text-gray-300"
+            >
+              No recent activity
+            </div>
+            <div
+              v-for="(activity, index) in recentActivities"
+              v-else
+              :key="index"
+              class="px-6 py-4"
+            >
               <div class="flex items-center">
                 <div class="flex-shrink-0">
                   <UIcon :name="activity.icon" class="h-6 w-6" :class="activity.iconColor" />
@@ -274,6 +292,9 @@
 </template>
 
 <script setup lang="ts">
+// Recent activities (from API)
+import type { ActivityLogRow } from '../../composables/useActivities'
+
 definePageMeta({
   layout: 'admin',
 })
@@ -289,50 +310,39 @@ const stats = {
   activeMembers: 856,
   membersChange: 4.3,
 }
+const { getActivities } = useActivities()
+const { data: activitiesResponse, pending: activitiesLoading } = getActivities({
+  limit: 5,
+  sort: '-createdAt',
+})
 
-// Recent activities
-const recentActivities = [
-  {
-    id: 1,
-    title: 'New registration',
-    description: 'John Doe registered for Annual Conference 2024',
-    timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
-    icon: 'i-heroicons-user-plus',
-    iconColor: 'text-green-500',
-  },
-  {
-    id: 2,
-    title: 'Payment received',
-    description: 'Payment of ₦50,000 from Jane Smith',
-    timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-    icon: 'i-heroicons-banknotes',
-    iconColor: 'text-blue-500',
-  },
-  {
-    id: 3,
-    title: 'New event created',
-    description: 'Workshop on Data Analysis scheduled for October 15',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    icon: 'i-heroicons-calendar',
-    iconColor: 'text-purple-500',
-  },
-  {
-    id: 4,
-    title: 'New member',
-    description: 'Dr. Sarah Johnson joined EPISON',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
-    icon: 'i-heroicons-user-plus',
-    iconColor: 'text-green-500',
-  },
-  {
-    id: 5,
-    title: 'Abstract submitted',
-    description: 'New abstract submitted by Dr. Michael Brown',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-    icon: 'i-heroicons-document-text',
-    iconColor: 'text-yellow-500',
-  },
-]
+function defaultIcon(type?: string) {
+  if (type === 'Registration') return 'i-heroicons-user-plus'
+  if (type === 'Payment') return 'i-heroicons-banknotes'
+  if (type === 'Event') return 'i-heroicons-calendar'
+  if (type === 'Membership') return 'i-heroicons-user-plus'
+  return 'i-heroicons-information-circle'
+}
+
+function defaultIconColor(type?: string) {
+  if (type === 'Registration' || type === 'Membership') return 'text-green-500'
+  if (type === 'Payment') return 'text-blue-500'
+  if (type === 'Event') return 'text-purple-500'
+  return 'text-gray-400'
+}
+
+const recentActivities = computed(() => {
+  const rows = (activitiesResponse.value?.data as ActivityLogRow[] | undefined) ?? []
+  return rows.map(a => ({
+    id: a.id,
+    title: a.title,
+    description: a.description ?? '',
+    timestamp: new Date(a.createdAt),
+    icon: a.icon || defaultIcon(a.type),
+    iconColor: a.iconColor || defaultIconColor(a.type),
+    type: a.type,
+  }))
+})
 
 // Upcoming events via API
 const { getEvents } = useEvents()

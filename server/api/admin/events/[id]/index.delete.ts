@@ -3,6 +3,7 @@ import { getRouterParam, createError } from 'h3'
 import { db } from '../../../../utils/drizzle'
 import { isH3Error } from '../../../../utils/errors'
 import { event } from '../../../../db/schema'
+import { addActivity } from '../../../../utils/activity'
 
 export default defineEventHandler(async eventHandler => {
   // TODO: Add authentication check
@@ -28,6 +29,16 @@ export default defineEventHandler(async eventHandler => {
 
     // Delete event (cascade will handle related records)
     await db.delete(event).where(eq(event.id, eventId))
+
+    // Activity log
+    await addActivity({
+      type: 'Event',
+      title: 'Event deleted',
+      description: `${existingEvent[0].title} was deleted`,
+      entityType: 'event',
+      entityId: eventId,
+      metadata: { title: existingEvent[0].title },
+    })
 
     return {
       success: true,
