@@ -242,6 +242,90 @@
       </div>
     </section>
 
+    <!-- Board of Trustees -->
+    <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50 relative overflow-hidden">
+      <!-- Subtle background pattern -->
+      <div class="absolute inset-0 opacity-5">
+        <div
+          class="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-orange-500 to-red-500 rounded-full mix-blend-multiply filter blur-3xl"
+        />
+        <div
+          class="absolute bottom-20 left-20 w-96 h-96 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full mix-blend-multiply filter blur-3xl"
+        />
+      </div>
+
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Section Header -->
+        <div class="max-w-2xl mb-20">
+          <div
+            class="inline-flex items-center space-x-2 px-4 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-full border border-gray-200/50 dark:border-gray-700/50 shadow-sm mb-6"
+          >
+            <div class="w-2 h-2 bg-orange-500 rounded-full" />
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Governance</span>
+          </div>
+          <h2
+            class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight"
+          >
+            Board of
+            <span class="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent"
+              >Trustees</span
+            >
+          </h2>
+          <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+            Distinguished professionals providing strategic oversight and governance to ensure
+            EPISON's mission and vision are fulfilled.
+          </p>
+        </div>
+
+        <!-- Board of Trustees Grid -->
+        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div
+            v-for="(trustee, index) in boardOfTrustees"
+            :key="index"
+            class="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+          >
+            <div class="p-8">
+              <div class="flex flex-col items-center text-center">
+                <div class="relative mb-6">
+                  <img
+                    class="h-24 w-24 rounded-full object-cover border-4 border-white dark:border-gray-700 shadow-lg"
+                    :src="trustee.image"
+                    :alt="trustee.name"
+                  />
+                  <div
+                    class="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg"
+                  >
+                    {{ index + 1 }}
+                  </div>
+                </div>
+
+                <div class="space-y-2 mb-4">
+                  <h3
+                    class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors"
+                  >
+                    {{ trustee.name }}
+                  </h3>
+                  <p class="text-orange-600 dark:text-orange-400 font-semibold">
+                    {{ trustee.position }}
+                  </p>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">{{ trustee.institution }}</p>
+                </div>
+
+                <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                  {{ trustee.bio }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Subtle hover effect -->
+            <div
+              class="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-red-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- History -->
     <div class="bg-gray-50 dark:bg-gray-800 py-16">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -419,6 +503,51 @@ const leadership = [
     institution: 'Obafemi Awolowo University',
     bio: 'Specialist in health communication and behavioral epidemiology.',
     image: 'https://randomuser.me/api/portraits/men/54.jpg',
+  },
+]
+
+const boardOfTrustees = [
+  {
+    name: 'Prof. Adebola Adeyemi',
+    position: 'Chairman, Board of Trustees',
+    institution: 'Former Vice-Chancellor, University of Ibadan',
+    bio: 'Distinguished public health leader with over 30 years of experience in health policy and academic administration.',
+    image: 'https://randomuser.me/api/portraits/women/75.jpg',
+  },
+  {
+    name: 'Dr. Muhammed Sani',
+    position: 'Vice Chairman',
+    institution: 'Former Director General, Nigeria Centre for Disease Control',
+    bio: "Renowned epidemiologist and former head of Nigeria's premier disease control agency.",
+    image: 'https://randomuser.me/api/portraits/men/67.jpg',
+  },
+  {
+    name: 'Prof. Grace Okafor',
+    position: 'Trustee',
+    institution: 'Former Dean, College of Medicine, University of Lagos',
+    bio: 'Expert in maternal and child health with extensive experience in medical education and research.',
+    image: 'https://randomuser.me/api/portraits/women/58.jpg',
+  },
+  {
+    name: 'Dr. Ibrahim Yakubu',
+    position: 'Trustee',
+    institution: 'Former Minister of Health, Kaduna State',
+    bio: 'Public health physician with significant experience in health policy development and implementation.',
+    image: 'https://randomuser.me/api/portraits/men/71.jpg',
+  },
+  {
+    name: 'Prof. Chioma Nwankwo',
+    position: 'Trustee',
+    institution: 'Former WHO Regional Advisor for Africa',
+    bio: 'International public health expert with extensive experience in global health programs and epidemiology.',
+    image: 'https://randomuser.me/api/portraits/women/69.jpg',
+  },
+  {
+    name: 'Dr. Abdullahi Hassan',
+    position: 'Trustee',
+    institution: 'Former Chief Medical Director, National Hospital Abuja',
+    bio: 'Clinical epidemiologist with expertise in hospital administration and healthcare quality improvement.',
+    image: 'https://randomuser.me/api/portraits/men/59.jpg',
   },
 ]
 

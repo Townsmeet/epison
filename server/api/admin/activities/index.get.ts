@@ -1,4 +1,4 @@
-import { and, like, desc, asc, sql, or, type SQL } from 'drizzle-orm'
+import { and, like, desc, asc, sql, or, type SQLWrapper } from 'drizzle-orm'
 import { createError } from 'h3'
 import { db } from '../../../utils/drizzle'
 import { activityLog } from '../../../db/schema'
@@ -13,7 +13,7 @@ export default defineEventHandler(async event => {
     const limit = Math.min(Math.max(parseInt((query.limit as string) || '10', 10) || 10, 1), 100)
     const sort = ((query.sort as string) || '-createdAt').trim()
 
-    const whereClauses: SQL[] = []
+    const whereClauses: (SQLWrapper | undefined)[] = []
 
     if (type && type !== 'All') {
       whereClauses.push(sql`${activityLog.type} = ${type}`)

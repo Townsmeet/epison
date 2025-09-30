@@ -116,7 +116,7 @@
                 Send us a message
               </h2>
 
-              <UForm :state="form" class="space-y-6" @submit="onSubmit">
+              <UForm :schema="schema" :state="form" class="space-y-6" @submit="onSubmit">
                 <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
                   <UFormField label="First name" name="firstName" required>
                     <UInput v-model="form.firstName" placeholder="John" class="w-full" />
@@ -161,26 +161,6 @@
                       class="w-full"
                     />
                   </UFormField>
-
-                  <div class="sm:col-span-2">
-                    <div class="flex items-start">
-                      <div class="flex items-center h-5">
-                        <UCheckbox
-                          v-model="form.newsletter"
-                          name="newsletter"
-                          class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                        />
-                      </div>
-                      <div class="ml-3 text-sm">
-                        <label for="newsletter" class="font-medium text-gray-700 dark:text-gray-300"
-                          >Sign up for our newsletter</label
-                        >
-                        <p class="text-gray-500 dark:text-gray-400">
-                          Get the latest news and updates from EPISON.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
                 </div>
 
                 <div class="flex justify-end">
@@ -198,6 +178,16 @@
 </template>
 
 <script setup lang="ts">
+import { z } from 'zod'
+
+const schema = z.object({
+  firstName: z.string().min(1, 'First name is required').max(100, 'First name is too long'),
+  lastName: z.string().min(1, 'Last name is required').max(100, 'Last name is too long'),
+  email: z.string().email('Please enter a valid email address'),
+  phone: z.string().min(5, 'Please enter a valid phone number').max(30, 'Phone number is too long'),
+  subject: z.string().min(1, 'Please select a subject'),
+  message: z.string().min(10, 'Message should be at least 10 characters'),
+})
 const isSubmitting = ref(false)
 
 const form = reactive({
@@ -207,7 +197,6 @@ const form = reactive({
   phone: '',
   subject: undefined,
   message: '',
-  newsletter: false,
 })
 
 const subjectOptions = [
@@ -223,8 +212,18 @@ const subjectOptions = [
 async function onSubmit() {
   try {
     isSubmitting.value = true
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    // Submit to server endpoint
+    await $fetch('/api/contact', {
+      method: 'POST',
+      body: {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        phone: form.phone,
+        subject: form.subject,
+        message: form.message,
+      },
+    })
 
     // Show success message
     useToast().add({
@@ -242,13 +241,16 @@ async function onSubmit() {
       phone: '',
       subject: undefined,
       message: '',
-      newsletter: false,
     })
   } catch (error) {
     console.error('Error submitting form:', error)
     useToast().add({
       title: 'Error',
-      description: 'There was an error sending your message. Please try again later.',
+      description:
+        (error as { data?: { statusMessage?: string } })?.data?.statusMessage ||
+        (error instanceof Error
+          ? error.message
+          : 'There was an error sending your message. Please try again later.'),
       icon: 'i-heroicons-exclamation-circle',
       color: 'error',
     })
