@@ -24,6 +24,47 @@
       </div>
     </div>
 
+    <!-- Profile Photo -->
+    <UFormField label="Profile Photo" name="avatar" hint="Upload your profile picture (optional)">
+      <div class="flex items-center space-x-4">
+        <div
+          v-if="form.avatar"
+          class="flex-shrink-0 w-20 h-20 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700"
+        >
+          <img :src="form.avatar" alt="Profile" class="w-full h-full object-cover" />
+        </div>
+        <div
+          v-else
+          class="flex-shrink-0 w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
+        >
+          <UIcon name="i-heroicons-user" class="w-10 h-10 text-gray-400" />
+        </div>
+        <div class="flex-1">
+          <input
+            ref="fileInput"
+            type="file"
+            accept="image/*"
+            class="hidden"
+            @change="handleFileUpload"
+          />
+          <UButton
+            color="neutral"
+            variant="solid"
+            icon="i-heroicons-photo"
+            @click="fileInput?.click()"
+          >
+            {{ form.avatar ? 'Change Photo' : 'Upload Photo' }}
+          </UButton>
+          <p v-if="uploadError" class="mt-2 text-sm text-red-600 dark:text-red-400">
+            {{ uploadError }}
+          </p>
+          <p v-if="isUploading" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            Uploading...
+          </p>
+        </div>
+      </div>
+    </UFormField>
+
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <UFormField label="Family Name" name="nameFamily" required>
         <UInput v-model="form.nameFamily" class="w-full" />
@@ -70,14 +111,25 @@
       </UFormField>
     </div>
 
-    <UFormField
-      label="Present Mailing Address"
-      name="address"
-      hint="Include Postal/Zip Code, City, Country"
-      required
-    >
-      <UTextarea v-model="form.address" :rows="3" class="w-full" />
-    </UFormField>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <UFormField
+        label="Present Mailing Address"
+        name="address"
+        hint="Include Postal/Zip Code, City, Country"
+        required
+      >
+        <UTextarea v-model="form.address" :rows="3" class="w-full" />
+      </UFormField>
+
+      <UFormField label="State" name="state" hint="Select your state of residence" required>
+        <USelect
+          v-model="form.state"
+          :items="nigerianStates"
+          placeholder="Select state"
+          class="w-full"
+        />
+      </UFormField>
+    </div>
   </div>
 </template>
 
@@ -90,11 +142,93 @@ interface Props {
 defineProps<Props>()
 
 const form = defineModel<MembershipFormData>('form', { required: true })
+const fileInput = ref<HTMLInputElement>()
+const isUploading = ref(false)
+const uploadError = ref('')
 
 const titles = ['Dr', 'Mr', 'Mrs', 'Miss', 'Prof', 'Engr', 'Chief', 'Ms']
+
+const nigerianStates = [
+  'Abia',
+  'Adamawa',
+  'Akwa Ibom',
+  'Anambra',
+  'Bauchi',
+  'Bayelsa',
+  'Benue',
+  'Borno',
+  'Cross River',
+  'Delta',
+  'Ebonyi',
+  'Edo',
+  'Ekiti',
+  'Enugu',
+  'FCT (Abuja)',
+  'Gombe',
+  'Imo',
+  'Jigawa',
+  'Kaduna',
+  'Kano',
+  'Katsina',
+  'Kebbi',
+  'Kogi',
+  'Kwara',
+  'Lagos',
+  'Nasarawa',
+  'Niger',
+  'Ogun',
+  'Ondo',
+  'Osun',
+  'Oyo',
+  'Plateau',
+  'Rivers',
+  'Sokoto',
+  'Taraba',
+  'Yobe',
+  'Zamfara',
+]
 
 function onEmailInput(e: Event) {
   const target = e.target as HTMLInputElement
   form.value.email = (target?.value || '').trim()
+}
+
+async function handleFileUpload(event: Event) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+
+  if (!file) return
+
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    uploadError.value = 'Please select an image file'
+    return
+  }
+
+  // Validate file size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    uploadError.value = 'Image size must be less than 5MB'
+    return
+  }
+
+  uploadError.value = ''
+  isUploading.value = true
+
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await $fetch<{ url: string }>('/api/uploads', {
+      method: 'POST',
+      body: formData,
+    })
+
+    form.value.avatar = response.url
+  } catch (error) {
+    console.error('Upload error:', error)
+    uploadError.value = 'Failed to upload image. Please try again.'
+  } finally {
+    isUploading.value = false
+  }
 }
 </script>

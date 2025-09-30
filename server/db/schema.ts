@@ -78,6 +78,7 @@ export const member = sqliteTable('member', {
   sex: text('sex'), // 'Male' | 'Female' or free text
   dob: text('dob'), // ISO date string
   address: text('address'),
+  state: text('state'), // Nigerian state
   telephone: text('telephone'),
   fax: text('fax'),
   email: text('email').notNull().unique(),
@@ -297,6 +298,26 @@ export const abstractSubmission = sqliteTable('abstract_submission', {
   submissionDate: integer('submission_date', { mode: 'timestamp' }).defaultNow().notNull(),
   status: text('status').default('pending').notNull(), // pending | under_review | accepted | rejected | revision_required
   reviewerComments: text('reviewer_comments'),
+})
+
+// ===== Event Reviews =====
+// Stores reviews and ratings submitted by event attendees
+export const eventReview = sqliteTable('event_review', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id')
+    .notNull()
+    .references(() => event.id, { onDelete: 'cascade' }),
+  registrationId: text('registration_id')
+    .notNull()
+    .references(() => eventRegistration.id, { onDelete: 'cascade' }),
+  attendeeEmail: text('attendee_email').notNull(),
+  attendeeName: text('attendee_name').notNull(),
+  rating: integer('rating').notNull(), // 1-5 stars
+  reviewText: text('review_text'),
+  reviewToken: text('review_token').notNull().unique(),
+  tokenUsed: integer('token_used', { mode: 'boolean' }).default(false).notNull(),
+  submittedAt: integer('submitted_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).defaultNow().notNull(),
 })
 
 // ===== Activities (Audit Log) =====

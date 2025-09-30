@@ -5,7 +5,14 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
-  modules: ['@nuxt/eslint', '@nuxt/image', '@nuxt/scripts', '@nuxt/test-utils', '@nuxt/ui'],
+  modules: [
+    '@nuxt/eslint',
+    '@nuxt/image',
+    '@nuxt/scripts',
+    '@nuxt/test-utils',
+    '@nuxt/ui',
+    'nuxt-charts',
+  ],
 
   colorMode: {
     preference: 'system',
@@ -39,6 +46,7 @@ export default defineNuxtConfig({
       paystackKey: process.env.NUXT_PAYSTACK_PUBLIC_KEY,
       // expose public base URL if needed by client to render image URLs
       s3PublicBaseUrl: process.env.NUXT_S3_PUBLIC_BASE_URL,
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
     },
   },
 })

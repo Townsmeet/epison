@@ -14,6 +14,7 @@ export const createMemberSchema = z.object({
   sex: z.string().max(50).optional(),
   dob: z.string().optional(), // expect YYYY-MM-DD if provided
   address: z.string().max(500).optional(),
+  state: z.string().max(100).optional(),
   telephone: z.string().max(50).optional(),
   fax: z.string().max(50).optional(),
   avatar: z.string().url('Invalid URL').optional(),

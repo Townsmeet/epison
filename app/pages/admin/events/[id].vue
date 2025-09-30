@@ -89,6 +89,9 @@
 
         <!-- Gallery Tab -->
         <AdminEventsGalleryTab v-if="event" v-show="currentTab === 'Gallery'" :event="event" />
+
+        <!-- Reviews Tab -->
+        <AdminEventsReviewsTab v-if="event" v-show="currentTab === 'Reviews'" :event="event" />
       </div>
 
       <!-- Sidebar -->
@@ -308,9 +311,17 @@ const tabs = [
   'Submissions',
   'Committee',
   'Gallery',
+  'Reviews',
 ]
 const currentTab = ref<
-  'Details' | 'Tickets' | 'Registrations' | 'Sponsors' | 'Submissions' | 'Committee' | 'Gallery'
+  | 'Details'
+  | 'Tickets'
+  | 'Registrations'
+  | 'Sponsors'
+  | 'Submissions'
+  | 'Committee'
+  | 'Gallery'
+  | 'Reviews'
 >('Details')
 
 // Occupancy computation is now handled in the DetailsTab component

@@ -8,6 +8,42 @@
       subtitle="Join EPISON and become part of Nigeria's leading epidemiological community."
     />
 
+    <!-- Member Directory CTA -->
+    <section class="py-8 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div class="flex items-center space-x-4">
+            <div
+              class="flex-shrink-0 w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center"
+            >
+              <UIcon
+                name="i-heroicons-users"
+                class="w-6 h-6 text-primary-600 dark:text-primary-400"
+              />
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                Explore Our Member Directory
+              </h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Connect with our community of public health professionals across Nigeria
+              </p>
+            </div>
+          </div>
+          <UButton
+            to="/members/directory"
+            color="primary"
+            variant="outline"
+            size="lg"
+            icon="i-heroicons-arrow-right"
+            trailing
+          >
+            View Directory
+          </UButton>
+        </div>
+      </div>
+    </section>
+
     <!-- Membership Types -->
     <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -208,7 +244,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center">
           <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl">
-            Benefits of Membership
+            Benefits of EPISON Membership
           </h2>
           <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-500 dark:text-gray-400">
             Join our community of epidemiology professionals and enjoy these exclusive benefits.
@@ -216,25 +252,31 @@
         </div>
 
         <div class="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <div class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow">
+          <!-- Automatic IEA Membership -->
+          <div
+            class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow"
+          >
             <div
               class="w-12 h-12 rounded-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center"
             >
               <UIcon
-                name="i-heroicons-academic-cap"
+                name="i-heroicons-globe-alt"
                 class="w-6 h-6 text-primary-600 dark:text-primary-400"
               />
             </div>
             <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
-              Professional Development
+              Automatic IEA Membership
             </h3>
             <p class="mt-2 text-gray-600 dark:text-gray-400">
-              Access to workshops, webinars, and training programs to enhance your skills and
-              knowledge.
+              Membership of EPISON automatically confers membership of the International
+              Epidemiological Association (IEA).
             </p>
           </div>
 
-          <div class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow">
+          <!-- Networking and Knowledge Sharing -->
+          <div
+            class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow"
+          >
             <div
               class="w-12 h-12 rounded-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center"
             >
@@ -243,13 +285,60 @@
                 class="w-6 h-6 text-primary-600 dark:text-primary-400"
               />
             </div>
-            <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">Networking</h3>
+            <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+              Networking and Knowledge Sharing
+            </h3>
             <p class="mt-2 text-gray-600 dark:text-gray-400">
-              Connect with fellow epidemiologists and public health professionals across Nigeria.
+              Provides a forum to interact and share experiences with other epidemiologists working
+              in Nigeria and globally.
             </p>
           </div>
 
-          <div class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow">
+          <!-- Professional Contribution -->
+          <div
+            class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow"
+          >
+            <div
+              class="w-12 h-12 rounded-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center"
+            >
+              <UIcon
+                name="i-heroicons-briefcase"
+                class="w-6 h-6 text-primary-600 dark:text-primary-400"
+              />
+            </div>
+            <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+              Professional Contribution
+            </h3>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">
+              Enables members to contribute meaningfully to the practice of Epidemiology in Nigeria.
+            </p>
+          </div>
+
+          <!-- Access to IEA Privileges -->
+          <div
+            class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow"
+          >
+            <div
+              class="w-12 h-12 rounded-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center"
+            >
+              <UIcon
+                name="i-heroicons-star"
+                class="w-6 h-6 text-primary-600 dark:text-primary-400"
+              />
+            </div>
+            <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+              Access to IEA Privileges
+            </h3>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">
+              As an IEA member, you are eligible to attend IEA conferences and aspire to elective
+              offices, along with other member privileges.
+            </p>
+          </div>
+
+          <!-- Publications and Resources -->
+          <div
+            class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow"
+          >
             <div
               class="w-12 h-12 rounded-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center"
             >
@@ -259,10 +348,92 @@
               />
             </div>
             <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
-              Research Opportunities
+              Publications and Resources
             </h3>
             <p class="mt-2 text-gray-600 dark:text-gray-400">
-              Participate in collaborative research projects and access funding opportunities.
+              Access to newsletters, journals, and other publications by EPISON and its affiliate
+              organizations like IEA and AfEA.
+            </p>
+          </div>
+
+          <!-- Conference Participation -->
+          <div
+            class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow"
+          >
+            <div
+              class="w-12 h-12 rounded-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center"
+            >
+              <UIcon
+                name="i-heroicons-calendar-days"
+                class="w-6 h-6 text-primary-600 dark:text-primary-400"
+              />
+            </div>
+            <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+              Conference Participation
+            </h3>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">
+              Participation in EPISON, IEA, and regional conferences or other events organized by
+              them.
+            </p>
+          </div>
+
+          <!-- Career Development -->
+          <div
+            class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow"
+          >
+            <div
+              class="w-12 h-12 rounded-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center"
+            >
+              <UIcon
+                name="i-heroicons-academic-cap"
+                class="w-6 h-6 text-primary-600 dark:text-primary-400"
+              />
+            </div>
+            <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+              Career Development
+            </h3>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">
+              Opportunities for career and professional capacity development through
+              EPISON-organized workshops and international conferences.
+            </p>
+          </div>
+
+          <!-- Voting Rights -->
+          <div
+            class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow"
+          >
+            <div
+              class="w-12 h-12 rounded-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center"
+            >
+              <UIcon
+                name="i-heroicons-hand-raised"
+                class="w-6 h-6 text-primary-600 dark:text-primary-400"
+              />
+            </div>
+            <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">Voting Rights</h3>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">
+              Eligibility to vote and be voted for at EPISON Annual General Meetings.
+            </p>
+          </div>
+
+          <!-- Collaborative Research -->
+          <div
+            class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow"
+          >
+            <div
+              class="w-12 h-12 rounded-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center"
+            >
+              <UIcon
+                name="i-heroicons-beaker"
+                class="w-6 h-6 text-primary-600 dark:text-primary-400"
+              />
+            </div>
+            <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+              Collaborative Research
+            </h3>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">
+              Participation in collaborative research with other members of EPISON and IEA at
+              subnational, national, and global levels.
             </p>
           </div>
         </div>

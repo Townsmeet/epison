@@ -9,9 +9,11 @@ export const personalInfoSchema = z.object({
   sex: z.string().min(1, 'Sex is required'),
   dob: z.string().min(1, 'Date of birth is required'),
   address: z.string().min(1, 'Address is required').max(500),
+  state: z.string().min(1, 'State is required').max(100),
   telephone: z.string().min(1, 'Telephone is required').max(50),
   fax: z.string().max(50).optional(),
   email: z.string().email('Invalid email address').max(255),
+  avatar: z.string().url('Invalid URL').optional(),
 })
 
 // Step 2: Employment Schema
