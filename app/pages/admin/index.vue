@@ -164,12 +164,6 @@
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
               >
-                Type
-              </th>
-              <th
-                scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-              >
                 Date
               </th>
               <th
@@ -185,7 +179,7 @@
           </thead>
           <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             <tr v-if="recentLoading" class="">
-              <td colspan="6" class="px-6 py-6 text-center text-gray-600 dark:text-gray-300">
+              <td colspan="5" class="px-6 py-6 text-center text-gray-600 dark:text-gray-300">
                 <UIcon
                   name="i-heroicons-arrow-path"
                   class="h-5 w-5 inline-block animate-spin mr-2"
@@ -194,7 +188,7 @@
               </td>
             </tr>
             <tr v-else-if="recentRegistrations.length === 0">
-              <td colspan="6" class="px-6 py-6 text-center text-gray-600 dark:text-gray-300">
+              <td colspan="5" class="px-6 py-6 text-center text-gray-600 dark:text-gray-300">
                 No recent registrations
               </td>
             </tr>
@@ -222,14 +216,6 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-gray-900 dark:text-white">{{ registration.event }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span
-                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                  :class="getTypeBadgeClass(registration.type)"
-                >
-                  {{ registration.type }}
-                </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                 {{ formatDate(registration.date) }}
@@ -336,12 +322,26 @@ const upcomingEvents = computed(() => {
     (upcomingResponse.value?.data as
       | { id: string; title: string; startDate: string; status?: string }[]
       | undefined) ?? []
-  return rows.map((e: { id: string; title: string; startDate: string; status?: string }) => ({
-    id: e.id,
-    title: e.title,
-    date: e.startDate,
-    status: toStatusLabel(e.status),
-  }))
+
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+  const isUpcoming = (dateStr: string) => {
+    const d = new Date(dateStr)
+    if (Number.isNaN(d.getTime())) return false
+    const eventDay = new Date(d)
+    eventDay.setHours(0, 0, 0, 0)
+    // Keep events on or after today regardless of time
+    return eventDay.getTime() >= todayStart.getTime()
+  }
+
+  return rows
+    .filter(e => isUpcoming(e.startDate))
+    .map((e: { id: string; title: string; startDate: string; status?: string }) => ({
+      id: e.id,
+      title: e.title,
+      date: e.startDate,
+      status: toStatusLabel(e.status),
+    }))
 })
 
 // Recent registrations via API
@@ -417,17 +417,6 @@ function getStatusBadgeClass(status: string): string {
     Completed: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
   }
   return statusClasses[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-}
-
-function getTypeBadgeClass(type: string): string {
-  const typeClasses: Record<string, string> = {
-    Member: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    'Non-Member': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    Student: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    Speaker: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    Sponsor: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-  }
-  return typeClasses[type] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
 }
 
 function getInitials(name: string): string {

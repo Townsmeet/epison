@@ -57,7 +57,7 @@
           </div>
           <div>
             <div class="text-2xl font-semibold text-gray-900 dark:text-white">
-              ₦{{ ((event.revenue ?? 0) / 1000).toFixed(0) }}k
+              ₦{{ ((event.revenue ?? 0) / 100 / 1000).toFixed(0) }}k
             </div>
             <div class="text-xs text-gray-500 dark:text-gray-400">Revenue</div>
           </div>

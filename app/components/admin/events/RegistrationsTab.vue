@@ -48,11 +48,6 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                 >
-                  Type
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                >
                   Date
                 </th>
                 <th
@@ -79,14 +74,6 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                   {{ reg.email }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                    :class="_getTypeBadgeClass(reg.type)"
-                  >
-                    {{ reg.type }}
-                  </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                   {{ _formatDate(reg.date) }}
@@ -116,7 +103,7 @@
               </tr>
               <tr v-if="paginatedRows.length === 0">
                 <td
-                  colspan="7"
+                  colspan="6"
                   class="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400"
                 >
                   No registrations for this event.
@@ -238,17 +225,6 @@ const _getStatusBadgeClass = (status: string) => {
   return statusClasses[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
 }
 
-const _getTypeBadgeClass = (type: string) => {
-  const typeClasses: Record<string, string> = {
-    Member: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    'Non-Member': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    Student: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    Speaker: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    Sponsor: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-  }
-  return typeClasses[type] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-}
-
 const _getRegActionItems = (reg: RegistrationRow) => {
   return [
     [{ label: 'View Details', icon: 'i-heroicons-eye', to: `/admin/registrations/${reg.id}` }],
@@ -301,11 +277,10 @@ watch(
 // Functions are now provided via props with underscore-prefixed versions as fallbacks
 
 function exportCsv() {
-  const header = ['Name', 'Email', 'Type', 'Date', 'Amount', 'Status', 'Reference']
+  const header = ['Name', 'Email', 'Date', 'Amount', 'Status', 'Reference']
   const rows = filteredRows.value.map(r => [
     r.name,
     r.email,
-    r.type,
     r.date,
     r.amount,
     r.status,

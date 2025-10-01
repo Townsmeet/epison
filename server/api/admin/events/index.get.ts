@@ -46,6 +46,12 @@ export default defineEventHandler(async eventHandler => {
       conditions.push(lte(event.startDate, query.to))
     }
 
+    // Upcoming filter (only events starting from now)
+    if (query.upcoming) {
+      const now = new Date().toISOString()
+      conditions.push(gte(event.startDate, now))
+    }
+
     // Build order by
     let orderBy
     switch (query.sort) {
@@ -79,44 +85,40 @@ export default defineEventHandler(async eventHandler => {
     const total = totalResult[0]?.count || 0
     const totalPages = Math.ceil(total / query.limit)
 
-    // Get paginated results with registration stats
+    // Get paginated results
     const offset = (query.page - 1) * query.limit
-    const events = await db
-      .select({
-        id: event.id,
-        slug: event.slug,
-        title: event.title,
-        type: event.type,
-        status: event.status,
-        startDate: event.startDate,
-        endDate: event.endDate,
-        location: event.location,
-        capacity: event.capacity,
-        description: event.description,
-        bannerUrl: event.bannerUrl,
-        membersOnly: event.membersOnly,
-        collectsSubmissions: event.collectsSubmissions,
-        createdAt: event.createdAt,
-        updatedAt: event.updatedAt,
-        registrationCount: sql<number>`(
-          SELECT COUNT(*) FROM ${eventRegistration} 
-          WHERE ${eventRegistration.eventId} = ${event.id}
-        )`,
-        revenue: sql<number>`(
-          SELECT COALESCE(SUM(${eventRegistration.totalAmount}), 0) FROM ${eventRegistration} 
-          WHERE ${eventRegistration.eventId} = ${event.id} 
-          AND ${eventRegistration.paymentStatus} = 'Paid'
-        )`,
-      })
+    const eventsList = await db
+      .select()
       .from(event)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(orderBy)
       .limit(query.limit)
       .offset(offset)
 
+    // Get registration stats for each event
+    const eventsWithStats = await Promise.all(
+      eventsList.map(async evt => {
+        const stats = await db
+          .select({
+            registrationCount: sql<number>`COUNT(DISTINCT ${eventRegistration.id})`,
+            revenue: sql<number>`COALESCE(SUM(CASE WHEN ${eventRegistration.paymentStatus} = 'Paid' THEN ${eventRegistration.totalAmount} ELSE 0 END), 0)`,
+          })
+          .from(event)
+          .leftJoin(eventRegistration, eq(eventRegistration.eventId, event.id))
+          .where(eq(event.id, evt.id))
+          .groupBy(event.id)
+
+        return {
+          ...evt,
+          registrationCount: Number(stats[0]?.registrationCount) || 0,
+          revenue: Number(stats[0]?.revenue) || 0,
+        }
+      })
+    )
+
     return {
       success: true,
-      data: events,
+      data: eventsWithStats,
       pagination: {
         page: query.page,
         limit: query.limit,

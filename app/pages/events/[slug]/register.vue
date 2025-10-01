@@ -44,25 +44,48 @@
               </UFormField>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <UFormField label="Ticket" name="ticket" required>
-                <USelect
-                  v-model="form.ticket"
-                  :items="tickets"
-                  option-attribute="label"
-                  value-attribute="value"
-                  class="w-full"
-                />
-              </UFormField>
-              <div class="flex items-end">
-                <div class="text-gray-900 dark:text-white">
-                  <p class="text-sm">Amount</p>
-                  <p class="text-2xl font-semibold">
-                    ₦{{ (selectedAmount / 100).toLocaleString() }}
-                  </p>
+            <UFormField label="Select Ticket" name="ticket" required>
+              <div class="space-y-3">
+                <div
+                  v-for="ticket in tickets"
+                  :key="ticket.value"
+                  class="relative flex items-start p-4 border rounded-lg cursor-pointer transition-all"
+                  :class="[
+                    form.ticket === ticket.value
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600',
+                  ]"
+                  @click="form.ticket = ticket.value"
+                >
+                  <div class="flex items-center h-5">
+                    <URadio
+                      v-model="form.ticket"
+                      :value="ticket.value"
+                      class="pointer-events-none"
+                    />
+                  </div>
+                  <div class="ml-3 flex-1">
+                    <div class="flex items-center justify-between">
+                      <label
+                        class="font-medium text-gray-900 dark:text-white cursor-pointer"
+                        @click.stop="form.ticket = ticket.value"
+                      >
+                        {{ ticket.label.split(' (')[0] }}
+                      </label>
+                      <span class="text-lg font-semibold text-primary-600 dark:text-primary-400">
+                        ₦{{ (ticket.amount / 100).toLocaleString() }}
+                      </span>
+                    </div>
+                    <p
+                      v-if="ticket.description"
+                      class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+                    >
+                      {{ ticket.description }}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </UFormField>
 
             <div class="flex items-center justify-between pt-2">
               <p class="text-xs text-gray-500 dark:text-gray-400">
@@ -94,15 +117,17 @@ type Ticket = {
   label: string
   value: string
   amount: number
+  description?: string
 }
 
 // Derive tickets from event.tickets (public tickets already filtered server-side)
 const tickets = computed<Ticket[]>(() => {
   const eventTickets = event.value?.tickets ?? []
   return eventTickets.map(t => ({
-    label: `${t.name} (₦${(Number(t.price) / 100).toLocaleString()})`,
+    label: t.name,
     value: String(t.id),
     amount: Number(t.price),
+    description: t.description,
   }))
 })
 
@@ -142,10 +167,6 @@ watchEffect(() => {
     form.ticket = firstTicket.value
   }
 })
-
-const selectedAmount = computed<number>(
-  () => tickets.value.find(t => t.value === form.ticket)?.amount ?? 0
-)
 
 const { initializePayment } = usePaystack()
 

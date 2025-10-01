@@ -76,7 +76,7 @@
             >
               <img
                 class="w-full h-96 object-cover"
-                src="https://images.unsplash.com/photo-1581056771107-24ca5f033842?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1950&q=80"
+                src="/about.png"
                 alt="Multidisciplinary health professionals"
               />
               <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />

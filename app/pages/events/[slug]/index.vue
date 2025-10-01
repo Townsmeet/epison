@@ -499,7 +499,7 @@ import type { Event as ApiEvent } from '../../../../types/event'
 
 const route = useRoute()
 const { getPublicEventBySlug } = useEvents()
-const { isSubmissionOpen, submitAbstract } = useSubmissions()
+const { submitAbstract } = useSubmissions()
 const slug = computed(() => route.params.slug as string)
 
 function _slugify(s: string) {
@@ -679,13 +679,12 @@ const keywordsInput = ref('')
 
 const canSubmitAbstract = computed(() => {
   if (!event.value) return false
-  const eid = Number(event.value.id)
-  if (!Number.isFinite(eid)) return false
-  return !!(event.value.collectsSubmissions && isSubmissionOpen(eid))
+  if (!event.value.id) return false
+  return !!(event.value.collectsSubmissions && !isPast.value)
 })
 
 const submissionForm = reactive({
-  eventId: 0,
+  eventId: '',
   title: '',
   abstract: '',
   authors: [''],
@@ -752,9 +751,8 @@ async function submitAbstractForm() {
 
   isSubmitting.value = true
   try {
-    const eid = Number(event.value.id)
     await submitAbstract({
-      eventId: eid,
+      eventId: String(event.value.id),
       title: submissionForm.title.trim(),
       abstract: submissionForm.abstract.trim(),
       authors: submissionForm.authors.filter(a => a.trim()).map(a => a.trim()),
@@ -779,7 +777,7 @@ async function submitAbstractForm() {
 
     // Reset form
     Object.assign(submissionForm, {
-      eventId: 0,
+      eventId: '',
       title: '',
       abstract: '',
       authors: [''],

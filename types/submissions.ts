@@ -1,6 +1,6 @@
 export interface AbstractSubmission {
-  id: number
-  eventId: number
+  id: string
+  eventId: string
   title: string
   abstract: string
   authors: string[]
@@ -18,7 +18,7 @@ export interface AbstractSubmission {
   status: 'pending' | 'under_review' | 'accepted' | 'rejected' | 'revision_required'
   reviewerComments?: string
   attachments?: {
-    id: number
+    id: string
     filename: string
     url: string
     type: string

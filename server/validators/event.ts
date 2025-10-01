@@ -126,6 +126,7 @@ export const eventListQuerySchema = z.object({
 // Registrations list query (admin)
 export const registrationListQuerySchema = z.object({
   q: z.string().optional(),
+  eventId: z.string().optional(),
   category: z.enum(['Member', 'Non-Member', 'Student', 'Speaker', 'Sponsor']).optional(),
   paymentStatus: z.enum(['Pending', 'Paid', 'Cancelled', 'Refunded']).optional(),
   sort: z.string().default('-registeredAt'), // 'attendeeName' | '-attendeeName' | 'registeredAt' | '-registeredAt'

@@ -1,23 +1,9 @@
 <template>
   <div>
-    <!-- Action buttons -->
-    <div class="flex justify-end space-x-3 mb-6">
-      <UButton
-        icon="i-heroicons-funnel"
-        color="neutral"
-        variant="outline"
-        @click="showFilters = !showFilters"
-      >
-        {{ showFilters ? 'Hide Filters' : 'Filters' }}
-      </UButton>
-      <UButton icon="i-heroicons-plus" color="primary" to="/admin/registrations/new">
-        New Registration
-      </UButton>
-    </div>
     <!-- Stats -->
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-6">
       <StatCard
-        title="Total Registrations"
+        title="Total"
         :value="stats.total"
         :change="stats.change"
         icon="i-heroicons-user-group"
@@ -33,62 +19,32 @@
       />
     </div>
 
+    <!-- Filters -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <UInput
+          v-model="searchQuery"
+          placeholder="Search registrations..."
+          icon="i-heroicons-magnifying-glass"
+        />
+        <USelect v-model="selectedStatus" :items="statusOptions" placeholder="Filter by status" />
+        <USelectMenu
+          v-model="selectedEventItem"
+          :items="eventOptions"
+          option-attribute="label"
+          value-attribute="value"
+          placeholder="Filter by event"
+          searchable
+          :popper="{ strategy: 'fixed', placement: 'bottom-start' }"
+        />
+        <UButton color="neutral" variant="outline" icon="i-heroicons-funnel" @click="clearFilters">
+          Clear Filters
+        </UButton>
+      </div>
+    </div>
+
     <!-- Registrations table -->
     <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-      <div
-        class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between"
-      >
-        <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-2 sm:mb-0">
-          All Registrations
-        </h3>
-        <div class="flex items-center">
-          <UInput
-            v-model="searchQuery"
-            placeholder="Search registrations..."
-            icon="i-heroicons-magnifying-glass"
-            autocomplete="off"
-            class="w-full sm:w-64"
-          />
-        </div>
-      </div>
-
-      <!-- Filters Panel -->
-      <div v-if="showFilters" class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <USelectMenu
-            v-model="selectedStatusItem"
-            :items="statusOptions"
-            option-attribute="label"
-            value-attribute="value"
-            placeholder="Filter by status"
-            :popper="{ strategy: 'fixed', placement: 'bottom-start' }"
-          />
-          <USelectMenu
-            v-model="selectedTypeItem"
-            :items="typeOptions"
-            option-attribute="label"
-            value-attribute="value"
-            placeholder="Filter by type"
-            :popper="{ strategy: 'fixed', placement: 'bottom-start' }"
-          />
-          <UInput v-model="eventFilter" placeholder="Filter by event" />
-          <div class="grid grid-cols-2 gap-2">
-            <UInput v-model="dateFrom" type="date" placeholder="From" />
-            <UInput v-model="dateTo" type="date" placeholder="To" />
-          </div>
-        </div>
-        <div class="mt-3 flex justify-end">
-          <UButton
-            color="neutral"
-            variant="outline"
-            icon="i-heroicons-funnel"
-            @click="clearFilters"
-          >
-            Clear Filters
-          </UButton>
-        </div>
-      </div>
-
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-700">
@@ -110,12 +66,6 @@
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
               >
                 Event
-              </th>
-              <th
-                scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-              >
-                Type
               </th>
               <th
                 scope="col"
@@ -181,14 +131,6 @@
                   {{ registration.eventDateFormatted }}
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span
-                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                  :class="getTypeBadgeClass(registration.type)"
-                >
-                  {{ registration.type }}
-                </span>
-              </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                 {{ registration.dateFormatted }}
               </td>
@@ -216,7 +158,7 @@
               </td>
             </tr>
             <tr v-if="registrations.length === 0">
-              <td colspan="8" class="px-6 py-12 text-center">
+              <td colspan="7" class="px-6 py-12 text-center">
                 <UIcon name="i-heroicons-inbox" class="mx-auto h-12 w-12 text-gray-400" />
                 <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">
                   No registrations found
@@ -225,14 +167,9 @@
                   {{
                     searchQuery
                       ? 'No registrations match your search.'
-                      : 'Get started by creating a new registration.'
+                      : 'No registrations yet. Registrations are created when attendees register for events.'
                   }}
                 </p>
-                <div class="mt-6">
-                  <UButton to="/admin/registrations/new" color="primary" icon="i-heroicons-plus">
-                    New Registration
-                  </UButton>
-                </div>
               </td>
             </tr>
           </tbody>
@@ -354,7 +291,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import StatCard from '~/components/admin/StatCard.vue'
-import { debounce } from '~/utils/debounce'
 
 definePageMeta({
   layout: 'admin',
@@ -386,9 +322,8 @@ const selectAll = computed({
   },
 })
 
-const showFilters = ref(false)
-const selectedStatusItem = ref<{ label: string; value: string } | undefined>(undefined)
-const selectedTypeItem = ref<{ label: string; value: string } | undefined>(undefined)
+const selectedStatus = ref('all')
+const selectedEventItem = ref<{ label: string; value: string } | undefined>(undefined)
 const statusOptions = [
   { label: 'All Status', value: 'all' },
   { label: 'Paid', value: 'Paid' },
@@ -396,17 +331,6 @@ const statusOptions = [
   { label: 'Cancelled', value: 'Cancelled' },
   { label: 'Refunded', value: 'Refunded' },
 ]
-const typeOptions = [
-  { label: 'All Types', value: 'all' },
-  { label: 'Member', value: 'Member' },
-  { label: 'Non-Member', value: 'Non-Member' },
-  { label: 'Student', value: 'Student' },
-  { label: 'Speaker', value: 'Speaker' },
-  { label: 'Sponsor', value: 'Sponsor' },
-]
-const eventFilter = ref('')
-const dateFrom = ref('') // yyyy-MM-dd
-const dateTo = ref('') // yyyy-MM-dd
 const isDeleteModalOpen = ref(false)
 const isDeleting = ref(false)
 const searchQuery = ref('')
@@ -440,7 +364,20 @@ const bulkActions = [
 ]
 
 // API composable
-const { getRegistrations } = useEvents()
+const { getRegistrations, getRegistrationStats, getEvents } = useEvents()
+
+// Fetch events for filter dropdown
+const { data: eventsResponse } = getEvents({ limit: 100, sort: '-startDate' })
+const eventOptions = computed(() => {
+  const events = eventsResponse.value?.data || []
+  return [
+    { label: 'All Events', value: 'all' },
+    ...events.map(e => ({
+      label: e.title,
+      value: e.id,
+    })),
+  ]
+})
 
 // Date formatting utility
 const formatDate = (dateString: string) => {
@@ -472,13 +409,29 @@ const pagination = ref({
   },
 })
 
-// Stats
-const stats = ref({
-  total: 245,
-  change: 12.5,
-  paid: 198,
-  pending: 42,
-  cancelled: 5,
+// Fetch stats from API
+const { data: statsResponse } = getRegistrationStats()
+
+// Stats - from API
+const stats = computed(() => {
+  const data = statsResponse.value?.data
+  if (!data) {
+    return {
+      total: 0,
+      change: 0,
+      paid: 0,
+      pending: 0,
+      cancelled: 0,
+    }
+  }
+
+  return {
+    total: data.total,
+    change: 0, // Could calculate from historical data if available
+    paid: data.paid,
+    pending: data.pending,
+    cancelled: data.cancelled,
+  }
 })
 
 // API integration
@@ -498,12 +451,11 @@ const regQuery = computed(() => ({
   page: pagination.value.currentPage,
   limit: pagination.value.perPage,
   q: searchQuery.value || undefined,
-  category:
-    (selectedTypeItem.value?.value ?? 'all') !== 'all' ? selectedTypeItem.value?.value : undefined,
-  paymentStatus:
-    (selectedStatusItem.value?.value ?? 'all') !== 'all'
-      ? selectedStatusItem.value?.value
+  eventId:
+    (selectedEventItem.value?.value ?? 'all') !== 'all'
+      ? selectedEventItem.value?.value
       : undefined,
+  paymentStatus: selectedStatus.value !== 'all' ? selectedStatus.value : undefined,
   sort: '-registeredAt',
 }))
 
@@ -512,7 +464,7 @@ const {
   pending: _registrationsLoading,
   error: _registrationsError,
   refresh: refreshData,
-} = getRegistrations(regQuery.value)
+} = getRegistrations(regQuery)
 
 // Update pagination when data changes
 watch(
@@ -526,26 +478,10 @@ watch(
   { immediate: true }
 )
 
-// Watch for filter changes and refresh data (debounced)
-const refreshDebounced = debounce(() => {
-  if (refreshData) {
-    refreshData()
-  }
-}, 300)
-
-watch([searchQuery, selectedStatusItem, selectedTypeItem, eventFilter, dateFrom, dateTo], () => {
-  refreshDebounced()
+// Reset to page 1 when filters change
+watch([searchQuery, selectedStatus, selectedEventItem], () => {
+  pagination.value.currentPage = 1
 })
-
-// Watch pagination changes
-watch(
-  () => pagination.value.currentPage,
-  () => {
-    if (refreshData) {
-      refreshData()
-    }
-  }
-)
 
 // Raw server list
 const registrationsRaw = computed<RegistrationListItem[]>(
@@ -554,20 +490,19 @@ const registrationsRaw = computed<RegistrationListItem[]>(
 
 // Map server fields to UI fields consumed by the table template
 const registrations = computed(() =>
-  registrationsRaw.value.map((r: RegistrationListItem) => ({
-    id: r.id,
-    name: r.attendeeName,
-    email: r.attendeeEmail,
-    event: (r as RegistrationListItem & { eventTitle?: string }).eventTitle || 'Unknown Event',
-    eventDateFormatted: formatDate(
-      (r as RegistrationListItem & { eventDate?: string }).eventDate || ''
-    ),
-    type: r.category || 'Member',
-    status: r.paymentStatus,
-    amount: r.totalAmount / 100, // Convert from kobo to naira
-    dateFormatted: formatDate(r.registeredAt),
-    reference: r.reference || '',
-  }))
+  registrationsRaw.value.map(
+    (r: RegistrationListItem & { eventTitle?: string; eventStartDate?: string }) => ({
+      id: r.id,
+      name: r.attendeeName,
+      email: r.attendeeEmail,
+      event: r.eventTitle || 'Unknown Event',
+      eventDateFormatted: formatDate(r.eventStartDate || ''),
+      status: r.paymentStatus,
+      amount: r.totalAmount / 100, // Convert from kobo to naira
+      dateFormatted: formatDate(r.registeredAt),
+      reference: r.reference || '',
+    })
+  )
 )
 
 function getStatusBadgeClass(status: string): string {
@@ -578,17 +513,6 @@ function getStatusBadgeClass(status: string): string {
     Refunded: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   }
   return statusClasses[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-}
-
-function getTypeBadgeClass(type: string): string {
-  const typeClasses: Record<string, string> = {
-    Member: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    'Non-Member': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    Student: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    Speaker: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    Sponsor: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-  }
-  return typeClasses[type] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
 }
 
 const toggleRegistration = (id: string, checked: boolean | 'indeterminate') => {
@@ -614,10 +538,11 @@ interface Registration {
   name: string
   email: string
   status: string
-  type: string
   event: string
   reference: string
-  // Add other properties as needed
+  amount: number
+  dateFormatted: string
+  eventDateFormatted: string
 }
 
 function getActionItems(registration: Registration) {
@@ -654,11 +579,9 @@ function getActionItems(registration: Registration) {
 }
 
 function clearFilters() {
-  selectedStatusItem.value = statusOptions.find(o => o.value === 'all')
-  selectedTypeItem.value = typeOptions.find(o => o.value === 'all')
-  eventFilter.value = ''
-  dateFrom.value = ''
-  dateTo.value = ''
+  searchQuery.value = ''
+  selectedStatus.value = 'all'
+  selectedEventItem.value = undefined
 }
 
 function confirmDelete(registration: Registration) {

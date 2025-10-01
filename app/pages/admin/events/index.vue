@@ -106,7 +106,7 @@
             </div>
             <div>
               <div class="text-lg font-semibold text-gray-900 dark:text-white">
-                ₦{{ (event.revenue / 1000).toFixed(0) }}k
+                ₦{{ ((event.revenue ?? 0) / 100 / 1000).toFixed(0) }}k
               </div>
               <div class="text-xs text-gray-500 dark:text-gray-400">Revenue</div>
             </div>
@@ -312,11 +312,14 @@ watch(currentPage, async () => {
 // Transform API data to match EventItem interface
 const events = computed(() => {
   if (!eventsResponse.value?.data) return []
-  return eventsResponse.value.data.map(event => ({
-    ...event,
-    registrations: (event as { registrationCount?: number }).registrationCount || 0,
-    revenue: (event as { revenue?: number }).revenue || 0,
-  }))
+  return eventsResponse.value.data.map(event => {
+    const e = event as { registrationCount?: number; revenue?: number }
+    return {
+      ...event,
+      registrations: Number(e.registrationCount) || 0,
+      revenue: Number(e.revenue) || 0,
+    }
+  })
 })
 
 const totalPages = computed(() => eventsResponse.value?.pagination?.totalPages || 0)
@@ -340,7 +343,6 @@ const typeOptions = [
   { label: 'Webinar', value: 'webinar' },
   { label: 'Seminar', value: 'seminar' },
   { label: 'Symposium', value: 'symposium' },
-  { label: 'Training', value: 'training' },
 ]
 
 const newEvent = ref({
@@ -360,8 +362,28 @@ const newEvent = ref({
   collectsSubmissions: false,
 })
 
-// Events are already filtered by the API, so we use them directly
-const filteredEvents = computed(() => events.value)
+// Apply client-side filtering as a fallback to ensure immediate UX response
+const filteredEvents = computed(() => {
+  const list = events.value as EventItem[]
+  if (!list || list.length === 0) return []
+
+  const q = (searchQuery.value || '').toLowerCase().trim()
+  const status = selectedStatus.value
+  const type = selectedType.value
+
+  return list.filter(e => {
+    const matchQ = !q
+      ? true
+      : [e.title, e.location, e.description]
+          .filter(Boolean)
+          .some(v => String(v).toLowerCase().includes(q))
+
+    const matchStatus = status === 'all' ? true : e.status === status
+    const matchType = type === 'all' ? true : e.type === type
+
+    return matchQ && matchStatus && matchType
+  })
+})
 
 function onBannerSelected(e: Event) {
   const input = e.target as HTMLInputElement

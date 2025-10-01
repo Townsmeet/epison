@@ -104,7 +104,7 @@
               >
                 <img
                   class="w-full h-96 object-cover"
-                  src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                  src="/hero.png"
                   alt="Medical professionals in discussion"
                 />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
@@ -131,7 +131,7 @@
               <div
                 class="absolute -top-4 -right-4 z-20 bg-primary-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg"
               >
-                Est. 1999
+                Est. 2010
               </div>
             </div>
           </div>

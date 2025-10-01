@@ -1,8 +1,8 @@
-import { and, asc, desc, like, or, sql } from 'drizzle-orm'
+import { and, asc, desc, like, or, sql, eq } from 'drizzle-orm'
 import { defineEventHandler, createError } from 'h3'
 import { db } from '../../../utils/drizzle'
 import { isH3Error } from '../../../utils/errors'
-import { eventRegistration } from '../../../db/schema'
+import { eventRegistration, event } from '../../../db/schema'
 import { requireAuthUser } from '../../../utils/auth-helpers'
 import { registrationListQuerySchema } from '../../../validators/event'
 import { validateQuery } from '../../../validators'
@@ -33,6 +33,11 @@ export default defineEventHandler(async eventHandler => {
       )
     }
 
+    // Event ID filter
+    if (query.eventId) {
+      conditions.push(eq(eventRegistration.eventId, query.eventId))
+    }
+
     // Category filter
     if (query.category) {
       conditions.push(like(eventRegistration.category, query.category))
@@ -57,10 +62,33 @@ export default defineEventHandler(async eventHandler => {
     // Pagination
     const offset = (query.page - 1) * query.limit
 
-    // Get results
+    // Get results with event title
     const rows = await db
-      .select()
+      .select({
+        id: eventRegistration.id,
+        eventId: eventRegistration.eventId,
+        attendeeName: eventRegistration.attendeeName,
+        attendeeEmail: eventRegistration.attendeeEmail,
+        category: eventRegistration.category,
+        ticketId: eventRegistration.ticketId,
+        ticketName: eventRegistration.ticketName,
+        unitPrice: eventRegistration.unitPrice,
+        quantity: eventRegistration.quantity,
+        currency: eventRegistration.currency,
+        totalAmount: eventRegistration.totalAmount,
+        paymentStatus: eventRegistration.paymentStatus,
+        reference: eventRegistration.reference,
+        paymentProvider: eventRegistration.paymentProvider,
+        paymentMetaJson: eventRegistration.paymentMetaJson,
+        paidAt: eventRegistration.paidAt,
+        refundedAt: eventRegistration.refundedAt,
+        registeredAt: eventRegistration.registeredAt,
+        notes: eventRegistration.notes,
+        eventTitle: event.title,
+        eventStartDate: event.startDate,
+      })
       .from(eventRegistration)
+      .leftJoin(event, eq(eventRegistration.eventId, event.id))
       .where(whereExpr)
       .orderBy(
         query.sort === 'attendeeName'

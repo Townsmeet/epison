@@ -79,10 +79,11 @@ export type EventItem = Event & {
 
 export const useEvents = () => {
   // GET requests using useFetch/useAsyncData
-  const getEvents = (query: EventListQuery = {}) => {
+  const getEvents = (query: EventListQuery | Ref<EventListQuery> = {}) => {
+    const q = unref(query)
     return useFetch<PaginatedResponse<Event>>('/api/admin/events', {
-      query,
-      key: `admin-events-${JSON.stringify(query)}`,
+      query: q,
+      key: `admin-events-${JSON.stringify(q)}`,
       server: true,
       default: () => ({
         success: true,
@@ -213,11 +214,13 @@ export const useEvents = () => {
   }
 
   // All registrations (admin-level)
-  const getRegistrations = (query: RegistrationListQuery = {}) => {
+  const getRegistrations = (query: RegistrationListQuery | Ref<RegistrationListQuery> = {}) => {
+    const q = computed(() => unref(query))
     return useFetch<PaginatedResponse<EventRegistration>>('/api/admin/registrations', {
-      query,
-      key: `admin-registrations-${JSON.stringify(query)}`,
+      query: q,
+      key: computed(() => `admin-registrations-${JSON.stringify(q.value)}`),
       server: true,
+      watch: [q],
       default: () => ({
         success: true,
         data: [],
@@ -228,6 +231,32 @@ export const useEvents = () => {
           totalPages: 0,
           hasNext: false,
           hasPrev: false,
+        },
+      }),
+    })
+  }
+
+  // Registration stats (admin-level)
+  const getRegistrationStats = () => {
+    return useFetch<
+      ApiResponse<{
+        total: number
+        paid: number
+        pending: number
+        cancelled: number
+        refunded: number
+      }>
+    >('/api/admin/registrations/stats', {
+      key: 'admin-registration-stats',
+      server: false,
+      default: () => ({
+        success: false,
+        data: {
+          total: 0,
+          paid: 0,
+          pending: 0,
+          cancelled: 0,
+          refunded: 0,
         },
       }),
     })
@@ -393,8 +422,9 @@ export const useEvents = () => {
   }
 
   // Utility functions for reactive data management
-  const refreshEvents = (query: EventListQuery = {}) => {
-    return refreshCookie(`admin-events-${JSON.stringify(query)}`)
+  const refreshEvents = (query: EventListQuery | Ref<EventListQuery> = {}) => {
+    const q = unref(query)
+    return refreshCookie(`admin-events-${JSON.stringify(q)}`)
   }
 
   const refreshEvent = (id: string) => {
@@ -437,6 +467,7 @@ export const useEvents = () => {
     getEvent,
     getEventRegistrations,
     getRegistrations,
+    getRegistrationStats,
     getEventSponsors,
     getEventTickets,
     getEventCommittee,

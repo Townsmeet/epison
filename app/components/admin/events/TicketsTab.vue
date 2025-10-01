@@ -31,7 +31,7 @@
           <div class="min-w-0">
             <p class="font-medium text-gray-900 dark:text-white truncate">{{ t.name }}</p>
             <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
-              ₦{{ Number(t.price).toLocaleString() }} • Qty {{ t.quantity }}
+              ₦{{ (Number(t.price) / 100).toLocaleString() }} • Qty {{ t.quantity }}
               <span
                 v-if="t.salesStart || t.salesEnd"
                 class="ml-2 text-xs text-gray-500 dark:text-gray-400"
@@ -134,7 +134,7 @@ async function addTicket() {
   try {
     const ticketData = {
       name: String(newTicket.name).trim(),
-      price: Number(newTicket.price) || 0,
+      price: (Number(newTicket.price) || 0) * 100, // Convert naira to kobo
       quantity: Number(newTicket.quantity) || 0,
       salesStart: newTicket.salesStart || undefined,
       salesEnd: newTicket.salesEnd || undefined,
