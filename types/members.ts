@@ -22,6 +22,7 @@ export interface MemberDetail {
   sex?: string
   dob?: string
   address?: string
+  state?: string
   telephone?: string
   fax?: string
   email: string
@@ -75,6 +76,7 @@ export interface CreateMemberRequest {
   sex?: string
   dob?: string
   address?: string
+  state?: string
   telephone?: string
   fax?: string
   email: string

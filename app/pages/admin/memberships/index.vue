@@ -614,6 +614,7 @@ const {
   activateMember,
   suspendMember,
   renewMember,
+  remindMember,
   refreshStats,
 } = useMembers()
 
@@ -704,16 +705,41 @@ const pagination = computed(
 const membershipStats = computed(() => {
   const stats = statsData.value?.data
   if (!stats) return { total: 0, active: 0, pending: 0, expired: 0, suspended: 0, inactive: 0 }
-
   return {
     total: stats.total,
     active: stats.byStatus.active || 0,
     pending: stats.byStatus.pending || 0,
     expired: stats.byStatus.expired || 0,
     suspended: stats.byStatus.suspended || 0,
-    inactive: (stats.byStatus.expired || 0) + (stats.byStatus.suspended || 0),
+    inactive: (stats.byStatus.inactive || 0) + (stats.byStatus.cancelled || 0),
   }
 })
+
+function confirmSendReminder(member: MemberListItem) {
+  confirmationModal.value = {
+    isOpen: true,
+    title: 'Send Renewal Reminder',
+    message: `Send a renewal reminder email to ${getFullName(member)} (\n${member.email}\n)?`,
+    confirmText: 'Send Reminder',
+    confirmColor: 'primary',
+    onConfirm: () => sendReminderAction(member.id),
+  }
+}
+
+async function sendReminderAction(id: string) {
+  try {
+    await remindMember(id)
+    confirmationModal.value.isOpen = false
+    useToast().add({
+      title: 'Reminder sent',
+      description: 'Renewal reminder email has been sent to the member',
+      color: 'info',
+    })
+  } catch (error: unknown) {
+    const description = extractApiMessage(error, 'Failed to send reminder')
+    useToast().add({ title: 'Error', description, color: 'error' })
+  }
+}
 
 // Set default status selection when the modal opens (after refs are initialized)
 watch(isCreateMembershipOpen, open => {
@@ -790,10 +816,7 @@ function formatDate(dateString: string): string {
 
 function getMemberActions(member: MemberListItem) {
   return [
-    [
-      { label: 'View Profile', icon: 'i-heroicons-eye', click: () => viewMember(member.id) },
-      { label: 'Edit Member', icon: 'i-heroicons-pencil', click: () => editMember(member.id) },
-    ],
+    [{ label: 'View Profile', icon: 'i-heroicons-eye', click: () => viewMember(member.id) }],
     [
       {
         label: 'Activate Member',
@@ -969,10 +992,6 @@ function viewMember(id: string) {
   navigateTo(`/admin/memberships/${id}`)
 }
 
-function editMember(id: string) {
-  navigateTo(`/admin/memberships/${id}/edit`)
-}
-
 function confirmActivateMember(member: MemberListItem) {
   confirmationModal.value = {
     isOpen: true,
@@ -1014,17 +1033,6 @@ function confirmDeleteMember(member: MemberListItem) {
     confirmText: 'Delete',
     confirmColor: 'primary',
     onConfirm: () => deleteMemberAction(member.id),
-  }
-}
-
-function confirmSendReminder(member: MemberListItem) {
-  confirmationModal.value = {
-    isOpen: true,
-    title: 'Send Reminder',
-    message: `Send a renewal reminder email to ${getFullName(member)}?`,
-    confirmText: 'Send',
-    confirmColor: 'primary',
-    onConfirm: () => sendReminder(member.id),
   }
 }
 
@@ -1115,15 +1123,6 @@ async function deleteMemberAction(id: string) {
       color: 'error',
     })
   }
-}
-
-function sendReminder(_id: string) {
-  confirmationModal.value.isOpen = false
-  useToast().add({
-    title: 'Reminder sent',
-    description: 'Renewal reminder has been sent to the member',
-    color: 'info',
-  })
 }
 
 // Pagination functions

@@ -21,7 +21,12 @@
         </div>
       </div>
       <div class="flex space-x-3">
-        <UButton color="neutral" variant="outline" icon="i-heroicons-pencil" @click="editMember">
+        <UButton
+          color="neutral"
+          variant="outline"
+          icon="i-heroicons-pencil"
+          :to="`/membership/apply?edit=1&id=${memberId}`"
+        >
           Edit Member
         </UButton>
         <UDropdownMenu :items="memberActions">
@@ -385,7 +390,16 @@
             <h3 class="text-lg font-semibold">Membership History</h3>
           </template>
 
-          <div class="space-y-4">
+          <div v-if="historyPending" class="py-6 text-sm text-gray-500 dark:text-gray-400">
+            Loading history...
+          </div>
+          <div
+            v-else-if="!membershipHistory.length"
+            class="py-6 text-sm text-gray-500 dark:text-gray-400"
+          >
+            No history yet.
+          </div>
+          <div v-else class="space-y-4">
             <div
               v-for="history in membershipHistory"
               :key="history.id"
@@ -410,7 +424,7 @@
         </UCard>
 
         <!-- Manage Publications -->
-        <UCard>
+        <UCard class="mt-6">
           <template #header>
             <div class="flex items-center justify-between">
               <h3 class="text-lg font-semibold">Publications</h3>
@@ -627,11 +641,13 @@ const memberId = route.params.id as string
 // Use the composable for API calls
 const {
   getMember,
+  getMemberHistory,
   updateMember,
   deleteMember: deleteMemberAPI,
   activateMember,
   suspendMember: suspendMemberAPI,
   renewMember,
+  remindMember,
 } = useMembers()
 
 const confirmationModal = ref({
@@ -698,6 +714,38 @@ async function onFileSelected(e: Event) {
   }
 }
 
+function sendReminder() {
+  if (!member.value) return
+
+  confirmationModal.value = {
+    isOpen: true,
+    title: 'Send Renewal Reminder',
+    message: `Send a renewal reminder email to ${getFullName(member.value)} (\n${member.value.email}\n)?`,
+    confirmText: 'Send Reminder',
+    confirmColor: 'primary',
+    onConfirm: () => doSendReminder(),
+  }
+}
+
+async function doSendReminder() {
+  if (!member.value) return
+  try {
+    await remindMember(memberId)
+    confirmationModal.value.isOpen = false
+    useToast().add({
+      title: 'Reminder sent',
+      description: 'Renewal reminder email has been sent to the member',
+      color: 'info',
+    })
+  } catch (error: unknown) {
+    useToast().add({
+      title: 'Error',
+      description: extractApiMessage(error, 'Failed to send reminder'),
+      color: 'error',
+    })
+  }
+}
+
 async function removePublication(url: string) {
   try {
     isUpdatingPublications.value = true
@@ -729,30 +777,21 @@ const getFullName = (member: MemberDetail) => {
   return parts.join(' ')
 }
 
-// Mock membership history
-const membershipHistory = ref<MembershipHistory[]>([
-  {
-    id: 1,
-    action: 'Membership Renewed',
-    date: '2024-01-15',
-    type: 'renewal',
-    notes: 'Annual membership renewal processed successfully',
-  },
-  {
-    id: 2,
-    action: 'Status Updated',
-    date: '2023-06-10',
-    type: 'status_change',
-    notes: 'Status changed from pending to active after payment confirmation',
-  },
-  {
-    id: 3,
-    action: 'Member Joined',
-    date: '2023-01-15',
-    type: 'creation',
-    notes: 'Initial membership application approved',
-  },
-])
+// Real membership history
+const { data: historyResponse, pending: historyPending } = getMemberHistory(memberId)
+const membershipHistory = computed<MembershipHistory[]>(() => {
+  const items = historyResponse.value?.data as
+    | Array<{ id: string; action: string; type: string; date: string; notes?: string }>
+    | undefined
+  if (!items || !Array.isArray(items)) return []
+  return items.map((h, idx) => ({
+    id: idx, // local numeric key; API id is string but not used elsewhere
+    action: h.action,
+    date: h.date,
+    type: (h.type as MembershipHistory['type']) ?? 'status_change',
+    notes: h.notes,
+  }))
+})
 
 const memberActions = computed(() => [
   [
@@ -854,10 +893,6 @@ function downloadPublication(url: string) {
   }
 }
 
-function editMember() {
-  navigateTo(`/admin/memberships/${memberId}/edit`)
-}
-
 function confirmRenewMembership() {
   if (!member.value) return
 
@@ -937,14 +972,6 @@ async function suspendMember() {
       color: 'error',
     })
   }
-}
-
-function sendReminder() {
-  useToast().add({
-    title: 'Reminder sent',
-    description: 'Renewal reminder has been sent to the member',
-    color: 'info',
-  })
 }
 
 async function deleteMember() {

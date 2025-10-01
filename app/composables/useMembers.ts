@@ -57,6 +57,23 @@ export const useMembers = () => {
     })
   }
 
+  interface MemberHistoryItem {
+    id: string
+    memberId: string
+    action: string
+    type: string
+    date: string
+    notes?: string
+  }
+
+  const getMemberHistory = (id: string) => {
+    return useFetch<ApiResponse<MemberHistoryItem[]>>(`/api/members/${id}/history`, {
+      key: `member-history-${id}`,
+      server: true,
+      default: () => ({ success: false, data: [] }),
+    })
+  }
+
   const getMemberStats = () => {
     return useFetch<ApiResponse<MemberStats>>('/api/members/stats', {
       key: 'member-stats',
@@ -78,6 +95,8 @@ export const useMembers = () => {
   // Mutations using $fetch
   const createMember = async (data: CreateMemberRequest) => {
     return await $fetch<ApiResponse<MemberDetail>>('/api/members', {
+      retry: 3,
+      retryDelay: 1000,
       method: 'POST',
       body: data,
     })
@@ -117,6 +136,13 @@ export const useMembers = () => {
     })
   }
 
+  // Send renewal reminder email
+  const remindMember = async (id: string) => {
+    return await $fetch<ApiResponse<{ sent: boolean }>>(`/api/members/${id}/remind`, {
+      method: 'POST',
+    })
+  }
+
   // Utility functions for reactive data management
   const refreshMembers = (query: MemberListQuery = {}) => {
     return refreshCookie(`members-${JSON.stringify(query)}`)
@@ -134,6 +160,7 @@ export const useMembers = () => {
     // GET requests
     getMembers,
     getMember,
+    getMemberHistory,
     getMemberStats,
 
     // Mutations
@@ -143,6 +170,7 @@ export const useMembers = () => {
     activateMember,
     suspendMember,
     renewMember,
+    remindMember,
 
     // Utilities
     refreshMembers,

@@ -80,7 +80,8 @@ definePageMeta({ layout: 'default' })
 
 const route = useRoute()
 const isEditMode = computed(() => route.query.edit === '1' || route.query.edit === 'true')
-const memberId = computed(() => Number(route.query.id || 0))
+// Member IDs are strings (UUID/text). Do NOT coerce to number.
+const memberId = computed(() => String(route.query.id || ''))
 
 useHead(() => ({
   title: isEditMode.value ? 'Edit Member - EPISON' : 'Apply for Membership - EPISON',
@@ -109,9 +110,11 @@ const state = reactive<MembershipFormData>({
   sex: '',
   dob: '',
   address: '',
+  state: 'Abia',
   telephone: '',
   fax: '',
   email: '',
+  avatar: '',
 
   // Employment & Education
   position: '',
@@ -139,7 +142,7 @@ const state = reactive<MembershipFormData>({
   // Payment Details
   membershipType: '',
   fees: 0,
-  publications: [],
+  publications: [] as File[],
 })
 
 // Minimal Paystack types
@@ -481,7 +484,7 @@ const onSubmit = async (_event: FormSubmitEvent<MembershipFormData>) => {
         typeOfWorkOther: state.typeOfWorkOther,
       }
 
-      const updateResponse = await updateMember(memberId.value.toString(), updateData)
+      const updateResponse = await updateMember(memberId.value, updateData)
       if (!updateResponse.success) {
         throw new Error(updateResponse.error || 'Failed to update member')
       }
@@ -540,7 +543,7 @@ const onSubmit = async (_event: FormSubmitEvent<MembershipFormData>) => {
     }
 
     // Prepare member data for API
-    const createData = {
+    const createData: import('../../../types/members').CreateMemberRequest = {
       // Personal Information
       title: state.title,
       nameFamily: state.nameFamily,
@@ -657,7 +660,7 @@ const onSubmit = async (_event: FormSubmitEvent<MembershipFormData>) => {
 async function loadMemberForEdit() {
   if (!isEditMode.value || !memberId.value) return
   try {
-    const { data: member, error, pending: _pending } = await getMember(memberId.value.toString())
+    const { data: member, error, pending: _pending } = await getMember(memberId.value)
     if (error.value || !member.value) {
       let errorMessage = 'Failed to load member'
       if (error.value) {
@@ -686,9 +689,11 @@ async function loadMemberForEdit() {
     state.sex = memberData.sex || ''
     state.dob = memberData.dob || ''
     state.address = memberData.address || ''
+    state.state = memberData.state || ''
     state.telephone = memberData.telephone || ''
     state.fax = memberData.fax || ''
     state.email = memberData.email
+    state.avatar = memberData.avatar || ''
     state.position = memberData.position || ''
     state.department = memberData.department || ''
     state.employer = memberData.employer || ''

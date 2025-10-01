@@ -59,10 +59,11 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
       sex: memberData.sex ?? undefined,
       dob: memberData.dob ?? undefined,
       address: memberData.address ?? undefined,
+      state: memberData.state ?? '',
       telephone: memberData.telephone ?? undefined,
       fax: memberData.fax ?? undefined,
       email: memberData.email,
-      avatar: memberData.avatar ?? undefined,
+      avatar: memberData.avatar ?? '',
 
       // Employment & Education
       position: memberData.position ?? undefined,
