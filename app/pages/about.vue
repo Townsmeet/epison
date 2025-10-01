@@ -4,166 +4,114 @@
   >
     <!-- Hero Section (Reusable) -->
     <HeroSection
-      title="About EPISON"
-      subtitle="Advancing the science and practice of epidemiology for better health outcomes in Nigeria through excellence, innovation, and collaboration."
+      title="About EPiSON"
+      subtitle="The Epidemiological Society of Nigeria (EPiSON) was registered in 2010 and enjoys joint membership with the International Epidemiological Association (IEA). We are dedicated to advancing epidemiological practice, research, and teaching throughout Nigeria."
     />
 
-    <!-- Mission and Vision -->
-    <section class="py-20 md:py-32 bg-white dark:bg-gray-900">
+    <!-- Main Goals Section -->
+    <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid lg:grid-cols-2 gap-16 items-center">
-          <div class="space-y-12">
-            <!-- Mission -->
-            <div>
-              <div
-                class="inline-flex items-center space-x-2 px-4 py-2 bg-primary-50/80 dark:bg-primary-900/20 backdrop-blur-sm rounded-full border border-primary-200/50 dark:border-primary-700/50 shadow-sm mb-6"
-              >
-                <div class="w-2 h-2 bg-primary-500 rounded-full" />
-                <span class="text-sm font-medium text-primary-700 dark:text-primary-300"
-                  >Our Mission</span
-                >
-              </div>
-              <h2
-                class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6 leading-tight"
-              >
-                Promoting Excellence in
-                <span
-                  class="bg-gradient-to-r from-primary-600 to-blue-600 bg-clip-text text-transparent"
-                  >Epidemiology</span
-                >
-              </h2>
-              <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-                To promote the study and practice of epidemiology in Nigeria through capacity
-                building, research, advocacy, and collaboration with relevant stakeholders to
-                improve public health outcomes.
-              </p>
-            </div>
-
-            <!-- Vision -->
-            <div>
-              <div
-                class="inline-flex items-center space-x-2 px-4 py-2 bg-blue-50/80 dark:bg-blue-900/20 backdrop-blur-sm rounded-full border border-blue-200/50 dark:border-blue-700/50 shadow-sm mb-6"
-              >
-                <div class="w-2 h-2 bg-blue-500 rounded-full" />
-                <span class="text-sm font-medium text-blue-700 dark:text-blue-300">Our Vision</span>
-              </div>
-              <h2
-                class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6 leading-tight"
-              >
-                Leading
-                <span
-                  class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-                  >Public Health</span
-                >
-              </h2>
-              <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-                To be the leading professional body in Nigeria for the advancement of
-                epidemiological practice and its application to public health challenges.
-              </p>
-            </div>
+        <!-- Section Header -->
+        <div class="max-w-3xl mx-auto text-center mb-16">
+          <div
+            class="inline-flex items-center space-x-2 px-4 py-2 bg-primary-50/80 dark:bg-primary-900/20 backdrop-blur-sm rounded-full border border-primary-200/50 dark:border-primary-700/50 shadow-sm mb-6"
+          >
+            <div class="w-2 h-2 bg-primary-500 rounded-full" />
+            <span class="text-sm font-medium text-primary-700 dark:text-primary-300"
+              >Our Goals</span
+            >
           </div>
-
-          <div class="relative">
-            <div
-              class="relative z-10 rounded-3xl overflow-hidden shadow-2xl transform rotate-2 hover:rotate-0 transition-transform duration-700"
+          <h2
+            class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight"
+          >
+            Main Goals of
+            <span
+              class="bg-gradient-to-r from-primary-600 to-blue-600 bg-clip-text text-transparent"
             >
-              <img
-                class="w-full h-96 object-cover"
-                src="https://images.unsplash.com/photo-1581056771107-24ca5f033842?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1950&q=80"
-                alt="Public health teamwork"
-              />
-              <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-            </div>
+              the Society
+            </span>
+          </h2>
+          <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+            EPiSON is committed to advancing epidemiology through collaboration, innovation, and
+            excellence in practice.
+          </p>
+        </div>
 
-            <!-- Floating badge -->
-            <div
-              class="absolute -top-4 -right-4 z-20 bg-gradient-to-r from-primary-500 to-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg"
-            >
-              Since 1995
+        <!-- Goals Grid -->
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div
+            v-for="(goal, index) in goals"
+            :key="index"
+            class="group bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-primary-200 dark:hover:border-primary-700 transition-all duration-300"
+          >
+            <div class="flex items-start space-x-4">
+              <div class="flex-shrink-0">
+                <div
+                  class="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
+                >
+                  <UIcon :name="goal.icon" class="h-6 w-6 text-primary-600 dark:text-primary-400" />
+                </div>
+              </div>
+              <div class="flex-1">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  {{ goal.title }}
+                </h3>
+                <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                  {{ goal.description }}
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Core Values -->
-    <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50 relative overflow-hidden">
-      <!-- Subtle background pattern -->
-      <div class="absolute inset-0 opacity-5">
-        <div
-          class="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-primary-500 to-blue-500 rounded-full mix-blend-multiply filter blur-3xl"
-        />
-        <div
-          class="absolute bottom-20 left-20 w-96 h-96 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mix-blend-multiply filter blur-3xl"
-        />
-      </div>
-
-      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Section Header -->
-        <div class="max-w-2xl mb-20">
-          <div
-            class="inline-flex items-center space-x-2 px-4 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-full border border-gray-200/50 dark:border-gray-700/50 shadow-sm mb-6"
-          >
-            <div class="w-2 h-2 bg-purple-500 rounded-full" />
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Core Values</span>
-          </div>
-          <h2
-            class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight"
-          >
-            Our
-            <span class="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent"
-              >Guiding Principles</span
-            >
-          </h2>
-          <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-            The values that define who we are and how we operate in advancing epidemiology.
-          </p>
-        </div>
-
-        <!-- Values Grid -->
-        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          <div v-for="(value, index) in values" :key="index" class="group relative">
-            <!-- Value Card -->
+    <!-- Membership Section -->
+    <section class="py-20 md:py-32 bg-white dark:bg-gray-900">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-16 items-center">
+          <div class="relative order-2 lg:order-1">
             <div
-              class="relative h-full p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300"
+              class="relative z-10 rounded-3xl overflow-hidden shadow-2xl transform -rotate-2 hover:rotate-0 transition-transform duration-700"
             >
-              <!-- Icon with gradient background -->
-              <div class="relative mb-6">
-                <div
-                  class="absolute inset-0 bg-gradient-to-br from-primary-500/20 to-blue-500/20 rounded-2xl blur-xl"
-                />
-                <div
-                  class="relative flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-primary-500 to-blue-600 text-white shadow-lg"
-                >
-                  <UIcon :name="value.icon" class="h-8 w-8" />
-                </div>
-              </div>
-
-              <!-- Content -->
-              <div class="space-y-4">
-                <h3
-                  class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors"
-                >
-                  {{ value.title }}
-                </h3>
-
-                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
-                  {{ value.description }}
-                </p>
-              </div>
-
-              <!-- Subtle hover effect -->
-              <div
-                class="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-blue-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              <img
+                class="w-full h-96 object-cover"
+                src="https://images.unsplash.com/photo-1581056771107-24ca5f033842?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1950&q=80"
+                alt="Multidisciplinary health professionals"
               />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
             </div>
 
-            <!-- Floating number indicator -->
+            <!-- Floating badge -->
             <div
-              class="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-gray-800 to-gray-900 dark:from-gray-100 dark:to-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-white dark:text-gray-900 shadow-lg"
+              class="absolute -top-4 -left-4 z-20 bg-gradient-to-r from-primary-500 to-blue-500 text-white px-6 py-3 rounded-full text-sm font-semibold shadow-lg"
             >
-              {{ index + 1 }}
+              Since 2010
             </div>
+          </div>
+
+          <div class="order-1 lg:order-2">
+            <div
+              class="inline-flex items-center space-x-2 px-4 py-2 bg-blue-50/80 dark:bg-blue-900/20 backdrop-blur-sm rounded-full border border-blue-200/50 dark:border-blue-700/50 shadow-sm mb-6"
+            >
+              <div class="w-2 h-2 bg-blue-500 rounded-full" />
+              <span class="text-sm font-medium text-blue-700 dark:text-blue-300">Our Members</span>
+            </div>
+            <h2
+              class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight"
+            >
+              Multidisciplinary
+              <span
+                class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+              >
+                Community
+              </span>
+            </h2>
+            <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+              EPiSON currently has members spread across all states in Nigeria. Our membership is
+              drawn from a wide range of disciplines, including {{ disciplines.join(', ') }} (among
+              others), creating a rich, collaborative environment for epidemiological advancement.
+            </p>
           </div>
         </div>
       </div>
@@ -204,7 +152,7 @@
               <div class="flex flex-col items-center text-center">
                 <div class="relative mb-6">
                   <img
-                    class="h-24 w-24 rounded-full object-cover border-4 border-white dark:border-gray-700 shadow-lg"
+                    class="h-28 w-28 rounded-full object-cover border-4 border-white dark:border-gray-700 shadow-lg"
                     :src="member.image"
                     :alt="member.name"
                   />
@@ -326,56 +274,6 @@
       </div>
     </section>
 
-    <!-- History -->
-    <div class="bg-gray-50 dark:bg-gray-800 py-16">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="lg:text-center mb-12">
-          <h2
-            class="text-base text-primary-600 dark:text-primary-400 font-semibold tracking-wide uppercase"
-          >
-            Our Story
-          </h2>
-          <p
-            class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl"
-          >
-            Our History
-          </p>
-        </div>
-
-        <div class="relative">
-          <!-- Timeline -->
-          <div class="relative">
-            <div
-              class="absolute left-4 h-full w-0.5 bg-gray-300 dark:bg-gray-600"
-              aria-hidden="true"
-            />
-
-            <ul class="space-y-8">
-              <li v-for="(event, index) in history" :key="index" class="relative">
-                <div class="flex items-start">
-                  <div class="flex-shrink-0">
-                    <div
-                      class="flex items-center justify-center h-8 w-8 rounded-full bg-primary-500 text-white"
-                    >
-                      <UIcon name="i-heroicons-check" class="h-4 w-4" />
-                    </div>
-                  </div>
-                  <div class="ml-6">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                      {{ event.year }}: {{ event.title }}
-                    </h3>
-                    <p class="mt-2 text-gray-600 dark:text-gray-300">
-                      {{ event.description }}
-                    </p>
-                  </div>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- CTA -->
     <section
       class="py-20 md:py-32 bg-gradient-to-br from-primary-600 via-primary-500 to-blue-600 relative overflow-hidden"
@@ -427,166 +325,143 @@
 </template>
 
 <script setup lang="ts">
-const values = [
-  {
-    icon: 'i-heroicons-light-bulb',
-    title: 'Excellence',
-    description:
-      'We are committed to the highest standards in epidemiological practice and research.',
-  },
-  {
-    icon: 'i-heroicons-scale',
-    title: 'Integrity',
-    description: 'We uphold the highest ethical standards in all our activities and relationships.',
-  },
+const goals = [
   {
     icon: 'i-heroicons-users',
-    title: 'Collaboration',
-    description: 'We believe in the power of partnerships to achieve our public health goals.',
+    title: 'Facilitate Communication',
+    description:
+      'Foster communication and cooperation among multidisciplinary individuals engaged in the practice, research, and teaching of epidemiology throughout Nigeria.',
+  },
+  {
+    icon: 'i-heroicons-beaker',
+    title: 'Develop Methods',
+    description:
+      'Engage in the development and use of epidemiological methods in all fields of health, including social, community, and preventive medicine.',
+  },
+  {
+    icon: 'i-heroicons-chart-bar',
+    title: 'Collect & Analyze',
+    description:
+      'Collect and analyze information on effective epidemiological methods and strategies to advance the field.',
   },
   {
     icon: 'i-heroicons-light-bulb',
-    title: 'Innovation',
-    description: 'We embrace new ideas and approaches to address public health challenges.',
+    title: 'Promote Strategies',
+    description:
+      'Promote effective strategies through the exchange of information and ideas among members and stakeholders.',
   },
   {
-    icon: 'i-heroicons-globe-alt',
-    title: 'Equity',
-    description: 'We are committed to reducing health disparities and promoting health equity.',
+    icon: 'i-heroicons-heart',
+    title: 'Encourage Volunteerism',
+    description:
+      'Encourage volunteerism in support of epidemiology and public health initiatives across Nigeria.',
   },
   {
-    icon: 'i-heroicons-academic-cap',
-    title: 'Professionalism',
-    description: 'We maintain the highest standards of professional conduct and competence.',
+    icon: 'i-heroicons-cog',
+    title: 'Practical Implementation',
+    description:
+      'Provide the means by which epidemiological methods can be effectively put into practice for better health outcomes.',
   },
+]
+
+const disciplines = [
+  'Medicine',
+  'Veterinary Medicine',
+  'Pharmacy',
+  'Laboratory Science',
+  'Statistics',
+  'Sociology',
+  'Parasitology',
+  'Nursing',
 ]
 
 const leadership = [
   {
-    name: 'Dr. Amina Bello',
+    name: 'Dr. Matthew Ashikeni',
     position: 'President',
     institution: 'University of Ibadan',
     bio: 'Professor of Epidemiology with over 20 years of experience in infectious disease epidemiology and control.',
-    image: 'https://randomuser.me/api/portraits/women/65.jpg',
+    image: '/excomembers/president.jpeg',
   },
   {
-    name: 'Prof. Chukwuma Okoro',
-    position: 'Vice President',
-    institution: 'University of Lagos',
-    bio: 'Expert in non-communicable disease epidemiology and health systems research.',
-    image: 'https://randomuser.me/api/portraits/men/42.jpg',
+    name: 'Prof. Charles Tobin-West',
+    position: '1st Vice President',
+    institution: 'University of Port Harcourt ',
+    bio: 'Professor and Consultant Community Health Physician.',
+    image: '/excomembers/1st-vice-president.jpeg',
   },
   {
-    name: 'Dr. Fatima Ibrahim',
-    position: 'General Secretary',
-    institution: 'Ahmadu Bello University',
-    bio: 'Specialist in maternal and child health epidemiology with extensive field experience.',
-    image: 'https://randomuser.me/api/portraits/women/44.jpg',
+    name: 'Dr. John Oladejo',
+    position: '2nd Vice President',
+    institution: 'Nigeria Centre for Disease Control and Prevention',
+    bio: 'Director Special Duties at the Nigeria Centre for Disease Control and Prevention.',
+    image: '/excomembers/2nd-vice-president.jpeg',
   },
   {
-    name: 'Dr. Emeka Nwosu',
+    name: 'Prof. Nonye Egenti',
+    position: 'Secretary General',
+    institution: 'University of Abuja',
+    bio: 'Professor and Consultant Community Health Physician.',
+    image: '/excomembers/secretary-general.jpeg',
+  },
+  {
+    name: 'Dr. Bernadine Nsa Ekpenyong',
+    position: 'Assistant Secretary',
+    institution: 'University of Calabar',
+    bio: 'Associate Professor and unit Head, Epidemiology & Biostatistics Unit, Department of Public Health, UNICAL, Public Health Epidemiologist, Consultant Optometrist, Editor and Researcher',
+    image: '/excomembers/assistant-secretary.jpeg',
+  },
+  {
+    name: 'Fatimah Ahmed',
     position: 'Treasurer',
-    institution: 'University of Nigeria, Nsukka',
-    bio: 'Health economist and epidemiologist focusing on health financing and policy.',
-    image: 'https://randomuser.me/api/portraits/men/32.jpg',
+    institution: 'FCT Public Health Department, Health Service and Environment Secretariat',
+    bio: 'Epidemiologist FCT State Disease Surveillance and Notification Officer with over 20 years of field experience PHEM-IC',
+    image: '/excomembers/treasurer.jpeg',
   },
   {
-    name: 'Dr. Aisha Yusuf',
-    position: 'Editor-in-Chief',
-    institution: 'Bayero University Kano',
-    bio: 'Expert in infectious disease modeling and outbreak investigation.',
-    image: 'https://randomuser.me/api/portraits/women/63.jpg',
+    name: 'Dr. Oladayo David Awoyale',
+    position: 'Auditor 2',
+    institution: 'Sydani Group',
+    bio: 'Field Epidemiologists, Researcher, Infectious Disease Modeller, PHEOC Expert, EDCTP Epi-Fellow. MPH | NFELTP',
+    image: '/excomembers/auditor2.jpeg',
   },
   {
-    name: 'Dr. Olumide Adebayo',
-    position: 'Publicity Secretary',
-    institution: 'Obafemi Awolowo University',
-    bio: 'Specialist in health communication and behavioral epidemiology.',
-    image: 'https://randomuser.me/api/portraits/men/54.jpg',
+    name: 'Prof. Jonathan Chi Daboer',
+    position: 'Editor in chief, JEPISON',
+    institution: 'University of Jos and Jos University Teaching Hospital',
+    bio: 'Professor and Consultant Public Health Physician.',
+    image: '/excomembers/editor-in-chief.jpeg',
+  },
+  {
+    name: 'Prof. Soter Ameh',
+    position: 'Ex officio 2',
+    institution: 'University of Calabar',
+    bio: 'Public Health/Community Physician and Epidemiologist.',
+    image: '/excomembers/ex-officio2.jpeg',
   },
 ]
 
 const boardOfTrustees = [
   {
-    name: 'Prof. Adebola Adeyemi',
+    name: 'Prof. Oladele Olujimi Kale',
     position: 'Chairman, Board of Trustees',
-    institution: 'Former Vice-Chancellor, University of Ibadan',
-    bio: 'Distinguished public health leader with over 30 years of experience in health policy and academic administration.',
-    image: 'https://randomuser.me/api/portraits/women/75.jpg',
+    institution: 'University of Ibadan',
+    bio: 'Retired Professor on Public Health and Community Medicine & Consultant Community Physician.',
+    image: '/botmembers/oladele-kale.jpg',
   },
   {
-    name: 'Dr. Muhammed Sani',
-    position: 'Vice Chairman',
-    institution: 'Former Director General, Nigeria Centre for Disease Control',
-    bio: "Renowned epidemiologist and former head of Nigeria's premier disease control agency.",
-    image: 'https://randomuser.me/api/portraits/men/67.jpg',
-  },
-  {
-    name: 'Prof. Grace Okafor',
+    name: 'Prof. Michael Chiemeli Asuzu ',
     position: 'Trustee',
-    institution: 'Former Dean, College of Medicine, University of Lagos',
-    bio: 'Expert in maternal and child health with extensive experience in medical education and research.',
-    image: 'https://randomuser.me/api/portraits/women/58.jpg',
+    institution: 'University of Ibadan',
+    bio: 'Retired professor and consultant of Disciplinary Public Health and Community Medicine',
+    image: '/botmembers/michael-asuzu.jpeg',
   },
   {
-    name: 'Dr. Ibrahim Yakubu',
+    name: 'Prof. Sunday Aremu Omilabu',
     position: 'Trustee',
-    institution: 'Former Minister of Health, Kaduna State',
-    bio: 'Public health physician with significant experience in health policy development and implementation.',
-    image: 'https://randomuser.me/api/portraits/men/71.jpg',
-  },
-  {
-    name: 'Prof. Chioma Nwankwo',
-    position: 'Trustee',
-    institution: 'Former WHO Regional Advisor for Africa',
-    bio: 'International public health expert with extensive experience in global health programs and epidemiology.',
-    image: 'https://randomuser.me/api/portraits/women/69.jpg',
-  },
-  {
-    name: 'Dr. Abdullahi Hassan',
-    position: 'Trustee',
-    institution: 'Former Chief Medical Director, National Hospital Abuja',
-    bio: 'Clinical epidemiologist with expertise in hospital administration and healthcare quality improvement.',
-    image: 'https://randomuser.me/api/portraits/men/59.jpg',
-  },
-]
-
-const history = [
-  {
-    year: '1995',
-    title: 'Founding of EPISON',
-    description:
-      'The Epidemiological Society of Nigeria was established by a group of public health professionals to promote epidemiology in Nigeria.',
-  },
-  {
-    year: '1998',
-    title: 'First Scientific Conference',
-    description:
-      'Successfully organized the first annual scientific conference in Lagos, bringing together epidemiologists from across the country.',
-  },
-  {
-    year: '2005',
-    title: 'Journal Launch',
-    description:
-      'Launched the Nigerian Journal of Epidemiology, a peer-reviewed publication for epidemiological research.',
-  },
-  {
-    year: '2012',
-    title: 'International Collaboration',
-    description:
-      'Established partnerships with international epidemiological associations for knowledge exchange and capacity building.',
-  },
-  {
-    year: '2020',
-    title: 'COVID-19 Response',
-    description:
-      "Played a key role in Nigeria's COVID-19 response through research, training, and policy advice.",
-  },
-  {
-    year: '2023',
-    title: 'New Headquarters',
-    description:
-      'Inaugurated the EPISON secretariat in Abuja to better serve members across Nigeria.',
+    institution: 'University of Lagos',
+    bio: 'Professor of Medical Virology, Hospital and Consultant Virologist.',
+    image: '/botmembers/sunday-aremu.jpeg',
   },
 ]
 </script>
