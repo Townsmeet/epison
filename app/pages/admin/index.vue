@@ -1,37 +1,5 @@
 <template>
   <div>
-    <!-- Stats -->
-    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-      <StatCard
-        title="Total Registrations"
-        :value="stats.totalRegistrations"
-        :change="stats.registrationChange"
-        icon="i-heroicons-user-group"
-        color="blue"
-      />
-      <StatCard
-        title="Upcoming Events"
-        :value="stats.upcomingEvents"
-        :change="stats.eventsChange"
-        icon="i-heroicons-calendar"
-        color="green"
-      />
-      <StatCard
-        title="Total Revenue"
-        :value="`₦${stats.totalRevenue.toLocaleString()}`"
-        :change="stats.revenueChange"
-        icon="i-heroicons-currency-dollar"
-        color="purple"
-      />
-      <StatCard
-        title="Active Members"
-        :value="stats.activeMembers"
-        :change="stats.membersChange"
-        icon="i-heroicons-users"
-        color="yellow"
-      />
-    </div>
-
     <!-- Recent Activity and Upcoming Events -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
       <!-- Recent Activity -->
@@ -299,8 +267,8 @@ definePageMeta({
   layout: 'admin',
 })
 
-// Stats data
-const stats = {
+// Stats data (currently unused)
+const _stats = {
   totalRegistrations: 1245,
   registrationChange: 12.5,
   upcomingEvents: 3,

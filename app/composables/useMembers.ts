@@ -1,3 +1,4 @@
+import type { Ref, ComputedRef } from 'vue'
 import type {
   MemberListItem,
   MemberDetail,
@@ -20,10 +21,15 @@ export interface MemberListQuery {
 
 export const useMembers = () => {
   // GET requests using useFetch/useAsyncData
-  const getMembers = (query: MemberListQuery = {}) => {
+  const getMembers = (
+    query: MemberListQuery | Ref<MemberListQuery> | ComputedRef<MemberListQuery> = {}
+  ) => {
+    // If query is a ref/computed, use it directly; otherwise wrap it
+    const queryRef = isRef(query) ? query : ref(query)
+
     return useFetch<PaginatedResponse<MemberListItem>>('/api/members', {
-      query,
-      key: `members-${JSON.stringify(query)}`,
+      query: queryRef,
+      watch: [queryRef],
       server: true,
       default: () => ({
         success: false,

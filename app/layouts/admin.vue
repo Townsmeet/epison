@@ -48,36 +48,47 @@
           >
             <UIcon :name="item.icon" class="w-5 h-5 mr-3" />
             {{ item.name }}
-            <UBadge
-              v-if="item.badge"
-              :color="item.badgeColor || 'neutral'"
-              size="xs"
-              class="ml-auto"
-            >
-              {{ item.badge }}
-            </UBadge>
+            <ClientOnly>
+              <UBadge
+                v-if="item.badge"
+                :color="item.badgeColor || 'neutral'"
+                size="xs"
+                class="ml-auto"
+              >
+                {{ item.badge }}
+              </UBadge>
+            </ClientOnly>
           </NuxtLink>
         </nav>
 
         <!-- User menu -->
-        <div class="px-4 py-4 border-t border-gray-200 dark:border-gray-700">
-          <UDropdownMenu :items="userMenuItems" :popper="{ placement: 'top-start' }">
-            <div
-              class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
-            >
+        <ClientOnly>
+          <div class="px-4 py-4 border-t border-gray-200 dark:border-gray-700">
+            <UDropdownMenu :items="userMenuItems" :popper="{ placement: 'top-start' }">
               <div
-                class="w-8 h-8 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-full flex items-center justify-center mr-3"
+                class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
               >
-                <span class="text-white font-semibold text-xs">A</span>
+                <div
+                  class="w-8 h-8 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-full flex items-center justify-center mr-3 flex-shrink-0"
+                >
+                  <span class="text-white font-semibold text-xs">{{ avatarInitials }}</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="font-medium truncate leading-tight" :title="displayName">
+                    {{ displayName }}
+                  </p>
+                  <p
+                    class="text-xs text-gray-500 dark:text-gray-400 truncate"
+                    :title="displayEmail"
+                  >
+                    {{ displayEmail }}
+                  </p>
+                </div>
+                <UIcon name="i-heroicons-chevron-up" class="w-4 h-4" />
               </div>
-              <div class="flex-1">
-                <p class="font-medium">Admin User</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">admin@epison.org.ng</p>
-              </div>
-              <UIcon name="i-heroicons-chevron-up" class="w-4 h-4" />
-            </div>
-          </UDropdownMenu>
-        </div>
+            </UDropdownMenu>
+          </div>
+        </ClientOnly>
       </div>
     </div>
 
@@ -133,28 +144,67 @@
 <script setup lang="ts">
 const sidebarOpen = ref(false)
 // Auth composable
-const { logout } = useAuth()
+const { user, init, logout } = useAuth()
+onMounted(() => {
+  // Initialize session on client to populate user details
+  init()
+})
 
-const navigation = [
+// Fetch counts for badges
+const { getMemberStats } = useMembers()
+const { getEvents, getRegistrations } = useEvents()
+
+// Fetch data with reactive queries
+const { data: memberStatsResponse } = getMemberStats()
+const { data: eventsResponse } = getEvents({ upcoming: true, limit: 100 })
+const { data: registrationsResponse } = getRegistrations({ limit: 1, page: 1 })
+
+// Computed counts
+const pendingMembershipsCount = computed(() => {
+  const response = memberStatsResponse.value
+  if (!response?.success || !response.data) return 0
+  return response.data.byStatus?.pending || 0
+})
+
+const upcomingEventsCount = computed(() => {
+  const response = eventsResponse.value
+  if (!response?.success || !response.data) return 0
+  const events = response.data
+  return Array.isArray(events) ? events.length : 0
+})
+
+const totalRegistrationsCount = computed(() => {
+  const response = registrationsResponse.value
+  if (!response?.success || !response.pagination) return 0
+  return response.pagination.total || 0
+})
+
+const navigation = computed(() => [
   { name: 'Dashboard', to: '/admin', icon: 'i-heroicons-home' },
   {
     name: 'Memberships',
     to: '/admin/memberships',
     icon: 'i-heroicons-user-group',
-    badge: '45',
+    badge: pendingMembershipsCount.value > 0 ? String(pendingMembershipsCount.value) : undefined,
     badgeColor: 'warning' as const,
   },
-  { name: 'Events', to: '/admin/events', icon: 'i-heroicons-calendar-days' },
+  {
+    name: 'Events',
+    to: '/admin/events',
+    icon: 'i-heroicons-calendar-days',
+    badge: upcomingEventsCount.value > 0 ? String(upcomingEventsCount.value) : undefined,
+    badgeColor: 'primary' as const,
+  },
   {
     name: 'Registrations',
     to: '/admin/registrations',
     icon: 'i-heroicons-clipboard-document-list',
-    badge: '12',
+    badge: totalRegistrationsCount.value > 0 ? String(totalRegistrationsCount.value) : undefined,
     badgeColor: 'success' as const,
   },
   { name: 'Analytics', to: '/admin/analytics', icon: 'i-heroicons-chart-bar' },
   // Settings temporarily hidden until page is defined
-]
+])
 
 const userMenuItems = [
   [
@@ -208,5 +258,37 @@ const isDark = computed({
   set(_isDark: boolean) {
     colorMode.preference = _isDark ? 'dark' : 'light'
   },
+})
+
+// Derived user display data
+const displayName = computed(() => {
+  const u = user.value as { name?: string | null; email?: string | null } | null
+  if (u?.name && u.name.trim()) return u.name
+  if (u?.email) {
+    const local = u.email.split('@')[0]
+    return local ? local.charAt(0).toUpperCase() + local.slice(1) : 'Administrator'
+  }
+  return 'Administrator'
+})
+
+const displayEmail = computed(() => {
+  const u = user.value as { email?: string | null } | null
+  return (u?.email as string | undefined) ?? '—'
+})
+
+const avatarInitials = computed(() => {
+  const u = user.value as { name?: string | null; email?: string | null } | null
+  const name = u?.name?.trim()
+  if (name) {
+    const initials = name
+      .split(' ')
+      .filter(Boolean)
+      .map(n => n[0])
+      .join('')
+      .slice(0, 2)
+    return initials ? initials.toUpperCase() : 'A'
+  }
+  const email = u?.email || ''
+  return email ? email.charAt(0).toUpperCase() : 'A'
 })
 </script>

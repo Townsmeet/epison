@@ -22,9 +22,19 @@ export default defineEventHandler(
       const limit = query.limit ?? 10
       const search = (query.search || '').trim()
       const status = query.status || ''
-      const type = query.type || ''
-      const sortBy = query.sortBy || 'nameFirst'
-      const sortOrder = query.sortOrder || 'asc'
+      // Accept both `type` and `membershipType` for backward compatibility with client
+      // Validator currently defines `membershipType`, while clients may send `type`.
+      const type = (query as Record<string, unknown>)?.['type']
+        ? String((query as Record<string, unknown>)['type'])
+        : (query as Record<string, unknown>)?.['membershipType']
+          ? String((query as Record<string, unknown>)['membershipType'])
+          : ''
+      const sortBy = (query as Record<string, unknown>)?.['sortBy']
+        ? String((query as Record<string, unknown>)['sortBy'])
+        : 'nameFirst'
+      const sortOrder = (query as Record<string, unknown>)?.['sortOrder']
+        ? String((query as Record<string, unknown>)['sortOrder'])
+        : 'asc'
 
       // Build where conditions
       const conditions = []

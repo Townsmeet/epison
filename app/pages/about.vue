@@ -412,6 +412,13 @@ const leadership = [
     image: '/excomembers/assistant-secretary.jpeg',
   },
   {
+    name: 'Dr. Obinna Kelvin Esimogu',
+    position: 'Financial Secretary',
+    institution: 'Federal Ministry of Labour and Employment',
+    bio: 'Epidemiologist, and Occupational Safety and Health Inspector. Expertise in infectious and occupational disease modeling.',
+    image: '/excomembers/financial-secretary.jpeg',
+  },
+  {
     name: 'Fatimah Ahmed',
     position: 'Treasurer',
     institution: 'FCT Public Health Department, Health Service and Environment Secretariat',

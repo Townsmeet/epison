@@ -590,6 +590,7 @@
 <script setup lang="ts">
 import type { RadioGroupItem, DropdownMenuItem } from '@nuxt/ui'
 import type { MemberListItem } from '../../../../types/members'
+import type { PaginatedResponse } from '../../../../types/api'
 
 definePageMeta({
   layout: 'admin',
@@ -633,9 +634,9 @@ const genderItems = ref<RadioGroupItem[]>([
 
 const membershipTypeOptions = [
   { label: 'All Types', value: 'all' },
-  { label: 'Regular Membership (Joint IEA - EPiSON)', value: 'regular+iea' },
+  { label: 'Regular Membership (Joint IEA - EPiSON)', value: 'regular iea' },
   { label: 'Regular Membership (EPiSON only)', value: 'regular' },
-  { label: 'Early Career Membership (Joint IEA - EPiSON)', value: 'early-career+iea' },
+  { label: 'Early Career Membership (Joint IEA - EPiSON)', value: 'early-career iea' },
   { label: 'Early Career Membership (EPiSON only)', value: 'early-career' },
 ]
 
@@ -663,23 +664,28 @@ const newMembership = ref({
 })
 
 // Reactive query for members list
-const membersQuery = computed(() => ({
-  page: currentPage.value,
-  limit: pageSize.value,
-  search: searchQuery.value || undefined,
-  status: selectedTypeItem.value?.value !== 'all' ? selectedStatusItem.value?.value : undefined,
-  type: selectedTypeItem.value?.value !== 'all' ? selectedTypeItem.value?.value : undefined,
-  sortBy: 'nameFamily',
-  sortOrder: 'asc' as const,
-}))
+const membersQuery = computed(() => {
+  const typeValue = selectedTypeItem.value?.value
+  const statusValue = selectedStatusItem.value?.value
+
+  return {
+    page: currentPage.value,
+    limit: pageSize.value,
+    search: searchQuery.value || undefined,
+    status: statusValue && statusValue !== 'all' ? statusValue : undefined,
+    membershipType: typeValue && typeValue !== 'all' ? typeValue : undefined,
+    sortBy: 'nameFamily',
+    sortOrder: 'asc' as const,
+  }
+})
 
 // Fetch data using composables
 const {
   data: membersData,
   pending: membersPending,
   refresh: refreshMembers,
-} = getMembers(membersQuery.value)
-const { data: statsData, pending: _statsPending } = getMemberStats()
+} = getMembers(membersQuery)
+const { data: statsData, pending: _statsPending, refresh: refreshStatsData } = getMemberStats()
 
 // Computed properties for UI
 const members = computed(() => membersData.value?.data || [])
@@ -719,17 +725,10 @@ watch(isCreateMembershipOpen, open => {
   }
 })
 
-// Watch for filter changes and refresh data
-let refreshTimeout: NodeJS.Timeout | null = null
+// Watch for filter changes to reset page
 watch([searchQuery, selectedTypeItem, selectedStatusItem], () => {
-  if (refreshTimeout) clearTimeout(refreshTimeout)
-  refreshTimeout = setTimeout(() => {
-    currentPage.value = 1 // Reset to first page when filters change
-    refreshMembers()
-  }, 300)
+  currentPage.value = 1 // Reset to first page when filters change
 })
-
-// Note: selectedTypeItem/selectedStatusItem are used directly in membersQuery
 
 function typeValueFromLabel(label: string): string {
   const found = membershipTypeOptions.find(o => o.label === label)
@@ -758,9 +757,9 @@ function getTypeColor(
     string,
     'neutral' | 'info' | 'primary' | 'secondary' | 'success' | 'warning' | 'error'
   > = {
-    'regular+iea': 'primary',
+    'regular iea': 'primary',
     regular: 'success',
-    'early-career+iea': 'info',
+    'early-career iea': 'info',
     'early-career': 'warning',
   }
   return colors[value] || 'neutral'
@@ -850,12 +849,120 @@ function clearFilters() {
   selectedStatusItem.value = statusOptions.find(o => o.value === 'all')
 }
 
-function exportMemberships() {
-  useToast().add({
-    title: 'Export started',
-    description: 'Membership data is being exported...',
-    color: 'info',
-  })
+async function exportMemberships() {
+  try {
+    // Notify start
+    useToast().add({
+      title: 'Preparing export',
+      description: 'Collecting membership data with current filters...',
+    })
+
+    // Reuse the exact same filters as the table and paginate (validator limit is 100)
+    const pageSize = 100
+    let page = 1
+    let total = 0
+    const rows: MemberListItem[] = []
+
+    // First request to get total
+    const firstRes = await $fetch<PaginatedResponse<MemberListItem>>('/api/members', {
+      query: { ...membersQuery.value, page, limit: pageSize } as Record<string, unknown>,
+      credentials: 'include',
+    })
+    total = firstRes.pagination?.total || (firstRes.data?.length ?? 0)
+    rows.push(...(firstRes.data ?? []))
+
+    // Fetch subsequent pages if needed
+    const totalPages = Math.ceil(total / pageSize)
+    while (page < totalPages) {
+      page += 1
+      const res = await $fetch<PaginatedResponse<MemberListItem>>('/api/members', {
+        query: { ...membersQuery.value, page, limit: pageSize } as Record<string, unknown>,
+        credentials: 'include',
+      })
+      rows.push(...(res.data ?? []))
+    }
+
+    if (!rows.length) {
+      useToast().add({
+        title: 'No data',
+        description: 'No members match current filters',
+        color: 'warning',
+      })
+      return
+    }
+
+    // Shape data for export
+    const data: Array<Record<string, string | number>> = rows.map(m => ({
+      ID: m.id,
+      Name: `${m.nameFirst} ${m.nameFamily}`.trim(),
+      Email: m.email,
+      'Membership Type': m.membershipType,
+      Status: m.status,
+      'Joined Date': m.joinedDate,
+      'Expiry Date': m.expiryDate,
+      Fees: m.fees,
+    }))
+
+    // Try to export as real Excel via SheetJS (dynamic import)
+    try {
+      const XLSX = await import(/* @vite-ignore */ 'xlsx')
+      const worksheet = XLSX.utils.json_to_sheet(data)
+      const workbook = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Members')
+      const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
+      const blob = new Blob([wbout], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'members_export.xlsx'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+      useToast().add({
+        title: 'Exported',
+        description: 'Excel file has been downloaded',
+        color: 'success',
+      })
+      return
+    } catch {
+      // Fall back to CSV if SheetJS is unavailable
+      const headers = Object.keys(data[0]!) as string[]
+      const csv = [
+        headers.join(','),
+        ...data.map(row =>
+          headers
+            .map(h => {
+              const v = row[h]
+              const s = v == null ? '' : String(v)
+              // escape quotes and commas/newlines
+              const escaped = '"' + s.replace(/"/g, '""') + '"'
+              return escaped
+            })
+            .join(',')
+        ),
+      ].join('\n')
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'members_export.csv'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+      useToast().add({
+        title: 'Exported (CSV fallback)',
+        description: 'CSV file has been downloaded',
+        color: 'info',
+      })
+    }
+  } catch (error: unknown) {
+    const description = extractApiMessage(error, 'Failed to export membership data')
+    useToast().add({ title: 'Export failed', description, color: 'error' })
+  }
 }
 
 function viewMember(id: string) {
@@ -1023,14 +1130,8 @@ function sendReminder(_id: string) {
 function goToPage(page: number) {
   if (page >= 1 && page <= pagination.value.totalPages) {
     currentPage.value = page
-    refreshMembers()
   }
 }
-
-// Watch for page changes
-watch(currentPage, () => {
-  refreshMembers()
-})
 
 // Wizard validation
 const canProceedToStep2 = computed(() => {
@@ -1104,5 +1205,17 @@ async function createMembership() {
   } finally {
     isCreating.value = false
   }
+}
+
+function extractApiMessage(val: unknown, fallback: string): string {
+  if (!val) return fallback
+  if (val instanceof Error) return val.message || fallback
+  if (typeof val === 'object') {
+    const obj = val as Record<string, unknown>
+    const data = obj['data'] as Record<string, unknown> | undefined
+    const msg = data?.['message']
+    if (typeof msg === 'string') return msg
+  }
+  return fallback
 }
 </script>
