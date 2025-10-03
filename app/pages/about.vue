@@ -415,7 +415,7 @@ const leadership = [
     name: 'Dr. Obinna Kelvin Esimogu',
     position: 'Financial Secretary',
     institution: 'Federal Ministry of Labour and Employment',
-    bio: 'Epidemiologist, and Occupational Safety and Health Inspector. Expertise in infectious and occupational disease modeling.',
+    bio: 'Lead Epidemiologist, and Occupational Safety and Health Inspector of Factories, Factories Inspectorate Division FMLE Hqrs Abuja. Expertise in infectious and occupational disease modelling, with over 18 years experience.',
     image: '/excomembers/financial-secretary.jpeg',
   },
   {
