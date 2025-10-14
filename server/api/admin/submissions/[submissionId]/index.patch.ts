@@ -56,12 +56,12 @@ export default defineEventHandler(async eventHandler => {
     } = {
       title: body.title,
       abstract: body.abstract,
-      authorsJson: JSON.stringify(body.authors),
-      correspondingAuthorName: body.correspondingAuthor.name,
-      correspondingAuthorEmail: body.correspondingAuthor.email,
-      correspondingAuthorAffiliation: body.correspondingAuthor.affiliation,
-      correspondingAuthorPhone: body.correspondingAuthor.phone,
-      keywordsJson: JSON.stringify(body.keywords),
+      authorsJson: body.authors ? JSON.stringify(body.authors) : undefined,
+      correspondingAuthorName: body.correspondingAuthor?.name,
+      correspondingAuthorEmail: body.correspondingAuthor?.email,
+      correspondingAuthorAffiliation: body.correspondingAuthor?.affiliation,
+      correspondingAuthorPhone: body.correspondingAuthor?.phone,
+      keywordsJson: body.keywords ? JSON.stringify(body.keywords) : undefined,
       category: body.category,
       notes: body.notes,
     }
@@ -83,7 +83,7 @@ export default defineEventHandler(async eventHandler => {
     await addActivity({
       type: 'Event',
       title: 'Submission updated',
-      description: `Submission "${body.title}" was updated`,
+      description: `Submission status changed to ${body.status || 'updated'}`,
       entityType: 'submission',
       entityId: submissionId,
       metadata: { oldStatus: oldSubmission.status, newStatus: body.status },

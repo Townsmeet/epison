@@ -78,7 +78,7 @@
         <AdminEventsSubmissionsTab
           v-if="event"
           v-show="currentTab === 'Submissions'"
-          :event-id="parseInt(event.id)"
+          :event-id="id"
         />
 
         <!-- Committee Tab -->
@@ -289,6 +289,12 @@ const { data: eventResponse, pending: _eventLoading, error: _eventError } = awai
 const event = computed(() => {
   const e = eventResponse.value?.data
   if (!e) return null
+  console.log('[AdminEventDetail] Event data received:', {
+    id: e.id,
+    idType: typeof e.id,
+    title: e.title,
+    rawId: e.id,
+  })
   return {
     ...e,
     registrations: e.registrationCount || 0,

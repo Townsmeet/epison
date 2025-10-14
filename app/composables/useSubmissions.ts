@@ -1,103 +1,58 @@
-import type { AbstractSubmission, AbstractSubmissionData } from '~/types/submissions'
+import type { Ref, ComputedRef } from 'vue'
+import type { AbstractSubmission } from '../../types/submissions'
+import type { ApiResponse, PaginatedResponse } from '../../types/api'
 
-interface HttpError extends Error {
-  response?: {
-    status: number
-    _data: AbstractSubmissionData | unknown
-  }
+export interface SubmissionListQuery {
+  page?: number
+  limit?: number
+  q?: string
+  status?: string
+  category?: string
+  eventId?: string
+  sort?: string
 }
 
-export function useSubmissions() {
-  // Check if submissions are open for an event
-  const isSubmissionOpen = (_eventId: string) => {
-    // Submissions are always open for events that collect submissions
-    // This function just returns true to allow the button to show
-    // In a real implementation, you might check submission deadlines here
-    return true
-  }
-
-  // Submit a new abstract via API
-  const submitAbstract = async (
-    submission: Omit<AbstractSubmission, 'id' | 'submissionDate' | 'status' | 'reviewerComments'>
+export const useSubmissions = () => {
+  // GET requests using useFetch/useAsyncData
+  const getSubmissions = (
+    query: SubmissionListQuery | Ref<SubmissionListQuery> | ComputedRef<SubmissionListQuery> = {}
   ) => {
-    console.log('[useSubmissions] Submitting abstract:', {
-      eventId: submission.eventId,
-      title: submission.title,
-      authors: submission.authors,
-      hasAbstract: !!submission.abstract,
-      keywords: submission.keywords,
-      category: submission.category,
-    })
+    // If query is a ref/computed, use it directly; otherwise wrap it
+    const queryRef = isRef(query) ? query : ref(query)
 
-    try {
-      const url = `/api/events/${submission.eventId}/submissions`
-      console.log('[useSubmissions] Making API request to:', url)
-
-      const response = await $fetch<AbstractSubmission>(url, {
-        method: 'POST',
-        credentials: 'include',
-        body: {
-          title: submission.title,
-          abstract: submission.abstract,
-          authors: submission.authors,
-          correspondingAuthor: submission.correspondingAuthor,
-          keywords: submission.keywords,
-          category: submission.category,
-          notes: submission.notes,
+    return useFetch<PaginatedResponse<AbstractSubmission>>('/api/admin/submissions', {
+      query: queryRef,
+      watch: [queryRef],
+      server: true,
+      default: () => ({
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 20,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
         },
-      })
-
-      console.log('[useSubmissions] Abstract submitted successfully:', response)
-      return response
-    } catch (error: unknown) {
-      console.error('[useSubmissions] Error submitting abstract:', error)
-
-      if (error && typeof error === 'object' && 'response' in error) {
-        const httpError = error as HttpError
-        if (httpError.response) {
-          const { status, _data: responseData } = httpError.response
-          console.error('[useSubmissions] Response status:', status)
-          console.error('[useSubmissions] Response data:', responseData)
-        }
-      }
-
-      throw error // Re-throw to be handled by the component
-    }
+      }),
+    })
   }
 
-  // Admin functions for managing submissions
-  const getSubmissions = async (params?: {
-    page?: number
-    limit?: number
-    q?: string
-    status?: string
-    category?: string
-    eventId?: string
-    sort?: string
-  }) => {
-    const queryParams = new URLSearchParams()
-
-    if (params?.page) queryParams.append('page', params.page.toString())
-    if (params?.limit) queryParams.append('limit', params.limit.toString())
-    if (params?.q) queryParams.append('q', params.q)
-    if (params?.status) queryParams.append('status', params.status)
-    if (params?.category) queryParams.append('category', params.category)
-    if (params?.eventId) queryParams.append('eventId', params.eventId)
-    if (params?.sort) queryParams.append('sort', params.sort)
-
-    const response = await $fetch(`/api/admin/submissions?${queryParams.toString()}`)
-
-    return response
+  const getSubmission = (id: string) => {
+    return useFetch<ApiResponse<AbstractSubmission>>(`/api/admin/submissions/${id}`, {
+      key: `submission-${id}`,
+      server: true,
+      default: () => ({
+        success: false,
+        error: 'Submission not found',
+      }),
+    })
   }
 
-  const getSubmission = async (submissionId: string) => {
-    const response = await $fetch(`/api/admin/submissions/${submissionId}`)
-
-    return response
-  }
-
+  // Mutations using $fetch
   const updateSubmission = async (
-    submissionId: string,
+    id: string,
     updates: Partial<
       Pick<
         AbstractSubmission,
@@ -113,28 +68,61 @@ export function useSubmissions() {
       >
     >
   ) => {
-    const response = await $fetch(`/api/admin/submissions/${submissionId}`, {
+    return await $fetch<ApiResponse<AbstractSubmission>>(`/api/admin/submissions/${id}`, {
       method: 'PATCH',
       body: updates,
     })
-
-    return response
   }
 
-  const deleteSubmission = async (submissionId: string) => {
-    const response = await $fetch(`/api/admin/submissions/${submissionId}`, {
+  const deleteSubmission = async (id: string) => {
+    return await $fetch<ApiResponse>(`/api/admin/submissions/${id}`, {
       method: 'DELETE',
     })
+  }
 
-    return response
+  // Public submission creation
+  const submitAbstract = async (submissionData: {
+    eventId: string
+    title: string
+    abstract: string
+    authors: string[]
+    correspondingAuthor: {
+      name: string
+      email: string
+      affiliation: string
+      phone?: string
+    }
+    keywords: string[]
+    category: string
+    notes?: string
+  }) => {
+    return await $fetch(`/api/events/${submissionData.eventId}/submissions`, {
+      method: 'POST',
+      body: submissionData,
+    })
+  }
+
+  // Utility functions for reactive data management
+  const refreshSubmissions = (query: SubmissionListQuery = {}) => {
+    return refreshCookie(`submissions-${JSON.stringify(query)}`)
+  }
+
+  const refreshSubmission = (id: string) => {
+    return refreshCookie(`submission-${id}`)
   }
 
   return {
-    isSubmissionOpen,
-    submitAbstract,
+    // GET requests
     getSubmissions,
     getSubmission,
+
+    // Mutations
     updateSubmission,
     deleteSubmission,
+    submitAbstract,
+
+    // Utilities
+    refreshSubmissions,
+    refreshSubmission,
   }
 }
