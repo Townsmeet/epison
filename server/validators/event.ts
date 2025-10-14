@@ -110,7 +110,24 @@ export const createAbstractSubmissionSchema = z.object({
   notes: z.string().max(1000).optional(),
 })
 
-// ===== Query Schemas =====
+export const updateSubmissionSchema = z.object({
+  title: z.string().min(1).max(300).optional(),
+  abstract: z.string().min(1).max(5000).optional(),
+  authors: z.array(z.string().min(1)).min(1).optional(),
+  correspondingAuthor: z
+    .object({
+      name: z.string().min(1).optional(),
+      email: z.string().email().optional(),
+      affiliation: z.string().min(1).optional(),
+      phone: z.string().optional(),
+    })
+    .optional(),
+  keywords: z.array(z.string()).min(3).max(5).optional(),
+  category: submissionCategorySchema.optional(),
+  notes: z.string().max(1000).optional(),
+  status: submissionStatusSchema.optional(),
+  reviewerComments: z.string().optional(),
+})
 export const eventListQuerySchema = z.object({
   q: z.string().optional(),
   type: eventTypeSchema.optional(),
@@ -141,6 +158,7 @@ export const submissionListQuerySchema = z.object({
     .enum(['pending', 'under_review', 'accepted', 'rejected', 'revision_required'])
     .optional(),
   category: z.enum(['oral', 'poster', 'workshop']).optional(),
+  eventId: z.string().optional(),
   sort: z.string().default('-submissionDate'), // 'title' | '-title' | 'submissionDate' | '-submissionDate'
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
@@ -151,3 +169,4 @@ export type CreateEventRequest = z.infer<typeof createEventSchema>
 export type CreateEventTicketRequest = z.infer<typeof createEventTicketSchema>
 export type CreateEventRegistrationRequest = z.infer<typeof createEventRegistrationSchema>
 export type CreateAbstractSubmissionRequest = z.infer<typeof createAbstractSubmissionSchema>
+export type UpdateSubmissionRequest = z.infer<typeof updateSubmissionSchema>

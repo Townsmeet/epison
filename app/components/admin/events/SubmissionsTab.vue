@@ -169,29 +169,37 @@ import type { AbstractSubmission } from '../../../../types/submissions'
 
 const props = defineProps<{ eventId: number }>()
 
-const { getEventSubmissions, updateSubmissionStatus } = useSubmissions()
+const { getSubmissions, updateSubmission } = useSubmissions()
+
+// Fetch submissions for this event
+const submissionsResponse = await getSubmissions({
+  eventId: props.eventId.toString(),
+  page: 1,
+  limit: 100, // Get all submissions for this event
+  sort: '-submissionDate',
+})
+
+const eventSubmissions = computed<AbstractSubmission[]>(() => {
+  return (submissionsResponse?.data as AbstractSubmission[]) || []
+})
 
 const submissionSearch = ref('')
 const submissionStatusFilter = ref<string | null>(null)
 const submissionCategoryFilter = ref<string | null>(null)
 
-const eventSubmissions = computed<AbstractSubmission[]>(() => {
-  return props.eventId ? (getEventSubmissions(props.eventId) as AbstractSubmission[]) : []
-})
-
-const submissionStatusOptions = [
+const submissionStatusOptions = computed(() => [
   { label: 'Pending', value: 'pending' },
   { label: 'Under Review', value: 'under_review' },
   { label: 'Accepted', value: 'accepted' },
   { label: 'Rejected', value: 'rejected' },
   { label: 'Revision Required', value: 'revision_required' },
-]
+])
 
-const submissionCategoryOptions = [
+const submissionCategoryOptions = computed(() => [
   { label: 'Oral Presentation', value: 'oral' },
   { label: 'Poster Presentation', value: 'poster' },
   { label: 'Workshop Proposal', value: 'workshop' },
-]
+])
 
 const filteredSubmissions = computed<AbstractSubmission[]>(() => {
   let filtered = [...eventSubmissions.value]
@@ -282,8 +290,8 @@ function getSubmissionActions(submission: AbstractSubmission) {
   ]
 }
 
-function changeSubmissionStatus(submissionId: number, newStatus: AbstractSubmission['status']) {
-  updateSubmissionStatus(submissionId, newStatus)
+function changeSubmissionStatus(submissionId: string, newStatus: AbstractSubmission['status']) {
+  updateSubmission(submissionId, { status: newStatus })
   useToast().add({
     title: 'Status Updated',
     description: `Submission status changed to ${newStatus.replace('_', ' ')}`,

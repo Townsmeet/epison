@@ -251,7 +251,7 @@
     </div>
 
     <!-- Abstract Submission Modal -->
-    <UModal v-model:open="showSubmissionForm">
+    <UModal v-model:open="showSubmissionForm" :dismissible="false">
       <template #content>
         <div class="h-[85vh] flex flex-col">
           <UCard
@@ -271,8 +271,13 @@
                 />
               </div>
             </template>
-            <form class="flex-1 flex flex-col overflow-hidden" @submit.prevent="submitAbstractForm">
-              <div class="overflow-y-auto p-6 space-y-6">
+            <UForm
+              :schema="abstractSubmissionSchema"
+              :state="submissionForm"
+              class="flex-1 flex flex-col overflow-hidden"
+              @submit="submitAbstractForm"
+            >
+              <div class="overflow-y-auto p-2 space-y-6">
                 <!-- Submission Category -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -293,39 +298,27 @@
                       />
                       <label
                         :for="`category-${category.id}`"
-                        class="h-full p-4 border-2 rounded-lg cursor-pointer transition-colors flex flex-col"
+                        class="h-full p-4 border-2 rounded-lg cursor-pointer transition-colors flex flex-col items-center justify-center text-center"
                         :class="[
                           submissionForm.category === category.id
                             ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                             : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600',
                         ]"
                       >
-                        <div class="font-medium text-sm mb-2">{{ category.label }}</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400 flex-grow">
-                          {{ category.description }}
-                        </div>
-                        <div
-                          class="text-xs text-gray-400 dark:text-gray-500 mt-2 pt-2 border-t border-gray-100 dark:border-gray-700"
-                        >
-                          Max {{ category.maxWords }} words
-                        </div>
+                        <div class="font-medium text-sm">{{ category.label }}</div>
                       </label>
                     </div>
                   </div>
                 </div>
 
                 <!-- Title -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Title *
-                  </label>
+                <UFormField label="Title *" name="title">
                   <UInput
                     v-model="submissionForm.title"
                     placeholder="Enter your abstract title"
                     class="w-full"
-                    required
                   />
-                </div>
+                </UFormField>
 
                 <!-- Authors -->
                 <div>
@@ -342,7 +335,6 @@
                         v-model="submissionForm.authors[index]"
                         :placeholder="`Author ${index + 1}`"
                         class="flex-1"
-                        required
                       />
                       <UButton
                         v-if="submissionForm.authors.length > 1"
@@ -365,55 +357,51 @@
 
                 <!-- Corresponding Author -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Corresponding Author Name *
-                    </label>
+                  <UFormField label="Corresponding Author Name *" name="correspondingAuthor.name">
                     <UInput
                       v-model="submissionForm.correspondingAuthor.name"
                       placeholder="Full name"
                       class="w-full"
-                      required
                     />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Email *
-                    </label>
+                  </UFormField>
+                  <UFormField label="Email *" name="correspondingAuthor.email">
                     <UInput
                       v-model="submissionForm.correspondingAuthor.email"
                       type="email"
                       placeholder="email@example.com"
                       class="w-full"
-                      required
                     />
-                  </div>
+                  </UFormField>
                 </div>
 
                 <!-- Institution -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Institution/Organization *
-                  </label>
+                <UFormField
+                  label="Institution/Organization *"
+                  name="correspondingAuthor.affiliation"
+                >
                   <UInput
                     v-model="submissionForm.correspondingAuthor.affiliation"
                     placeholder="Enter your institution or organization"
                     class="w-full"
-                    required
                   />
-                </div>
+                </UFormField>
+
+                <!-- Phone (Optional) -->
+                <UFormField label="Phone (Optional)" name="correspondingAuthor.phone">
+                  <UInput
+                    v-model="submissionForm.correspondingAuthor.phone"
+                    placeholder="Phone number"
+                    class="w-full"
+                  />
+                </UFormField>
 
                 <!-- Abstract -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Abstract *
-                  </label>
+                <UFormField label="Abstract *" name="abstract">
                   <UTextarea
                     v-model="submissionForm.abstract"
                     :rows="8"
                     placeholder="Enter your abstract here..."
                     class="w-full"
-                    required
                   />
                   <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     Word count:
@@ -422,11 +410,8 @@
                         ? submissionForm.abstract.split(/\s+/).filter(Boolean).length
                         : 0
                     }}
-                    <span v-if="selectedCategory">
-                      (Max {{ selectedCategory.maxWords }} words)
-                    </span>
                   </p>
-                </div>
+                </UFormField>
 
                 <!-- Keywords -->
                 <div>
@@ -473,19 +458,31 @@
                 </div>
 
                 <!-- Additional Notes -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Additional Notes (Optional)
-                  </label>
+                <UFormField label="Additional Notes (Optional)" name="notes">
                   <UTextarea
                     v-model="submissionForm.notes"
                     :rows="4"
                     placeholder="Any additional information or special requirements..."
                     class="w-full"
                   />
-                </div>
+                </UFormField>
               </div>
-            </form>
+            </UForm>
+            <template #footer>
+              <div class="flex justify-end space-x-3">
+                <UButton
+                  type="button"
+                  color="neutral"
+                  variant="ghost"
+                  @click="showSubmissionForm = false"
+                >
+                  Cancel
+                </UButton>
+                <UButton type="submit" color="primary" :loading="isSubmitting">
+                  Submit Abstract
+                </UButton>
+              </div>
+            </template>
           </UCard>
         </div>
       </template>
@@ -496,6 +493,7 @@
 <script setup lang="ts">
 import { submissionCategories } from '../../../../types/submissions'
 import type { Event as ApiEvent } from '../../../../types/event'
+import { abstractSubmissionSchema, type AbstractSubmissionData } from '~/schemas/submissions'
 
 const route = useRoute()
 const { getPublicEventBySlug } = useEvents()
@@ -683,8 +681,7 @@ const canSubmitAbstract = computed(() => {
   return !!(event.value.collectsSubmissions && !isPast.value)
 })
 
-const submissionForm = reactive({
-  eventId: '',
+const submissionForm = reactive<AbstractSubmissionData>({
   title: '',
   abstract: '',
   authors: [''],
@@ -694,33 +691,9 @@ const submissionForm = reactive({
     affiliation: '',
     phone: '',
   },
-  keywords: [] as string[],
-  category: 'oral' as 'oral' | 'poster' | 'workshop',
+  keywords: [],
+  category: 'oral',
   notes: '',
-})
-
-const selectedCategory = computed(() => {
-  return submissionCategories.find(c => c.id === submissionForm.category)
-})
-
-const abstractWordCount = computed(() => {
-  return submissionForm.abstract
-    .trim()
-    .split(/\s+/)
-    .filter(word => word.length > 0).length
-})
-
-const isFormValid = computed(() => {
-  return (
-    submissionForm.title.trim() &&
-    submissionForm.abstract.trim() &&
-    submissionForm.authors.some(author => author.trim()) &&
-    submissionForm.correspondingAuthor.name.trim() &&
-    submissionForm.correspondingAuthor.email.trim() &&
-    submissionForm.correspondingAuthor.affiliation.trim() &&
-    submissionForm.keywords.length > 0 &&
-    abstractWordCount.value <= (selectedCategory.value?.maxWords || 300)
-  )
 })
 
 function addAuthor() {
@@ -746,38 +719,34 @@ function removeKeyword(index: number) {
   submissionForm.keywords.splice(index, 1)
 }
 
-async function submitAbstractForm() {
-  if (!event.value || !isFormValid.value) return
+async function submitAbstractForm(formEvent: { data: AbstractSubmissionData }) {
+  if (!formEvent.data || !event.value) return
 
   isSubmitting.value = true
   try {
     await submitAbstract({
       eventId: String(event.value.id),
-      title: submissionForm.title.trim(),
-      abstract: submissionForm.abstract.trim(),
-      authors: submissionForm.authors.filter(a => a.trim()).map(a => a.trim()),
+      title: formEvent.data.title.trim(),
+      abstract: formEvent.data.abstract.trim(),
+      authors: formEvent.data.authors.filter(a => a.trim()).map(a => a.trim()),
       correspondingAuthor: {
-        name: submissionForm.correspondingAuthor.name.trim(),
-        email: submissionForm.correspondingAuthor.email.trim(),
-        affiliation: submissionForm.correspondingAuthor.affiliation.trim(),
-        phone: submissionForm.correspondingAuthor.phone?.trim() || undefined,
+        name: formEvent.data.correspondingAuthor.name.trim(),
+        email: formEvent.data.correspondingAuthor.email.trim(),
+        affiliation: formEvent.data.correspondingAuthor.affiliation.trim(),
+        phone: formEvent.data.correspondingAuthor.phone?.trim() || undefined,
       },
-      keywords: submissionForm.keywords,
-      category: submissionForm.category,
-      notes: submissionForm.notes?.trim() || undefined,
+      keywords: formEvent.data.keywords,
+      category: formEvent.data.category,
+      notes: formEvent.data.notes?.trim() || undefined,
     })
-
     useToast().add({
       title: 'Abstract Submitted',
       description: 'Your abstract has been successfully submitted for review.',
       color: 'success',
     })
 
-    showSubmissionForm.value = false
-
     // Reset form
     Object.assign(submissionForm, {
-      eventId: '',
       title: '',
       abstract: '',
       authors: [''],
@@ -792,7 +761,38 @@ async function submitAbstractForm() {
       notes: '',
     })
     keywordsInput.value = ''
-  } catch {
+    showSubmissionForm.value = false
+  } catch (error) {
+    // Handle Zod validation errors
+    if (error && typeof error === 'object' && 'flatten' in error) {
+      const flattened = (
+        error as { flatten: () => { fieldErrors: Record<string, string[]>; formErrors: string[] } }
+      ).flatten()
+
+      // Show field-specific errors
+      Object.entries(flattened.fieldErrors).forEach(([field, messages]) => {
+        if (messages && Array.isArray(messages) && messages.length > 0) {
+          useToast().add({
+            title: 'Validation Error',
+            description: `${field}: ${messages[0]}`,
+            color: 'error',
+          })
+        }
+      })
+
+      // Show form-level errors if any
+      flattened.formErrors.forEach((message: string) => {
+        useToast().add({
+          title: 'Validation Error',
+          description: message,
+          color: 'error',
+        })
+      })
+
+      return
+    }
+
+    // Handle other errors
     useToast().add({
       title: 'Submission Failed',
       description: 'There was an error submitting your abstract. Please try again.',
