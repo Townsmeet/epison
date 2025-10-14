@@ -1,10 +1,16 @@
-import type { AbstractSubmission } from '../../types/submissions'
+import type { AbstractSubmission, AbstractSubmissionData } from '~/types/submissions'
+
+interface HttpError extends Error {
+  response?: {
+    status: number
+    _data: AbstractSubmissionData | unknown
+  }
+}
 
 export function useSubmissions() {
   // Check if submissions are open for an event
   const isSubmissionOpen = (_eventId: string) => {
     // Submissions are always open for events that collect submissions
-    // The actual check for collectsSubmissions is done in the component
     // This function just returns true to allow the button to show
     // In a real implementation, you might check submission deadlines here
     return true
@@ -14,20 +20,49 @@ export function useSubmissions() {
   const submitAbstract = async (
     submission: Omit<AbstractSubmission, 'id' | 'submissionDate' | 'status' | 'reviewerComments'>
   ) => {
-    const response = await $fetch(`/api/events/${submission.eventId}/submissions`, {
-      method: 'POST',
-      body: {
-        title: submission.title,
-        abstract: submission.abstract,
-        authors: submission.authors,
-        correspondingAuthor: submission.correspondingAuthor,
-        keywords: submission.keywords,
-        category: submission.category,
-        notes: submission.notes,
-      },
+    console.log('[useSubmissions] Submitting abstract:', {
+      eventId: submission.eventId,
+      title: submission.title,
+      authors: submission.authors,
+      hasAbstract: !!submission.abstract,
+      keywords: submission.keywords,
+      category: submission.category,
     })
 
-    return response
+    try {
+      const url = `/api/events/${submission.eventId}/submissions`
+      console.log('[useSubmissions] Making API request to:', url)
+
+      const response = await $fetch<AbstractSubmission>(url, {
+        method: 'POST',
+        credentials: 'include',
+        body: {
+          title: submission.title,
+          abstract: submission.abstract,
+          authors: submission.authors,
+          correspondingAuthor: submission.correspondingAuthor,
+          keywords: submission.keywords,
+          category: submission.category,
+          notes: submission.notes,
+        },
+      })
+
+      console.log('[useSubmissions] Abstract submitted successfully:', response)
+      return response
+    } catch (error: unknown) {
+      console.error('[useSubmissions] Error submitting abstract:', error)
+
+      if (error && typeof error === 'object' && 'response' in error) {
+        const httpError = error as HttpError
+        if (httpError.response) {
+          const { status, _data: responseData } = httpError.response
+          console.error('[useSubmissions] Response status:', status)
+          console.error('[useSubmissions] Response data:', responseData)
+        }
+      }
+
+      throw error // Re-throw to be handled by the component
+    }
   }
 
   // Admin functions for managing submissions

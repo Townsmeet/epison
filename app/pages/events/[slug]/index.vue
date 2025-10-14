@@ -271,12 +271,8 @@
                 />
               </div>
             </template>
-            <UForm
-              :schema="abstractSubmissionSchema"
-              :state="submissionForm"
-              class="flex-1 flex flex-col overflow-hidden"
-              @submit="submitAbstractForm"
-            >
+            <!-- Form without submit button, will use the one in footer -->
+            <form ref="submissionFormRef" class="flex-1 flex flex-col overflow-hidden">
               <div class="overflow-y-auto p-2 space-y-6">
                 <!-- Submission Category -->
                 <div>
@@ -467,18 +463,27 @@
                   />
                 </UFormField>
               </div>
-            </UForm>
+
+              <!-- Form content only, submit button is in footer -->
+            </form>
             <template #footer>
               <div class="flex justify-end space-x-3">
                 <UButton
                   type="button"
                   color="neutral"
                   variant="ghost"
+                  :disabled="isSubmitting"
                   @click="showSubmissionForm = false"
                 >
                   Cancel
                 </UButton>
-                <UButton type="submit" color="primary" :loading="isSubmitting">
+                <UButton
+                  type="button"
+                  color="primary"
+                  :loading="isSubmitting"
+                  :disabled="isSubmitting"
+                  @click="handleSubmit()"
+                >
                   Submit Abstract
                 </UButton>
               </div>
@@ -493,7 +498,6 @@
 <script setup lang="ts">
 import { submissionCategories } from '../../../../types/submissions'
 import type { Event as ApiEvent } from '../../../../types/event'
-import { abstractSubmissionSchema, type AbstractSubmissionData } from '~/schemas/submissions'
 
 const route = useRoute()
 const { getPublicEventBySlug } = useEvents()
@@ -673,7 +677,6 @@ const isPast = computed(() => {
 // Abstract submission functionality
 const showSubmissionForm = ref(false)
 const isSubmitting = ref(false)
-const keywordsInput = ref('')
 
 const canSubmitAbstract = computed(() => {
   if (!event.value) return false
@@ -681,7 +684,10 @@ const canSubmitAbstract = computed(() => {
   return !!(event.value.collectsSubmissions && !isPast.value)
 })
 
-const submissionForm = reactive<AbstractSubmissionData>({
+// Form submission
+const submissionFormRef = ref<HTMLFormElement>()
+const keywordsInput = ref('')
+const formData = reactive<AbstractSubmissionData>({
   title: '',
   abstract: '',
   authors: [''],
@@ -696,49 +702,128 @@ const submissionForm = reactive<AbstractSubmissionData>({
   notes: '',
 })
 
+// For v-model binding with form fields
+const submissionForm = {
+  get title() {
+    return formData.title
+  },
+  set title(value: string) {
+    formData.title = value
+  },
+  get abstract() {
+    return formData.abstract
+  },
+  set abstract(value: string) {
+    formData.abstract = value
+  },
+  get authors() {
+    return formData.authors
+  },
+  set authors(value: string[]) {
+    formData.authors = value
+  },
+  get correspondingAuthor() {
+    return formData.correspondingAuthor
+  },
+  set correspondingAuthor(value: {
+    name: string
+    email: string
+    affiliation: string
+    phone?: string
+  }) {
+    formData.correspondingAuthor = value
+  },
+  get keywords() {
+    return formData.keywords
+  },
+  set keywords(value: string[]) {
+    formData.keywords = value
+  },
+  get category() {
+    return formData.category
+  },
+  set category(value: 'oral' | 'poster' | 'workshop') {
+    formData.category = value
+  },
+  get notes() {
+    return formData.notes
+  },
+  set notes(value: string | undefined) {
+    formData.notes = value
+  },
+}
+
 function addAuthor() {
-  submissionForm.authors.push('')
+  formData.authors.push('')
 }
 
+// Remove author from the authors list
 function removeAuthor(index: number) {
-  submissionForm.authors.splice(index, 1)
+  formData.authors.splice(index, 1)
 }
 
-function updateKeywords() {
-  if (keywordsInput.value.trim()) {
-    const keywords = keywordsInput.value
+function updateKeywords(e?: Event) {
+  e?.preventDefault()
+  const input = keywordsInput.value.trim()
+  if (input) {
+    const newKeywords = input
       .split(',')
       .map(k => k.trim())
       .filter(k => k.length > 0)
-    submissionForm.keywords = [...new Set([...submissionForm.keywords, ...keywords])]
+    formData.keywords = [...new Set([...formData.keywords, ...newKeywords])]
     keywordsInput.value = ''
   }
 }
 
+// Remove keyword from the list
 function removeKeyword(index: number) {
-  submissionForm.keywords.splice(index, 1)
+  formData.keywords.splice(index, 1)
 }
 
-async function submitAbstractForm(formEvent: { data: AbstractSubmissionData }) {
-  if (!formEvent.data || !event.value) return
+async function handleSubmit(e?: Event) {
+  // Prevent default only if event is provided (for form submission)
+  if (e) {
+    e.preventDefault()
+  }
+
+  if (!event.value) {
+    console.error('[EventPage] No event data available')
+    useToast().add({
+      title: 'Error',
+      description: 'Event data is not available. Please refresh the page and try again.',
+      color: 'error',
+    })
+    return
+  }
 
   isSubmitting.value = true
+  console.log('[EventPage] Starting submission with event ID:', event.value.id)
+
   try {
-    await submitAbstract({
+    // Prepare submission data directly from the form
+    const submissionData = {
       eventId: String(event.value.id),
-      title: formEvent.data.title.trim(),
-      abstract: formEvent.data.abstract.trim(),
-      authors: formEvent.data.authors.filter(a => a.trim()).map(a => a.trim()),
+      title: formData.title.trim(),
+      abstract: formData.abstract.trim(),
+      authors: formData.authors.filter((a: string) => a.trim()).map((a: string) => a.trim()),
       correspondingAuthor: {
-        name: formEvent.data.correspondingAuthor.name.trim(),
-        email: formEvent.data.correspondingAuthor.email.trim(),
-        affiliation: formEvent.data.correspondingAuthor.affiliation.trim(),
-        phone: formEvent.data.correspondingAuthor.phone?.trim() || undefined,
+        name: formData.correspondingAuthor.name.trim(),
+        email: formData.correspondingAuthor.email.trim(),
+        affiliation: formData.correspondingAuthor.affiliation.trim(),
+        phone: formData.correspondingAuthor.phone?.trim() || undefined,
       },
-      keywords: formEvent.data.keywords,
-      category: formEvent.data.category,
-      notes: formEvent.data.notes?.trim() || undefined,
-    })
+      keywords: formData.keywords,
+      category: formData.category,
+      notes: formData.notes?.trim() || undefined,
+    }
+
+    console.log(
+      '[EventPage] Calling submitAbstract with data:',
+      JSON.stringify(submissionData, null, 2)
+    )
+
+    const response = await submitAbstract(submissionData)
+    console.log('[EventPage] submitAbstract response:', response)
     useToast().add({
       title: 'Abstract Submitted',
       description: 'Your abstract has been successfully submitted for review.',
@@ -746,7 +831,7 @@ async function submitAbstractForm(formEvent: { data: AbstractSubmissionData }) {
     })
 
     // Reset form
-    Object.assign(submissionForm, {
+    Object.assign(formData, {
       title: '',
       abstract: '',
       authors: [''],
@@ -762,8 +847,66 @@ async function submitAbstractForm(formEvent: { data: AbstractSubmissionData }) {
     })
     keywordsInput.value = ''
     showSubmissionForm.value = false
-  } catch (error) {
-    // Handle Zod validation errors
+  } catch (error: unknown) {
+    console.error('Submission error:', error)
+
+    // Type guard for server-side validation errors
+    if (
+      error &&
+      typeof error === 'object' &&
+      'response' in error &&
+      error.response &&
+      typeof error.response === 'object' &&
+      '_data' in error.response &&
+      error.response._data &&
+      typeof error.response._data === 'object' &&
+      'data' in error.response._data &&
+      error.response._data.data &&
+      typeof error.response._data.data === 'object' &&
+      'errors' in error.response._data.data &&
+      error.response._data.data.errors
+    ) {
+      const { fieldErrors, formErrors } = error.response._data.data.errors as {
+        fieldErrors?: Record<string, string[]>
+        formErrors?: string[]
+      }
+
+      // Show field-specific errors
+      if (fieldErrors) {
+        Object.entries(fieldErrors).forEach(([field, messages]) => {
+          if (Array.isArray(messages) && messages.length > 0) {
+            // Format field name for display (remove path if present)
+            const fieldName = field.split('.').pop() || field
+            const formattedField = fieldName
+              .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+              .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
+
+            useToast().add({
+              title: 'Validation Error',
+              description: `${formattedField}: ${messages[0]}`,
+              color: 'error',
+              icon: 'i-heroicons-exclamation-triangle',
+            })
+          }
+        })
+      }
+
+      // Show form-level errors if any
+      if (Array.isArray(formErrors) && formErrors.length > 0) {
+        formErrors.forEach((message: string) => {
+          useToast().add({
+            title: 'Validation Error',
+            description: message,
+            color: 'error',
+            icon: 'i-heroicons-exclamation-triangle',
+          })
+        })
+      }
+
+      return
+    }
+
+    // Handle client-side validation errors
     if (error && typeof error === 'object' && 'flatten' in error) {
       const flattened = (
         error as { flatten: () => { fieldErrors: Record<string, string[]>; formErrors: string[] } }
@@ -772,10 +915,16 @@ async function submitAbstractForm(formEvent: { data: AbstractSubmissionData }) {
       // Show field-specific errors
       Object.entries(flattened.fieldErrors).forEach(([field, messages]) => {
         if (messages && Array.isArray(messages) && messages.length > 0) {
+          // Format field name for display
+          const formattedField = field
+            .replace(/([A-Z])/g, ' $1')
+            .replace(/^./, str => str.toUpperCase())
+
           useToast().add({
             title: 'Validation Error',
-            description: `${field}: ${messages[0]}`,
+            description: `${formattedField}: ${messages[0]}`,
             color: 'error',
+            icon: 'i-heroicons-exclamation-triangle',
           })
         }
       })
@@ -786,17 +935,24 @@ async function submitAbstractForm(formEvent: { data: AbstractSubmissionData }) {
           title: 'Validation Error',
           description: message,
           color: 'error',
+          icon: 'i-heroicons-exclamation-triangle',
         })
       })
 
       return
     }
 
-    // Handle other errors
+    // Handle network or other errors
+    const errorMessage =
+      error?.response?._data?.message ||
+      error?.message ||
+      'There was an error submitting your abstract. Please try again.'
+
     useToast().add({
       title: 'Submission Failed',
-      description: 'There was an error submitting your abstract. Please try again.',
+      description: errorMessage,
       color: 'error',
+      icon: 'i-heroicons-exclamation-circle',
     })
   } finally {
     isSubmitting.value = false
