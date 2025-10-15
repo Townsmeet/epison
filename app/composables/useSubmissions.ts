@@ -1,16 +1,9 @@
 import type { Ref, ComputedRef } from 'vue'
 import type { AbstractSubmission } from '../../types/submissions'
 import type { ApiResponse, PaginatedResponse } from '../../types/api'
+import type { SubmissionListQuery } from './useEvents'
 
-export interface SubmissionListQuery {
-  page?: number
-  limit?: number
-  q?: string
-  status?: string
-  category?: string
-  eventId?: string
-  sort?: string
-}
+// Removed local SubmissionListQuery definition
 
 export const useSubmissions = () => {
   // GET requests using useFetch/useAsyncData

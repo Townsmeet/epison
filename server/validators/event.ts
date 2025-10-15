@@ -29,6 +29,20 @@ export const createEventSchema = z.object({
   bannerUrl: z.string().url().optional(),
   membersOnly: z.boolean().default(false),
   collectsSubmissions: z.boolean().default(false),
+  theme: z.string().min(2).max(200),
+  subthemes: z.array(z.string().min(1).max(100)).min(0).max(10).optional(),
+  submissionGuidelines: z.string().max(5000).optional(),
+  submissionDates: z
+    .array(
+      z.object({
+        label: z.string().min(2).max(100),
+        date: z.string().optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+      })
+    )
+    .max(10)
+    .optional(),
 })
 
 export const updateEventSchema = createEventSchema.partial().omit({ slug: true })

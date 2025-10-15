@@ -47,6 +47,10 @@ export default defineEventHandler(async eventHandler => {
       bannerUrl: body.bannerUrl,
       membersOnly: body.membersOnly || false,
       collectsSubmissions: body.collectsSubmissions || false,
+      theme: body.theme,
+      subthemes: body.subthemes ? body.subthemes.join(',') : null,
+      submissionGuidelines: body.submissionGuidelines ?? null,
+      submissionDatesJson: body.submissionDates ? JSON.stringify(body.submissionDates) : null,
       createdAt: new Date(),
       updatedAt: new Date(),
     }

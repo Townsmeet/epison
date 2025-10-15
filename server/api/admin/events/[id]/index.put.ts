@@ -36,6 +36,10 @@ export default defineEventHandler(async eventHandler => {
     // Update event
     const updateData = {
       ...body,
+      theme: body.theme,
+      subthemes: body.subthemes ? body.subthemes.join(',') : null,
+      submissionGuidelines: body.submissionGuidelines ?? null,
+      submissionDatesJson: body.submissionDates ? JSON.stringify(body.submissionDates) : null,
       updatedAt: new Date(),
     }
 

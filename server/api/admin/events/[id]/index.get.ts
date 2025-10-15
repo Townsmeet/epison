@@ -38,6 +38,24 @@ export default defineEventHandler(async eventHandler => {
     }
 
     const eventData = eventResult[0]
+    // Parse subthemes
+    const theme = eventData.theme
+    const subthemes = eventData.subthemes
+      ? eventData.subthemes
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean)
+      : []
+    // Parse guideline & dates
+    const submissionGuidelines = eventData.submissionGuidelines || ''
+    let submissionDates = []
+    try {
+      submissionDates = eventData.submissionDatesJson
+        ? JSON.parse(eventData.submissionDatesJson)
+        : []
+    } catch {
+      submissionDates = []
+    }
 
     // Get related data in parallel (admin sees all tickets, not just public ones)
     const [tickets, sponsors, speakers, media, committee, stats] = await Promise.all([
@@ -64,6 +82,10 @@ export default defineEventHandler(async eventHandler => {
       success: true,
       data: {
         ...eventData,
+        theme,
+        subthemes,
+        submissionGuidelines,
+        submissionDates,
         tickets,
         sponsors,
         speakers,

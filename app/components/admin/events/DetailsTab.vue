@@ -37,6 +37,23 @@
         <h3 class="mt-6">Description</h3>
         <p>{{ event.description }}</p>
       </div>
+      <div v-if="event.theme || (event.subthemes && event.subthemes.length)" class="mt-2">
+        <div v-if="event.theme" class="mb-1">
+          <span class="font-semibold">Theme:</span>
+          <span class="inline-block ml-2 py-0.5 px-2 bg-blue-100 text-blue-700 rounded">{{
+            event.theme
+          }}</span>
+        </div>
+        <div v-if="event.subthemes && event.subthemes.length">
+          <span class="font-semibold">Subthemes:</span>
+          <span
+            v-for="s in event.subthemes"
+            :key="s"
+            class="inline-block bg-primary-100 text-primary-700 rounded px-2 py-0.5 mx-1 text-xs"
+            >{{ s }}</span
+          >
+        </div>
+      </div>
 
       <UCard>
         <template #header>

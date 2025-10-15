@@ -142,47 +142,49 @@
                   @click="isCreateEventOpen = false"
                 />
               </div>
+              <div class="mt-2 flex gap-2 text-xs">
+                <span :class="createStep === 1 ? 'font-bold underline' : ''">1: Info</span>
+                <span>→</span>
+                <span :class="createStep === 2 ? 'font-bold underline' : ''">2: Theme</span>
+                <span>→</span>
+                <span :class="createStep === 3 ? 'font-bold underline' : ''">3: Abstracts</span>
+              </div>
             </template>
-
-            <UForm :state="newEvent" class="space-y-6">
+            <div v-if="createStep === 1" class="space-y-6">
+              <!-- Step 1: Core Info -->
+              <!-- Title, type, status, dates, location, capacity, description, banner -->
               <UFormField label="Event Title" name="title" required>
                 <UInput v-model="newEvent.title" placeholder="Enter event title" class="w-full" />
               </UFormField>
-
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <UFormField label="Event Type" name="type" required>
                   <USelect
                     v-model="newEvent.type"
                     :items="typeOptions.filter(t => t.value !== 'all')"
-                    placeholder="Select event type"
+                    placeholder="Event type"
                     class="w-full"
                   />
                 </UFormField>
-
                 <UFormField label="Status" name="status" required>
                   <USelect
                     v-model="newEvent.status"
                     :items="statusOptions.filter(s => s.value !== 'all')"
-                    placeholder="Select status"
+                    placeholder="Status"
                     class="w-full"
                   />
                 </UFormField>
               </div>
-
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <UFormField label="Start Date" name="startDate" required>
                   <UInput v-model="newEvent.startDate" type="datetime-local" class="w-full" />
                 </UFormField>
-
                 <UFormField label="End Date" name="endDate">
                   <UInput v-model="newEvent.endDate" type="datetime-local" class="w-full" />
                 </UFormField>
               </div>
-
               <UFormField label="Location" name="location" required>
                 <UInput v-model="newEvent.location" placeholder="Event location" class="w-full" />
               </UFormField>
-
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <UFormField label="Capacity" name="capacity">
                   <UInput
@@ -193,7 +195,6 @@
                   />
                 </UFormField>
               </div>
-
               <UFormField label="Description" name="description">
                 <UTextarea
                   v-model="newEvent.description"
@@ -202,7 +203,6 @@
                   class="w-full"
                 />
               </UFormField>
-
               <UFormField label="Event Banner Image" name="bannerImage">
                 <input
                   type="file"
@@ -211,40 +211,109 @@
                   @change="onBannerSelected"
                 />
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Upload a JPG/PNG banner. Recommended aspect ratio ~3:2. Max ~2MB.
+                  Upload a JPG/PNG banner.
                 </p>
                 <div v-if="isUploadingBanner" class="mt-2 flex items-center gap-2">
-                  <UIcon name="i-heroicons-arrow-path" class="w-4 h-4 animate-spin" />
-                  <span class="text-xs text-gray-500 dark:text-gray-400">Uploading banner...</span>
+                  <UIcon name="i-heroicons-arrow-path" class="w-4 h-4 animate-spin" /><span
+                    class="text-xs"
+                    >Uploading...</span
+                  >
                 </div>
                 <div v-if="newEvent.bannerImage" class="mt-3">
                   <img
                     :src="newEvent.bannerImage"
                     alt="Banner preview"
-                    class="w-full h-40 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                    class="w-full h-40 object-cover rounded-lg"
                   />
                 </div>
               </UFormField>
-
-              <div class="flex items-center space-x-4">
-                <UCheckbox v-model="newEvent.membersOnly" label="Members Only" />
-                <UCheckbox v-model="newEvent.collectsSubmissions" label="Collect Submissions" />
+            </div>
+            <div v-else-if="createStep === 2" class="space-y-6">
+              <!-- Step 2: Theme & Subthemes -->
+              <UFormField label="Theme" name="theme" required>
+                <UInput
+                  v-model="newEvent.theme"
+                  placeholder="Enter event theme"
+                  class="w-full"
+                  maxlength="200"
+                />
+              </UFormField>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Subthemes
+                </label>
+                <div class="space-y-2">
+                  <div v-for="(st, i) in newEvent.subthemesList" :key="i" class="flex gap-2">
+                    <UInput
+                      v-model="newEvent.subthemesList[i]"
+                      :placeholder="`Subtheme ${i + 1}`"
+                      class="flex-1"
+                    />
+                    <UButton
+                      v-if="newEvent.subthemesList.length > 0"
+                      color="error"
+                      variant="ghost"
+                      icon="i-heroicons-trash"
+                      @click="newEvent.subthemesList.splice(i, 1)"
+                    />
+                  </div>
+                  <UButton
+                    color="neutral"
+                    variant="soft"
+                    icon="i-heroicons-plus"
+                    @click="newEvent.subthemesList.push('')"
+                  >
+                    Add Subtheme
+                  </UButton>
+                </div>
               </div>
-            </UForm>
-
+            </div>
+            <div v-else-if="createStep === 3" class="space-y-6">
+              <!-- Step 3: Abstract Collection -->
+              <div class="flex items-center">
+                <UCheckbox
+                  v-model="newEvent.collectsSubmissions"
+                  label="Collect Abstract Submissions for this event?"
+                />
+              </div>
+              <div v-if="newEvent.collectsSubmissions">
+                <UFormField label="Submission Guidelines" name="submissionGuidelines">
+                  <UTextarea
+                    v-model="newEvent.submissionGuidelines"
+                    placeholder="Paste your guidelines (you can include important dates here)"
+                    :rows="8"
+                    class="w-full"
+                  />
+                </UFormField>
+                <!-- Important Dates UI removed as requested -->
+              </div>
+            </div>
             <template #footer>
-              <div class="flex justify-end space-x-3">
-                <UButton color="neutral" variant="ghost" @click="isCreateEventOpen = false">
-                  Cancel
-                </UButton>
+              <div class="flex justify-between space-x-3">
                 <UButton
+                  color="neutral"
+                  variant="ghost"
+                  :disabled="createStep === 1"
+                  @click="goBack"
+                  >Back</UButton
+                >
+                <UButton
+                  v-if="createStep < 3"
+                  color="primary"
+                  :disabled="
+                    (createStep === 1 && !step1Valid()) || (createStep === 2 && !step2Valid())
+                  "
+                  @click="goNext"
+                  >Next</UButton
+                >
+                <UButton
+                  v-else
                   color="primary"
                   :loading="isCreating || isUploadingBanner"
-                  :disabled="isUploadingBanner"
+                  :disabled="isUploadingBanner || !step3Valid()"
                   @click="handleCreateEvent"
+                  >Create Event</UButton
                 >
-                  Create Event
-                </UButton>
               </div>
             </template>
           </UCard>
@@ -264,6 +333,61 @@ definePageMeta({
 })
 
 const isCreateEventOpen = ref(false)
+const createStep = ref(1) // 1 = Core, 2 = Theme, 3 = Abstract Collection
+watch(isCreateEventOpen, v => {
+  if (v) {
+    createStep.value = 1
+    resetNewEvent()
+  }
+})
+
+function goNext() {
+  if (createStep.value < 3) createStep.value++
+}
+function goBack() {
+  if (createStep.value > 1) createStep.value--
+}
+
+function resetNewEvent() {
+  Object.assign(newEvent.value, {
+    title: '',
+    type: 'webinar',
+    status: 'draft',
+    startDate: '',
+    endDate: '',
+    location: '',
+    capacity: '',
+    description: '',
+    bannerImage: '',
+    bannerFile: null,
+    theme: '',
+    subthemes: '',
+    subthemesList: [],
+    collectsSubmissions: false,
+    submissionGuidelines: '',
+    submissionDates: [],
+  })
+}
+
+function step1Valid() {
+  return (
+    newEvent.value.title &&
+    newEvent.value.type &&
+    newEvent.value.status &&
+    newEvent.value.startDate &&
+    newEvent.value.location
+  )
+}
+function step2Valid() {
+  return newEvent.value.theme && newEvent.value.theme.length >= 2
+}
+function step3Valid() {
+  if (!newEvent.value.collectsSubmissions) return true
+  return !!(
+    newEvent.value.submissionGuidelines && newEvent.value.submissionGuidelines.trim().length > 0
+  )
+}
+
 const isCreating = ref(false)
 const _isEditing = ref(false)
 const _editingEventId = ref<string | null>(null)
@@ -357,9 +481,12 @@ const newEvent = ref({
   bannerImage: '',
   // not sent to API; used for upload
   bannerFile: null as File | null,
-  isPublic: true,
-  membersOnly: false,
   collectsSubmissions: false,
+  theme: '',
+  subthemes: '',
+  subthemesList: [] as string[],
+  submissionGuidelines: '',
+  submissionDates: [] as { label: string; date: string; startDate: string; endDate: string }[],
 })
 
 // Apply client-side filtering as a fallback to ensure immediate UX response
@@ -616,8 +743,11 @@ async function handleCreateEvent() {
       capacity: newEvent.value.capacity ? parseInt(newEvent.value.capacity) : undefined,
       description: newEvent.value.description || undefined,
       bannerUrl,
-      membersOnly: newEvent.value.membersOnly,
       collectsSubmissions: newEvent.value.collectsSubmissions,
+      theme: newEvent.value.theme?.trim() || '',
+      subthemes: (newEvent.value.subthemesList || []).map(s => s.trim()).filter(Boolean),
+      submissionGuidelines: newEvent.value.submissionGuidelines || undefined,
+      submissionDates: undefined,
     }
 
     await createEvent(eventData)
@@ -634,9 +764,12 @@ async function handleCreateEvent() {
       description: '',
       bannerImage: '',
       bannerFile: null,
-      isPublic: true,
-      membersOnly: false,
       collectsSubmissions: false,
+      theme: '',
+      subthemes: '',
+      subthemesList: [],
+      submissionGuidelines: '',
+      submissionDates: [],
     }
 
     isCreateEventOpen.value = false

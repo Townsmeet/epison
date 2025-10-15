@@ -41,6 +41,29 @@ export default defineEventHandler(async eventHandler => {
       })
     }
 
+    // Normalize fields
+    const theme = eventData.theme
+    const subthemes = eventData.subthemes
+      ? eventData.subthemes
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean)
+      : []
+    const submissionGuidelines = eventData.submissionGuidelines || ''
+    let submissionDates: Array<{
+      label: string
+      date?: string
+      startDate?: string
+      endDate?: string
+    }> = []
+    try {
+      submissionDates = eventData.submissionDatesJson
+        ? JSON.parse(eventData.submissionDatesJson)
+        : []
+    } catch {
+      submissionDates = []
+    }
+
     // Get related data in parallel
     const [tickets, sponsors, speakers, media, committee] = await Promise.all([
       // Only public tickets
@@ -56,6 +79,10 @@ export default defineEventHandler(async eventHandler => {
 
     return {
       ...eventData,
+      theme,
+      subthemes,
+      submissionGuidelines,
+      submissionDates,
       tickets,
       sponsors,
       speakers,

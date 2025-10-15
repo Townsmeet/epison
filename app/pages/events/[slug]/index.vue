@@ -22,16 +22,18 @@
                   <span v-else class="block sr-only">Loading event...</span>
                 </h1>
                 <div v-if="event" class="mt-6 space-y-4">
-                  <div class="flex items-center text-gray-500 dark:text-gray-300">
+                  <div class="flex items-center text-gray-700 dark:text-gray-200">
                     <UIcon
                       name="i-heroicons-calendar"
-                      class="flex-shrink-0 h-5 w-5 text-gray-400"
+                      class="flex-shrink-0 h-5 w-5 text-gray-500"
                     />
-                    <span class="ml-2">{{ formatDateRange(event.startDate, event.endDate) }}</span>
+                    <span class="ml-2 font-medium">{{
+                      formatDateRange(event.startDate, event.endDate)
+                    }}</span>
                   </div>
-                  <div class="flex items-center text-gray-500 dark:text-gray-300">
-                    <UIcon name="i-heroicons-map-pin" class="flex-shrink-0 h-5 w-5 text-gray-400" />
-                    <span class="ml-2">{{ event.location }}</span>
+                  <div class="flex items-center text-gray-700 dark:text-gray-200">
+                    <UIcon name="i-heroicons-map-pin" class="flex-shrink-0 h-5 w-5 text-gray-500" />
+                    <span class="ml-2 font-medium">{{ event.location }}</span>
                   </div>
                   <!-- Past Event Notice -->
                   <div
@@ -54,10 +56,9 @@
                     </div>
                   </div>
                 </div>
-
                 <div
                   v-if="event"
-                  class="mt-8 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4"
+                  class="mt-6 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4"
                 >
                   <NuxtLink
                     v-if="!isPast && event.status === 'registration_open'"
@@ -89,6 +90,20 @@
                     View upcoming events
                   </UButton>
                 </div>
+                <div v-if="event?.theme" class="mt-6">
+                  <div class="text-xl font-extrabold text-gray-900 dark:text-white">Theme</div>
+                  <div class="text-lg font-bold text-gray-900 dark:text-white mt-1">
+                    {{ event.theme }}
+                  </div>
+                </div>
+                <div v-if="event?.subthemes && event.subthemes.length" class="mt-4">
+                  <div class="text-base font-semibold text-gray-900 dark:text-white">Subthemes</div>
+                  <div
+                    class="text-sm font-medium text-gray-900 dark:text-white mt-1 flex flex-wrap gap-x-4 gap-y-1"
+                  >
+                    <span v-for="(s, si) in event.subthemes" :key="`${s}-${si}`">{{ s }}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -113,6 +128,36 @@
             <div v-if="event" class="prose dark:prose-invert max-w-none">
               <h2>About this {{ typeLabel.toLowerCase() }}</h2>
               <p>{{ event.description }}</p>
+            </div>
+
+            <!-- Submission Guidelines and Important Dates -->
+            <div
+              v-if="
+                event?.submissionGuidelines ||
+                (event?.submissionDates && event.submissionDates.length)
+              "
+              class="mt-8"
+            >
+              <div v-if="event?.submissionGuidelines">
+                <h3 class="font-bold mb-1">Submission Guidelines</h3>
+                <div
+                  class="whitespace-pre-line text-sm bg-gray-50 dark:bg-gray-900 rounded p-3 mb-4"
+                >
+                  {{ event.submissionGuidelines }}
+                </div>
+              </div>
+              <div v-if="event?.submissionDates && event.submissionDates.length">
+                <h3 class="font-bold mb-1">Important Dates</h3>
+                <ul class="text-xs space-y-1">
+                  <li v-for="d in event.submissionDates" :key="d.label">
+                    <span class="font-semibold">{{ d.label }}:</span>
+                    <span v-if="d.date">{{ d.date }}</span
+                    ><span v-if="!d.date && d.startDate && d.endDate"
+                      >{{ d.startDate }} - {{ d.endDate }}</span
+                    >
+                  </li>
+                </ul>
+              </div>
             </div>
 
             <!-- Speakers (always show; placeholder when empty) -->
@@ -271,9 +316,43 @@
                 />
               </div>
             </template>
-            <!-- Form without submit button, will use the one in footer -->
-            <form ref="submissionFormRef" class="flex-1 flex flex-col overflow-hidden">
-              <div class="overflow-y-auto p-2 space-y-6">
+            <div v-if="submissionStep === 1" class="overflow-y-auto p-6">
+              <div v-if="event?.submissionGuidelines">
+                <h3 class="font-bold mb-1">Submission Guidelines</h3>
+                <div
+                  class="whitespace-pre-line text-sm bg-gray-50 dark:bg-gray-900 rounded p-3 mb-4"
+                >
+                  {{ event.submissionGuidelines }}
+                </div>
+              </div>
+              <div v-if="event?.submissionDates && event.submissionDates.length">
+                <h3 class="font-bold mb-1">Important Dates</h3>
+                <ul class="text-xs space-y-1">
+                  <li v-for="d in event.submissionDates" :key="d.label">
+                    <span class="font-semibold">{{ d.label }}:</span>
+                    <span v-if="d.date">{{ d.date }}</span
+                    ><span v-if="!d.date && d.startDate && d.endDate"
+                      >{{ d.startDate }} - {{ d.endDate }}</span
+                    >
+                  </li>
+                </ul>
+              </div>
+              <div
+                v-if="
+                  !event?.submissionGuidelines &&
+                  (!event?.submissionDates || !event.submissionDates.length)
+                "
+                class="text-gray-500 italic text-sm mb-4"
+              >
+                No submission guidelines or important dates are set for this event.
+              </div>
+            </div>
+            <div v-else-if="submissionStep === 2" class="overflow-y-auto flex-1 flex flex-col">
+              <!-- Render the saved submission form as before -->
+              <form
+                ref="submissionFormRef"
+                class="flex-1 flex flex-col overflow-y-auto p-6 space-y-6"
+              >
                 <!-- Submission Category -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -317,7 +396,7 @@
                 </UFormField>
 
                 <!-- Authors -->
-                <div>
+                <div class="space-y-2">
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Authors *
                   </label>
@@ -462,30 +541,31 @@
                     class="w-full"
                   />
                 </UFormField>
-              </div>
-
-              <!-- Form content only, submit button is in footer -->
-            </form>
+              </form>
+            </div>
             <template #footer>
-              <div class="flex justify-end space-x-3">
-                <UButton
-                  type="button"
-                  color="neutral"
-                  variant="ghost"
-                  :disabled="isSubmitting"
-                  @click="showSubmissionForm = false"
-                >
-                  Cancel
-                </UButton>
-                <UButton
-                  type="button"
-                  color="primary"
-                  :loading="isSubmitting"
-                  :disabled="isSubmitting"
-                  @click="handleSubmit()"
-                >
-                  Submit Abstract
-                </UButton>
+              <div class="flex justify-between space-x-3">
+                <div />
+                <div v-if="submissionStep === 1" class="flex gap-3">
+                  <UButton color="primary" @click="handleSubmissionContinue">Continue</UButton>
+                </div>
+                <div v-else-if="submissionStep === 2" class="flex gap-3">
+                  <UButton
+                    color="neutral"
+                    variant="ghost"
+                    :disabled="isSubmitting"
+                    @click="handleSubmissionBack"
+                    >Back</UButton
+                  >
+                  <UButton
+                    type="button"
+                    color="primary"
+                    :loading="isSubmitting"
+                    :disabled="isSubmitting"
+                    @click="handleSubmit()"
+                    >Submit Abstract</UButton
+                  >
+                </div>
               </div>
             </template>
           </UCard>
@@ -555,6 +635,13 @@ type ExtendedEvent = ApiEvent & {
     type?: 'image' | 'video'
   }>
   bannerUrl?: string
+  submissionGuidelines?: string
+  submissionDates?: Array<{
+    label: string
+    date?: string
+    startDate?: string
+    endDate?: string
+  }>
 }
 
 // Types for event normalization
@@ -676,6 +763,18 @@ const isPast = computed(() => {
 
 // Abstract submission functionality
 const showSubmissionForm = ref(false)
+const submissionStep = ref(1) // 1 = guidelines, 2 = form
+watch(showSubmissionForm, v => {
+  if (v) submissionStep.value = 1
+})
+
+function handleSubmissionContinue() {
+  submissionStep.value = 2
+}
+function handleSubmissionBack() {
+  submissionStep.value = 1
+}
+
 const isSubmitting = ref(false)
 
 const canSubmitAbstract = computed(() => {

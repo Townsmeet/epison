@@ -173,6 +173,10 @@ export const event = sqliteTable('event', {
   collectsSubmissions: integer('collects_submissions', { mode: 'boolean' })
     .default(false)
     .notNull(),
+  theme: text('theme'), // Event theme (single)
+  subthemes: text('subthemes'), // Comma-separated subthemes (CSV string)
+  submissionGuidelines: text('submission_guidelines'), // Markdown string
+  submissionDatesJson: text('submission_dates_json'), // Dates array as JSON string
   createdAt: integer('created_at', { mode: 'timestamp' }).defaultNow().notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' })
     .defaultNow()

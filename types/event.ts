@@ -21,6 +21,15 @@ export interface Event {
   bannerUrl?: string
   membersOnly: boolean
   collectsSubmissions: boolean
+  theme?: string
+  subthemes?: string[]
+  submissionGuidelines?: string
+  submissionDates?: Array<{
+    label: string
+    date?: string
+    startDate?: string
+    endDate?: string
+  }>
   createdAt: string
   updatedAt: string
 }
@@ -151,6 +160,15 @@ export interface CreateEventForm {
   bannerUrl?: string
   membersOnly?: boolean
   collectsSubmissions?: boolean
+  theme?: string
+  subthemes?: string[]
+  submissionGuidelines?: string
+  submissionDates?: Array<{
+    label: string
+    date?: string
+    startDate?: string
+    endDate?: string
+  }>
 }
 
 export interface CreateRegistrationForm {

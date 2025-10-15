@@ -131,134 +131,217 @@
                   @click="isEditOpen = false"
                 />
               </div>
+              <div class="mt-2 flex gap-2 text-xs">
+                <span :class="editStep === 1 ? 'font-bold underline' : ''">1: Info</span>
+                <span>→</span>
+                <span :class="editStep === 2 ? 'font-bold underline' : ''">2: Theme</span>
+                <span>→</span>
+                <span :class="editStep === 3 ? 'font-bold underline' : ''">3: Abstracts</span>
+              </div>
             </template>
 
-            <UForm :state="editEventForm" class="space-y-6">
-              <UFormField label="Event Title" name="title" required>
-                <UInput
-                  v-model="editEventForm.title"
-                  placeholder="Enter event title"
-                  class="w-full"
-                />
-              </UFormField>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <UFormField label="Event Type" name="type" required>
-                  <USelect
-                    v-model="editEventForm.type"
-                    :items="[
-                      { label: 'Conference', value: 'conference' },
-                      { label: 'Workshop', value: 'workshop' },
-                      { label: 'Webinar', value: 'webinar' },
-                      { label: 'Seminar', value: 'seminar' },
-                      { label: 'Symposium', value: 'symposium' },
-                    ]"
-                    placeholder="Select event type"
-                    class="w-full"
-                  />
-                </UFormField>
-
-                <UFormField label="Status" name="status" required>
-                  <USelect
-                    v-model="editEventForm.status"
-                    :items="[
-                      { label: 'Draft', value: 'draft' },
-                      { label: 'Published', value: 'published' },
-                      { label: 'Registration Open', value: 'registration_open' },
-                      { label: 'Registration Closed', value: 'registration_closed' },
-                      { label: 'Ongoing', value: 'ongoing' },
-                      { label: 'Completed', value: 'completed' },
-                      { label: 'Cancelled', value: 'cancelled' },
-                    ]"
-                    placeholder="Select status"
-                    class="w-full"
-                  />
-                </UFormField>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <UFormField label="Start Date" name="startDate" required>
-                  <UInput v-model="editEventForm.startDate" type="datetime-local" class="w-full" />
-                </UFormField>
-
-                <UFormField label="End Date" name="endDate">
-                  <UInput v-model="editEventForm.endDate" type="datetime-local" class="w-full" />
-                </UFormField>
-              </div>
-
-              <UFormField label="Location" name="location" required>
-                <UInput
-                  v-model="editEventForm.location"
-                  placeholder="Event location"
-                  class="w-full"
-                />
-              </UFormField>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <UFormField label="Capacity" name="capacity">
+            <div v-if="editStep === 1" class="space-y-6">
+              <UForm :state="editEventForm" class="space-y-6">
+                <UFormField label="Event Title" name="title" required>
                   <UInput
-                    v-model="editEventForm.capacity"
-                    type="number"
-                    placeholder="Maximum attendees"
+                    v-model="editEventForm.title"
+                    placeholder="Enter event title"
                     class="w-full"
                   />
                 </UFormField>
-              </div>
 
-              <UFormField label="Description" name="description">
-                <UTextarea
-                  v-model="editEventForm.description"
-                  placeholder="Event description"
-                  :rows="4"
-                  class="w-full"
-                />
-              </UFormField>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <UFormField label="Event Type" name="type" required>
+                    <USelect
+                      v-model="editEventForm.type"
+                      :items="[
+                        { label: 'Conference', value: 'conference' },
+                        { label: 'Workshop', value: 'workshop' },
+                        { label: 'Webinar', value: 'webinar' },
+                        { label: 'Seminar', value: 'seminar' },
+                        { label: 'Symposium', value: 'symposium' },
+                      ]"
+                      placeholder="Select event type"
+                      class="w-full"
+                    />
+                  </UFormField>
 
-              <!-- Banner Image -->
-              <UFormField label="Event Banner Image" name="bannerImage">
-                <input
-                  type="file"
-                  accept="image/*"
-                  class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:text-gray-300 dark:file:bg-primary-900/20 dark:file:text-primary-300"
-                  @change="onEditBannerSelected"
-                />
-                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Upload a JPG/PNG banner. Recommended aspect ratio ~3:2. Max ~2MB.
-                </p>
-                <div v-if="isUploadingBanner" class="mt-2 flex items-center gap-2">
-                  <UIcon name="i-heroicons-arrow-path" class="w-4 h-4 animate-spin" />
-                  <span class="text-xs text-gray-500 dark:text-gray-400">Uploading banner...</span>
+                  <UFormField label="Status" name="status" required>
+                    <USelect
+                      v-model="editEventForm.status"
+                      :items="[
+                        { label: 'Draft', value: 'draft' },
+                        { label: 'Published', value: 'published' },
+                        { label: 'Registration Open', value: 'registration_open' },
+                        { label: 'Registration Closed', value: 'registration_closed' },
+                        { label: 'Ongoing', value: 'ongoing' },
+                        { label: 'Completed', value: 'completed' },
+                        { label: 'Cancelled', value: 'cancelled' },
+                      ]"
+                      placeholder="Select status"
+                      class="w-full"
+                    />
+                  </UFormField>
                 </div>
-                <div v-if="bannerPreview" class="mt-3">
-                  <img
-                    :src="bannerPreview"
-                    alt="Banner preview"
-                    class="w-full h-40 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <UFormField label="Start Date" name="startDate" required>
+                    <UInput
+                      v-model="editEventForm.startDate"
+                      type="datetime-local"
+                      class="w-full"
+                    />
+                  </UFormField>
+
+                  <UFormField label="End Date" name="endDate">
+                    <UInput v-model="editEventForm.endDate" type="datetime-local" class="w-full" />
+                  </UFormField>
+                </div>
+
+                <UFormField label="Location" name="location" required>
+                  <UInput
+                    v-model="editEventForm.location"
+                    placeholder="Event location"
+                    class="w-full"
+                  />
+                </UFormField>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <UFormField label="Capacity" name="capacity">
+                    <UInput
+                      v-model="editEventForm.capacity"
+                      type="number"
+                      placeholder="Maximum attendees"
+                      class="w-full"
+                    />
+                  </UFormField>
+                </div>
+
+                <UFormField label="Description" name="description">
+                  <UTextarea
+                    v-model="editEventForm.description"
+                    placeholder="Event description"
+                    :rows="4"
+                    class="w-full"
+                  />
+                </UFormField>
+
+                <!-- Banner Image -->
+                <UFormField label="Event Banner Image" name="bannerImage">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:text-gray-300 dark:file:bg-primary-900/20 dark:file:text-primary-300"
+                    @change="onEditBannerSelected"
+                  />
+                  <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Upload a JPG/PNG banner. Recommended aspect ratio ~3:2. Max ~2MB.
+                  </p>
+                  <div v-if="isUploadingBanner" class="mt-2 flex items-center gap-2">
+                    <UIcon name="i-heroicons-arrow-path" class="w-4 h-4 animate-spin" />
+                    <span class="text-xs text-gray-500 dark:text-gray-400"
+                      >Uploading banner...</span
+                    >
+                  </div>
+                  <div v-if="bannerPreview" class="mt-3">
+                    <img
+                      :src="bannerPreview"
+                      alt="Banner preview"
+                      class="w-full h-40 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                    />
+                  </div>
+                </UFormField>
+              </UForm>
+            </div>
+
+            <div v-else-if="editStep === 2" class="space-y-6">
+              <UForm :state="editEventForm" class="space-y-6">
+                <UFormField label="Theme" name="theme" required>
+                  <UInput
+                    v-model="editEventForm.theme"
+                    placeholder="Enter event theme"
+                    class="w-full"
+                    maxlength="200"
+                  />
+                </UFormField>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Subthemes
+                  </label>
+                  <div class="space-y-2">
+                    <div v-for="(st, i) in editEventForm.subthemesList" :key="i" class="flex gap-2">
+                      <UInput
+                        v-model="editEventForm.subthemesList[i]"
+                        :placeholder="`Subtheme ${i + 1}`"
+                        class="flex-1"
+                      />
+                      <UButton
+                        v-if="editEventForm.subthemesList.length > 0"
+                        color="error"
+                        variant="ghost"
+                        icon="i-heroicons-trash"
+                        @click="editEventForm.subthemesList.splice(i, 1)"
+                      />
+                    </div>
+                    <UButton
+                      color="neutral"
+                      variant="soft"
+                      icon="i-heroicons-plus"
+                      @click="editEventForm.subthemesList.push('')"
+                    >
+                      Add Subtheme
+                    </UButton>
+                  </div>
+                </div>
+              </UForm>
+            </div>
+
+            <div v-else-if="editStep === 3" class="space-y-6">
+              <UForm :state="editEventForm" class="space-y-6">
+                <div class="flex items-center">
+                  <UCheckbox
+                    v-model="editEventForm.collectsSubmissions"
+                    label="Collect Abstract Submissions for this event?"
                   />
                 </div>
-              </UFormField>
-
-              <div class="flex items-center space-x-4">
-                <UCheckbox v-model="editEventForm.membersOnly" label="Members Only" />
-                <UCheckbox
-                  v-model="editEventForm.collectsSubmissions"
-                  label="Collect Submissions"
-                />
-              </div>
-            </UForm>
+                <div v-if="editEventForm.collectsSubmissions">
+                  <UFormField label="Submission Guidelines" name="submissionGuidelines">
+                    <UTextarea
+                      v-model="editEventForm.submissionGuidelines"
+                      placeholder="Paste your guidelines (you can include important dates here)"
+                      :rows="8"
+                      class="w-full"
+                    />
+                  </UFormField>
+                </div>
+              </UForm>
+            </div>
 
             <template #footer>
-              <div class="flex justify-end space-x-3">
+              <div class="flex justify-between space-x-3">
                 <UButton color="neutral" variant="ghost" @click="isEditOpen = false"
                   >Cancel</UButton
                 >
-                <UButton
-                  color="primary"
-                  :loading="isSavingEdit || isUploadingBanner"
-                  :disabled="isUploadingBanner"
-                  @click="handleUpdateEvent"
-                  >Save Changes</UButton
-                >
+                <div>
+                  <UButton
+                    v-if="editStep > 1"
+                    color="neutral"
+                    variant="soft"
+                    class="mr-2"
+                    @click="editStep--"
+                    >Back</UButton
+                  >
+                  <UButton v-if="editStep < 3" color="primary" @click="editStep++">Next</UButton>
+                  <UButton
+                    v-else
+                    color="primary"
+                    :loading="isSavingEdit || isUploadingBanner"
+                    :disabled="isUploadingBanner"
+                    @click="handleUpdateEvent"
+                    >Save Changes</UButton
+                  >
+                </div>
               </div>
             </template>
           </UCard>
@@ -382,6 +465,7 @@ const isSavingEdit = ref(false)
 const isUploadingBanner = ref(false)
 const bannerPreview = ref<string>('')
 const bannerFile = ref<File | null>(null)
+const editStep = ref(1)
 
 // Local edit form state
 const editEventForm = reactive({
@@ -393,13 +477,16 @@ const editEventForm = reactive({
   location: '',
   capacity: '' as string | number,
   description: '',
-  membersOnly: false,
   collectsSubmissions: false,
+  theme: '',
+  subthemesList: [] as string[],
+  submissionGuidelines: '',
 })
 
 function preloadEditForm() {
   const e = event.value
   if (!e) return
+  editStep.value = 1
   editEventForm.title = e.title || ''
   editEventForm.type =
     (e.type as 'webinar' | 'conference' | 'workshop' | 'seminar' | 'symposium') || 'webinar'
@@ -412,16 +499,16 @@ function preloadEditForm() {
       | 'ongoing'
       | 'completed'
       | 'cancelled') || 'draft'
-  // Convert API ISO strings to input datetime-local values
   const toLocalInput = (iso?: string) => (iso ? new Date(iso).toISOString().slice(0, 16) : '')
   editEventForm.startDate = toLocalInput(e.startDate)
   editEventForm.endDate = toLocalInput(e.endDate)
   editEventForm.location = e.location || ''
   editEventForm.capacity = (e.capacity as number | string) ?? ''
   editEventForm.description = e.description || ''
-  editEventForm.membersOnly = !!e.membersOnly
   editEventForm.collectsSubmissions = !!e.collectsSubmissions
-  // Preload existing banner preview
+  editEventForm.theme = e.theme || ''
+  editEventForm.subthemesList = Array.isArray(e.subthemes) ? [...e.subthemes] : []
+  editEventForm.submissionGuidelines = e.submissionGuidelines || ''
   const existing =
     (e as EventItem & { bannerUrl?: string }).bannerUrl ||
     e.gallery?.find(g => (g.type ?? 'image') !== 'video')?.url ||
@@ -440,7 +527,6 @@ async function handleUpdateEvent() {
   if (!event.value) return
   isSavingEdit.value = true
   try {
-    // Convert datetime-local values back to ISO strings
     const toISO = (val?: string) => (val ? new Date(val).toISOString() : undefined)
     const payload: Partial<CreateEventForm> = {
       title: editEventForm.title.trim() || undefined,
@@ -461,10 +547,12 @@ async function handleUpdateEvent() {
           ? Number(editEventForm.capacity)
           : undefined,
       description: editEventForm.description?.trim() || undefined,
-      membersOnly: !!editEventForm.membersOnly,
       collectsSubmissions: !!editEventForm.collectsSubmissions,
+      theme: editEventForm.theme?.trim() || undefined,
+      subthemes: (editEventForm.subthemesList || []).map(s => s.trim()).filter(Boolean),
+      submissionGuidelines: editEventForm.submissionGuidelines || undefined,
+      submissionDates: undefined,
     }
-
     // If a new banner was selected, upload and include bannerUrl
     if (bannerFile.value) {
       isUploadingBanner.value = true
@@ -496,7 +584,6 @@ async function handleUpdateEvent() {
         isUploadingBanner.value = false
       }
     }
-
     await updateEvent(event.value.id, payload)
     await refreshEvent(event.value.id)
     isEditOpen.value = false
