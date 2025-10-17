@@ -30,7 +30,7 @@ export const createEventSchema = z.object({
   membersOnly: z.boolean().default(false),
   collectsSubmissions: z.boolean().default(false),
   theme: z.string().min(2).max(200),
-  subthemes: z.array(z.string().min(1).max(100)).min(0).max(10).optional(),
+  subthemes: z.array(z.string().min(1).max(200)).min(0).max(10).optional(),
   submissionGuidelines: z.string().max(5000).optional(),
   submissionDates: z
     .array(
