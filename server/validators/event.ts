@@ -148,7 +148,16 @@ export const eventListQuerySchema = z.object({
   status: eventStatusSchema.optional(),
   from: z.string().datetime().optional(),
   to: z.string().datetime().optional(),
-  upcoming: z.coerce.boolean().optional(),
+  upcoming: z
+    .union([z.boolean(), z.string()])
+    .transform(val => {
+      if (typeof val === 'boolean') return val
+      if (typeof val === 'string') {
+        return val.toLowerCase() === 'true' || val === '1'
+      }
+      return undefined
+    })
+    .optional(),
   sort: z.string().default('-startDate'), // e.g., 'title', '-title', 'startDate', '-startDate', 'createdAt', '-createdAt'
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),

@@ -432,7 +432,7 @@
 
                 <!-- Corresponding Author -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <UFormField label="Corresponding Author Name *" name="correspondingAuthor.name">
+                  <UFormField label="Corresponding Author *" name="correspondingAuthor.name">
                     <UInput
                       v-model="submissionForm.correspondingAuthor.name"
                       placeholder="Full name"

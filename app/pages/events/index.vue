@@ -160,7 +160,7 @@ const query = computed(() => ({
   sort: 'startDate',
 }))
 
-const { data: eventsResponse, refresh: refreshPublicEvents } = await getPublicEvents(query.value)
+const { data: eventsResponse, refresh: refreshPublicEvents } = await getPublicEvents(query)
 
 // Transform API response to match expected format
 const events = computed(() => {
@@ -209,7 +209,7 @@ watch([activeTab, page], async () => {
     },
   })
 
-  // Re-fetch with new query parameters
+  // Manual refresh to ensure new data is fetched
   await refreshPublicEvents()
 })
 

@@ -101,11 +101,13 @@ export const useEvents = () => {
   }
 
   // Public events endpoint (no auth required)
-  const getPublicEvents = (query: EventListQuery = {}) => {
+  const getPublicEvents = (query: EventListQuery | Ref<EventListQuery> = {}) => {
+    const q = computed(() => unref(query))
     return useFetch<PaginatedResponse<Event>>('/api/events', {
-      query,
-      key: `public-events-${JSON.stringify(query)}`,
+      query: q,
+      key: computed(() => `public-events-${JSON.stringify(q.value)}`),
       server: true,
+      watch: [q],
       default: () => ({
         success: true,
         data: [],
