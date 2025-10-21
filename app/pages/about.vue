@@ -426,6 +426,13 @@ const leadership = [
     image: '/excomembers/treasurer.jpeg',
   },
   {
+    name: 'Dr Nnenna N. U Oji',
+    position: 'Public Relations Officer',
+    institution: 'Department of Community Medicine, University of Abuja Teaching Hospital',
+    bio: 'Senior Registrar, Department of Community Medicine interested in health systems strengthening, geriatric care and implementation research.',
+    image: '/excomembers/pro.jpeg',
+  },
+  {
     name: 'Dr. Oladayo David Awoyale',
     position: 'Auditor 2',
     institution: 'Sydani Group',
