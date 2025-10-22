@@ -477,14 +477,26 @@
                     :rows="8"
                     placeholder="Enter your abstract here..."
                     class="w-full"
+                    :class="{
+                      'border-red-500 focus:border-red-500': wordCount > 300,
+                      'border-amber-500 focus:border-amber-500':
+                        wordCount > 250 && wordCount <= 300,
+                    }"
+                    @input="handleAbstractInput"
                   />
-                  <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Word count:
-                    {{
-                      submissionForm.abstract
-                        ? submissionForm.abstract.split(/\s+/).filter(Boolean).length
-                        : 0
-                    }}
+                  <p
+                    class="mt-1 text-xs"
+                    :class="{
+                      'text-red-600 dark:text-red-400': wordCount > 300,
+                      'text-amber-600 dark:text-amber-400': wordCount > 250 && wordCount <= 300,
+                      'text-gray-500 dark:text-gray-400': wordCount <= 250,
+                    }"
+                  >
+                    Word count: {{ wordCount }}/300
+                    <span v-if="wordCount > 300" class="font-medium"> - Exceeds limit!</span>
+                    <span v-else-if="wordCount > 250" class="font-medium">
+                      - Approaching limit</span
+                    >
                   </p>
                 </UFormField>
 
@@ -721,8 +733,9 @@ const heroImage = computed(() => {
   return banner || firstImage || `https://picsum.photos/seed/${slug.value || 'epison'}/1600/900`
 })
 
-// Register route path for this event
-const registerPath = computed(() => `/events/${slug.value}/register`)
+const wordCount = computed(() => {
+  return submissionForm.abstract ? submissionForm.abstract.split(/\s+/).filter(Boolean).length : 0
+})
 
 const badgeClass = computed(() => {
   switch (typeLabel.value) {
@@ -854,6 +867,30 @@ const submissionForm = {
 
 function addAuthor() {
   formData.authors.push('')
+}
+
+// Function to enforce word limit on abstract
+function enforceWordLimit(text: string, maxWords: number): string {
+  const words = text.trim().split(/\s+/).filter(Boolean)
+  if (words.length <= maxWords) return text
+  return words.slice(0, maxWords).join(' ')
+}
+
+// Function to handle abstract input with word limit
+function handleAbstractInput(event: Event) {
+  const target = event.target as HTMLTextAreaElement
+  const newValue = target.value
+  const limitedText = enforceWordLimit(newValue, 300)
+  if (limitedText !== newValue) {
+    formData.abstract = limitedText
+    // Show warning toast when limit is reached
+    useToast().add({
+      title: 'Word Limit Reached',
+      description: `Abstract has been limited to 300 words. Excess content was removed.`,
+      color: 'warning',
+      icon: 'i-heroicons-exclamation-triangle',
+    })
+  }
 }
 
 // Remove author from the authors list

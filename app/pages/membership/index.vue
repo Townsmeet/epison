@@ -51,8 +51,9 @@
           class="mb-6 p-4 bg-primary-50 dark:bg-gray-800/60 rounded-lg text-sm text-gray-700 dark:text-gray-300"
         >
           <p>
-            We recommend the <span class="font-semibold">+IEA</span> options for broader
-            professional benefits. IEA stands for
+            We recommend the
+            <span class="font-semibold">+International Epidemiological Association</span> options
+            for broader professional benefits. International Epidemiological Association stands for
             <span class="italic">International Epidemiological Association</span>.
           </p>
         </div>
@@ -111,11 +112,12 @@
             <div class="p-8">
               <div class="flex justify-between items-center">
                 <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
-                  Regular Membership (+IEA)
+                  Regular Membership (+International Epidemiological Association)
                 </h2>
               </div>
               <p class="mt-4 text-gray-500 dark:text-gray-400">
-                Combined EPiSON membership with IEA for enhanced international benefits.
+                Combined EPiSON membership with International Epidemiological Association for
+                enhanced international benefits.
               </p>
 
               <div class="mt-8">
@@ -131,7 +133,7 @@
                 <li class="flex items-center">
                   <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-green-500" />
                   <span class="mx-4 text-gray-700 dark:text-gray-300"
-                    >IEA membership inclusion</span
+                    >International Epidemiological Association membership inclusion</span
                   >
                 </li>
                 <li class="flex items-center">
@@ -150,16 +152,17 @@
             </div>
           </div>
 
-          <!-- Early Career (Joint IEA & EPiSON) - Recommended -->
+          <!-- Early Career (Joint International Epidemiological Association & EPiSON) - Recommended -->
           <div
             class="overflow-hidden bg-white dark:bg-gray-800 border-2 border-primary-500/70 dark:border-primary-400/70 rounded-lg shadow-lg"
           >
             <div class="p-8">
               <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
-                Early Career Membership (+IEA)
+                Early Career Membership (+International Epidemiological Association)
               </h2>
               <p class="mt-4 text-gray-500 dark:text-gray-400">
-                Ideal for early career professionals seeking both EPiSON and IEA access.
+                Ideal for early career professionals seeking both EPiSON and International
+                Epidemiological Association access.
               </p>
 
               <div class="mt-8">
@@ -175,7 +178,7 @@
                 <li class="flex items-center">
                   <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-green-500" />
                   <span class="mx-4 text-gray-700 dark:text-gray-300"
-                    >IEA membership inclusion</span
+                    >International Epidemiological Association membership inclusion</span
                   >
                 </li>
                 <li class="flex items-center">
@@ -252,7 +255,7 @@
         </div>
 
         <div class="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <!-- Automatic IEA Membership -->
+          <!-- Automatic International Epidemiological Association Membership -->
           <div
             class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow"
           >
@@ -265,11 +268,11 @@
               />
             </div>
             <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
-              Automatic IEA Membership
+              Automatic International Epidemiological Association Membership
             </h3>
             <p class="mt-2 text-gray-600 dark:text-gray-400">
               Membership of EPISON automatically confers membership of the International
-              Epidemiological Association (IEA).
+              Epidemiological Association (International Epidemiological Association).
             </p>
           </div>
 
@@ -327,11 +330,12 @@
               />
             </div>
             <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
-              Access to IEA Privileges
+              Access to International Epidemiological Association Privileges
             </h3>
             <p class="mt-2 text-gray-600 dark:text-gray-400">
-              As an IEA member, you are eligible to attend IEA conferences and aspire to elective
-              offices, along with other member privileges.
+              As an International Epidemiological Association member, you are eligible to attend
+              International Epidemiological Association conferences and aspire to elective offices,
+              along with other member privileges.
             </p>
           </div>
 
@@ -352,7 +356,7 @@
             </h3>
             <p class="mt-2 text-gray-600 dark:text-gray-400">
               Access to newsletters, journals, and other publications by EPISON and its affiliate
-              organizations like IEA and AfEA.
+              organizations like International Epidemiological Association and AfEA.
             </p>
           </div>
 
@@ -372,8 +376,8 @@
               Conference Participation
             </h3>
             <p class="mt-2 text-gray-600 dark:text-gray-400">
-              Participation in EPISON, IEA, and regional conferences or other events organized by
-              them.
+              Participation in EPISON, International Epidemiological Association, and regional
+              conferences or other events organized by them.
             </p>
           </div>
 
@@ -432,8 +436,8 @@
               Collaborative Research
             </h3>
             <p class="mt-2 text-gray-600 dark:text-gray-400">
-              Participation in collaborative research with other members of EPISON and IEA at
-              subnational, national, and global levels.
+              Participation in collaborative research with other members of EPISON and International
+              Epidemiological Association at subnational, national, and global levels.
             </p>
           </div>
         </div>

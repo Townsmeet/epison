@@ -37,15 +37,14 @@
                   <div class="ml-4 text-gray-600 dark:text-gray-300">
                     <p class="font-semibold text-gray-900 dark:text-white">EPISON Secretariat</p>
                     <p class="mt-1 text-sm leading-relaxed">
-                      Department of Epidemiology and Medical Statistics,<br />
-                      Faculty of Public Health,<br />
-                      University of Ibadan,<br />
-                      Ibadan, Nigeria
+                      Department of Community Medicine,<br />
+                      Univeristy of Abuja Teaching Hospital,<br />
+                      Abuja, Nigeria.
                     </p>
                   </div>
                 </div>
 
-                <div class="flex items-start">
+                <!-- <div class="flex items-start">
                   <div class="flex-shrink-0 mt-1">
                     <div
                       class="flex items-center justify-center h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white"
@@ -57,7 +56,7 @@
                     <p class="font-semibold text-gray-900 dark:text-white">+234 812 345 6789</p>
                     <p class="mt-1 text-sm">Mon - Fri, 9am - 5pm WAT</p>
                   </div>
-                </div>
+                </div> -->
 
                 <div class="flex items-start">
                   <div class="flex-shrink-0 mt-1">
@@ -68,7 +67,9 @@
                     </div>
                   </div>
                   <div class="ml-4 text-gray-600 dark:text-gray-300">
-                    <p class="font-semibold text-gray-900 dark:text-white">info@epison.ng</p>
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      episonnigeria@gmail.com
+                    </p>
                     <p class="mt-1 text-sm">For general inquiries</p>
                   </div>
                 </div>
@@ -76,31 +77,24 @@
 
               <div class="flex space-x-4 mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
                 <a
-                  href="#"
-                  class="text-gray-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors"
-                >
-                  <span class="sr-only">Facebook</span>
-                  <UIcon name="i-heroicons-globe-alt" class="h-6 w-6" />
-                </a>
-                <a
-                  href="#"
+                  href="https://x.com/EPiSONNigeria"
                   class="text-gray-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors"
                 >
                   <span class="sr-only">Twitter</span>
                   <UIcon name="i-heroicons-at-symbol" class="h-6 w-6" />
                 </a>
                 <a
-                  href="#"
+                  href="https://www.linkedin.com/groups/12585259/"
                   class="text-gray-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors"
                 >
                   <span class="sr-only">LinkedIn</span>
                   <UIcon name="i-heroicons-building-office" class="h-6 w-6" />
                 </a>
                 <a
-                  href="#"
+                  href="https://www.instagram.com/episonnigeria/"
                   class="text-gray-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors"
                 >
-                  <span class="sr-only">YouTube</span>
+                  <span class="sr-only">Instagram</span>
                   <UIcon name="i-heroicons-play" class="h-6 w-6" />
                 </a>
               </div>

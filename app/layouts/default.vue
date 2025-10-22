@@ -373,22 +373,17 @@ const socialLinks = [
   {
     label: 'Twitter',
     icon: 'i-heroicons-at-symbol',
-    to: 'https://twitter.com/EPISONigeria',
-  },
-  {
-    label: 'Facebook',
-    icon: 'i-heroicons-globe-alt',
-    to: 'https://facebook.com/EPISONigeria',
+    to: 'https://x.com/EPiSONNigeria',
   },
   {
     label: 'LinkedIn',
     icon: 'i-heroicons-building-office',
-    to: 'https://linkedin.com/company/EPISONigeria',
+    to: 'https://www.linkedin.com/groups/12585259/',
   },
   {
-    label: 'YouTube',
+    label: 'Instagram',
     icon: 'i-heroicons-play',
-    to: 'https://youtube.com/EPISONigeria',
+    to: 'https://www.instagram.com/episonnigeria/',
   },
 ]
 
