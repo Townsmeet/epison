@@ -284,7 +284,9 @@
                   <UIcon name="i-heroicons-map-pin" class="h-5 w-5" />
                 </div>
                 <p class="ml-3 text-sm text-gray-600 dark:text-gray-300">
-                  Plot 1234, Central Business District<br />Abuja, Nigeria
+                  Department of Community Medicine,<br />
+                  Univeristy of Abuja Teaching Hospital,<br />
+                  Abuja, Nigeria.
                 </p>
               </div>
               <div class="flex items-center">
@@ -296,19 +298,7 @@
                   href="mailto:info@epison.org.ng"
                   class="ml-3 text-sm text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition-colors"
                 >
-                  info@epison.org.ng
-                </a>
-              </div>
-              <div class="flex items-center">
-                <UIcon
-                  name="i-heroicons-phone"
-                  class="h-5 w-5 text-primary-600 dark:text-primary-400 flex-shrink-0"
-                />
-                <a
-                  href="tel:+2348000000000"
-                  class="ml-3 text-sm text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition-colors"
-                >
-                  +234 800 000 0000
+                  episonnigeria@gmail.com
                 </a>
               </div>
             </address>
