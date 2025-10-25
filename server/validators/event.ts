@@ -121,6 +121,7 @@ export const createAbstractSubmissionSchema = z.object({
   }),
   keywords: z.array(z.string()).min(3).max(5),
   category: submissionCategorySchema,
+  subtheme: z.string().max(200).optional(),
   notes: z.string().max(1000).optional(),
 })
 
@@ -138,6 +139,7 @@ export const updateSubmissionSchema = z.object({
     .optional(),
   keywords: z.array(z.string()).min(3).max(5).optional(),
   category: submissionCategorySchema.optional(),
+  subtheme: z.string().max(200).optional(),
   notes: z.string().max(1000).optional(),
   status: submissionStatusSchema.optional(),
   reviewerComments: z.string().optional(),

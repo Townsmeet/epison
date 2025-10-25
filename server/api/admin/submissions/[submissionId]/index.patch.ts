@@ -50,6 +50,7 @@ export default defineEventHandler(async eventHandler => {
       correspondingAuthorPhone?: string
       keywordsJson?: string
       category?: string
+      subtheme?: string
       notes?: string
       status?: string
       reviewerComments?: string
@@ -63,6 +64,7 @@ export default defineEventHandler(async eventHandler => {
       correspondingAuthorPhone: body.correspondingAuthor?.phone,
       keywordsJson: body.keywords ? JSON.stringify(body.keywords) : undefined,
       category: body.category,
+      subtheme: body.subtheme,
       notes: body.notes,
     }
 
@@ -112,6 +114,7 @@ export default defineEventHandler(async eventHandler => {
       },
       keywords: JSON.parse(sub.keywordsJson),
       category: sub.category,
+      subtheme: sub.subtheme,
       notes: sub.notes,
       submissionDate: sub.submissionDate.toISOString(),
       status: sub.status,

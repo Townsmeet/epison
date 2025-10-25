@@ -48,6 +48,7 @@ export default defineEventHandler(async eventHandler => {
       },
       keywords: JSON.parse(sub.keywordsJson),
       category: sub.category,
+      subtheme: sub.subtheme,
       notes: sub.notes,
       submissionDate: sub.submissionDate.toISOString(),
       status: sub.status,

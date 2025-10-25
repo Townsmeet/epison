@@ -30,6 +30,7 @@ export const abstractSubmissionSchema = z.object({
     .min(3, 'At least 3 keywords are required')
     .max(10, 'Maximum 10 keywords allowed'),
   category: z.enum(['oral', 'poster', 'workshop']),
+  subtheme: z.string().max(200, 'Subtheme must be less than 200 characters').optional(),
   notes: z.string().max(1000, 'Notes must be less than 1000 characters').optional(),
 })
 

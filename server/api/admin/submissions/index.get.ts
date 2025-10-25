@@ -88,6 +88,7 @@ export default defineEventHandler(async eventHandler => {
       },
       keywords: JSON.parse(submission.keywordsJson),
       category: submission.category,
+      subtheme: submission.subtheme,
       notes: submission.notes,
       submissionDate: submission.submissionDate.toISOString(),
       status: submission.status,

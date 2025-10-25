@@ -151,6 +151,9 @@
                     >
                       {{ keyword }}
                     </UBadge>
+                    <UBadge v-if="submission.subtheme" color="info" variant="soft" size="xs">
+                      {{ submission.subtheme }}
+                    </UBadge>
                   </div>
 
                   <div class="text-xs text-gray-500 dark:text-gray-400">
@@ -233,6 +236,14 @@
                     <UBadge color="neutral" variant="outline" size="sm">
                       {{ selectedSubmission.category }}
                     </UBadge>
+                    <UBadge
+                      v-if="selectedSubmission.subtheme"
+                      color="info"
+                      variant="soft"
+                      size="sm"
+                    >
+                      {{ selectedSubmission.subtheme }}
+                    </UBadge>
                   </div>
                   <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
                     {{ selectedSubmission.title }}
@@ -312,6 +323,9 @@
                       {{ formatDate(selectedSubmission.submissionDate) }}
                     </div>
                     <div><strong>Category:</strong> {{ selectedSubmission.category }}</div>
+                    <div v-if="selectedSubmission.subtheme">
+                      <strong>Subtheme:</strong> {{ selectedSubmission.subtheme }}
+                    </div>
                   </div>
                 </div>
 

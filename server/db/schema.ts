@@ -298,6 +298,7 @@ export const abstractSubmission = sqliteTable('abstract_submission', {
   correspondingAuthorPhone: text('corresponding_author_phone'),
   keywordsJson: text('keywords_json').notNull(), // JSON string of string[]
   category: text('category').notNull(), // oral | poster | workshop
+  subtheme: text('subtheme'), // Selected subtheme from event's subthemes
   notes: text('notes'),
   submissionDate: integer('submission_date', { mode: 'timestamp' }).defaultNow().notNull(),
   status: text('status').default('pending').notNull(), // pending | under_review | accepted | rejected | revision_required

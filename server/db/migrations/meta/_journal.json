@@ -57,6 +57,13 @@
       "when": 1760546070006,
       "tag": "0007_stiff_roxanne_simpson",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1761318279654,
+      "tag": "0008_supreme_rumiko_fujikawa",
+      "breakpoints": true
     }
   ]
 }

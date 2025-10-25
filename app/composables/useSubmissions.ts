@@ -55,6 +55,7 @@ export const useSubmissions = () => {
         | 'correspondingAuthor'
         | 'keywords'
         | 'category'
+        | 'subtheme'
         | 'notes'
         | 'status'
         | 'reviewerComments'
@@ -87,6 +88,7 @@ export const useSubmissions = () => {
     }
     keywords: string[]
     category: string
+    subtheme?: string
     notes?: string
   }) => {
     return await $fetch(`/api/events/${submissionData.eventId}/submissions`, {

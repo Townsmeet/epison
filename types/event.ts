@@ -124,6 +124,7 @@ export interface AbstractSubmission {
   }
   keywords: string[]
   category: 'oral' | 'poster' | 'workshop'
+  subtheme?: string
   notes?: string
   submissionDate: string
   status: 'pending' | 'under_review' | 'accepted' | 'rejected' | 'revision_required'

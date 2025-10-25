@@ -386,6 +386,19 @@
                   </div>
                 </div>
 
+                <!-- Subtheme Selection -->
+                <div v-if="event?.subthemes && event.subthemes.length > 0">
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Subtheme
+                  </label>
+                  <USelect
+                    v-model="submissionForm.subtheme"
+                    :items="subthemeOptions"
+                    placeholder="Select a subtheme (optional)"
+                    class="w-full"
+                  />
+                </div>
+
                 <!-- Title -->
                 <UFormField label="Title *" name="title">
                   <UInput
@@ -796,6 +809,15 @@ const canSubmitAbstract = computed(() => {
   return !!(event.value.collectsSubmissions && !isPast.value)
 })
 
+// Subtheme options for the dropdown
+const subthemeOptions = computed(() => {
+  if (!event.value?.subthemes || !event.value.subthemes.length) return []
+  return event.value.subthemes.map(subtheme => ({
+    label: subtheme,
+    value: subtheme,
+  }))
+})
+
 // Form submission
 const submissionFormRef = ref<HTMLFormElement>()
 const keywordsInput = ref('')
@@ -811,6 +833,7 @@ const formData = reactive<AbstractSubmissionData>({
   },
   keywords: [],
   category: 'oral',
+  subtheme: undefined,
   notes: '',
 })
 
@@ -862,6 +885,12 @@ const submissionForm = {
   },
   set notes(value: string | undefined) {
     formData.notes = value
+  },
+  get subtheme() {
+    return formData.subtheme
+  },
+  set subtheme(value: string | undefined) {
+    formData.subtheme = value
   },
 }
 
@@ -933,7 +962,6 @@ async function handleSubmit(e?: Event) {
   }
 
   isSubmitting.value = true
-  console.log('[EventPage] Starting submission with event ID:', event.value.id)
 
   try {
     // Prepare submission data directly from the form
@@ -950,16 +978,11 @@ async function handleSubmit(e?: Event) {
       },
       keywords: formData.keywords,
       category: formData.category,
+      subtheme: formData.subtheme?.trim() || undefined,
       notes: formData.notes?.trim() || undefined,
     }
 
-    console.log(
-      '[EventPage] Calling submitAbstract with data:',
-      JSON.stringify(submissionData, null, 2)
-    )
-
-    const response = await submitAbstract(submissionData)
-    console.log('[EventPage] submitAbstract response:', response)
+    await submitAbstract(submissionData)
     useToast().add({
       title: 'Abstract Submitted',
       description: 'Your abstract has been successfully submitted for review.',
@@ -979,6 +1002,7 @@ async function handleSubmit(e?: Event) {
       },
       keywords: [],
       category: 'oral',
+      subtheme: undefined,
       notes: '',
     })
     keywordsInput.value = ''

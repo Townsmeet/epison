@@ -12,6 +12,7 @@ export interface AbstractSubmission {
   }
   keywords: string[]
   category: 'oral' | 'poster' | 'workshop'
+  subtheme?: string
   // Optional notes provided by the submitter
   notes?: string
   submissionDate: string

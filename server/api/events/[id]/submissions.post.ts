@@ -42,12 +42,18 @@ export default defineEventHandler(async eventHandler => {
       })
     }
 
-    // Check if event is in a state that accepts submissions
-    if (!['published', 'registration_open'].includes(eventData.status)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Abstract submissions are not currently open for this event',
-      })
+    // Validate subtheme if provided
+    if (body.subtheme) {
+      const eventSubthemes = eventData.subthemes
+        ? eventData.subthemes.split(',').map(s => s.trim())
+        : []
+      if (eventSubthemes.length > 0 && !eventSubthemes.includes(body.subtheme)) {
+        throw createError({
+          statusCode: 400,
+          statusMessage:
+            'Invalid subtheme selected. Please choose from the available subthemes for this event.',
+        })
+      }
     }
 
     // Generate submission ID
@@ -66,6 +72,7 @@ export default defineEventHandler(async eventHandler => {
       correspondingAuthorPhone: body.correspondingAuthor.phone,
       keywordsJson: JSON.stringify(body.keywords),
       category: body.category,
+      subtheme: body.subtheme,
       notes: body.notes,
       status: 'pending',
       submissionDate: new Date(),
@@ -80,7 +87,7 @@ export default defineEventHandler(async eventHandler => {
       description: `${body.correspondingAuthor.name} submitted an abstract to ${eventData.title}`,
       entityType: 'event',
       entityId: eventId,
-      metadata: { submissionId, category: body.category },
+      metadata: { submissionId, category: body.category, subtheme: body.subtheme },
     })
 
     return {
