@@ -104,7 +104,7 @@
               >
                 <img
                   class="w-full h-96 object-cover"
-                  src="/hero.png"
+                  src="/hero.jpeg"
                   alt="Medical professionals in discussion"
                 />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />

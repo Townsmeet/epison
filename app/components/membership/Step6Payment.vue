@@ -6,7 +6,9 @@
       class="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/50 p-4"
     >
       <p class="text-sm text-gray-700 dark:text-gray-300">
-        Review your details and proceed to payment to complete your membership application.
+        Your application will be created first, then you'll be redirected to payment. After
+        successful payment, you'll receive a confirmation email and your application will be
+        reviewed by our admin team.
       </p>
     </div>
 

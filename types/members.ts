@@ -10,6 +10,7 @@ export interface MemberListItem {
   expiryDate: string
   fees: number
   avatar?: string
+  paymentReference?: string
 }
 
 export interface MemberDetail {

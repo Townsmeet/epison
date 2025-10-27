@@ -17,8 +17,8 @@
       </h1>
 
       <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
-        Thank you for applying to the Epidemiological Society of Nigeria. We've received your
-        application and will review it shortly.
+        Thank you for applying to the Epidemiological Society of Nigeria. Your payment has been
+        processed successfully and your application is now under review.
       </p>
 
       <div class="mt-8 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-left">
@@ -26,7 +26,7 @@
         <ul class="mt-2 space-y-2 text-blue-700 dark:text-blue-300">
           <li class="flex items-start">
             <UIcon name="i-heroicons-envelope" class="h-5 w-5 mt-0.5 mr-2 flex-shrink-0" />
-            <span>Check your email for a confirmation message with your application details.</span>
+            <span>Check your email for a payment confirmation and application details.</span>
           </li>
           <li class="flex items-start">
             <UIcon name="i-heroicons-clock" class="h-5 w-5 mt-0.5 mr-2 flex-shrink-0" />
@@ -43,7 +43,7 @@
       </div>
 
       <div class="mt-8">
-        <UButton to="/" color="primary" size="lg" class="w-full sm:w-auto"> Back to Home </UButton>
+        <UButton to="/" color="primary" size="lg"> Back to Home </UButton>
 
         <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
           Questions?

@@ -1,6 +1,6 @@
 import type { H3Event } from 'h3'
 // removed unused getQuery import
-import { eq, like, or, and, asc, desc, count } from 'drizzle-orm'
+import { eq, like, or, and, asc, desc, count, isNull, isNotNull } from 'drizzle-orm'
 import { db } from '../../utils/drizzle'
 import { member } from '../../db/schema'
 import type { PaginatedResponse } from '../../../types/api'
@@ -35,6 +35,9 @@ export default defineEventHandler(
       const sortOrder = (query as Record<string, unknown>)?.['sortOrder']
         ? String((query as Record<string, unknown>)['sortOrder'])
         : 'asc'
+      const paymentStatus = (query as Record<string, unknown>)?.['paymentStatus']
+        ? String((query as Record<string, unknown>)['paymentStatus'])
+        : ''
 
       // Build where conditions
       const conditions = []
@@ -55,6 +58,14 @@ export default defineEventHandler(
 
       if (type) {
         conditions.push(eq(member.membershipType, type))
+      }
+
+      if (paymentStatus) {
+        if (paymentStatus === 'paid') {
+          conditions.push(isNotNull(member.paymentReference))
+        } else if (paymentStatus === 'unpaid') {
+          conditions.push(isNull(member.paymentReference))
+        }
       }
 
       // Build order by clause
@@ -92,6 +103,7 @@ export default defineEventHandler(
           expiryDate: member.expiryDate,
           fees: member.fees,
           avatar: member.avatar,
+          paymentReference: member.paymentReference,
         })
         .from(member)
         .where(conditions.length > 0 ? and(...conditions) : undefined)
@@ -110,6 +122,7 @@ export default defineEventHandler(
         expiryDate: r.expiryDate ?? '',
         fees: r.fees ?? 0,
         avatar: r.avatar ?? undefined,
+        paymentReference: r.paymentReference ?? undefined,
       }))
 
       return {

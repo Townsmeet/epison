@@ -119,7 +119,7 @@
 
     <!-- Filters -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
         <UInput
           v-model="searchQuery"
           placeholder="Search members..."
@@ -139,6 +139,14 @@
           option-attribute="label"
           value-attribute="value"
           placeholder="Filter by status"
+          :popper="{ strategy: 'fixed', placement: 'bottom-start' }"
+        />
+        <USelectMenu
+          v-model="selectedPaymentItem"
+          :items="paymentStatusOptions"
+          option-attribute="label"
+          value-attribute="value"
+          placeholder="Filter by payment"
           :popper="{ strategy: 'fixed', placement: 'bottom-start' }"
         />
         <UButton color="neutral" variant="outline" icon="i-heroicons-funnel" @click="clearFilters">
@@ -196,6 +204,11 @@
               >
                 Fees
               </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              >
+                Payment
+              </th>
               <th class="relative px-6 py-3">
                 <span class="sr-only">Actions</span>
               </th>
@@ -232,15 +245,42 @@
                 }}</UBadge>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <UBadge :color="getStatusColor(member.status)" size="sm">{{
-                  member.status
-                }}</UBadge>
+                <div class="flex items-center space-x-2">
+                  <UBadge :color="getStatusColor(member.status)" size="sm">{{
+                    member.status
+                  }}</UBadge>
+                  <UTooltip
+                    v-if="member.status === 'pending' && !member.paymentReference"
+                    text="Application without payment - may be duplicate"
+                  >
+                    <UIcon
+                      name="i-heroicons-exclamation-triangle"
+                      class="w-4 h-4 text-orange-500 cursor-help"
+                    />
+                  </UTooltip>
+                </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                 {{ formatDate(member.joinedDate) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                 ₦{{ member.fees.toLocaleString() }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center space-x-2">
+                  <UBadge :color="member.paymentReference ? 'success' : 'warning'" size="sm">
+                    {{ member.paymentReference ? 'Paid' : 'Pending' }}
+                  </UBadge>
+                  <UTooltip
+                    v-if="member.paymentReference"
+                    :text="`Ref: ${member.paymentReference}`"
+                  >
+                    <UIcon
+                      name="i-heroicons-information-circle"
+                      class="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help"
+                    />
+                  </UTooltip>
+                </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <UDropdownMenu :items="getMemberMenuItems(member)">
@@ -622,6 +662,7 @@ const {
 const searchQuery = ref('')
 const selectedTypeItem = ref<{ label: string; value: string } | undefined>(undefined)
 const selectedStatusItem = ref<{ label: string; value: string } | undefined>(undefined)
+const selectedPaymentItem = ref<{ label: string; value: string } | undefined>(undefined)
 const currentPage = ref(1)
 const pageSize = ref(20)
 
@@ -649,6 +690,12 @@ const statusOptions = [
   { label: 'Suspended', value: 'suspended' },
 ]
 
+const paymentStatusOptions = [
+  { label: 'All Payments', value: 'all' },
+  { label: 'Paid', value: 'paid' },
+  { label: 'Pending Payment', value: 'unpaid' },
+]
+
 const newMembership = ref({
   fullName: '',
   email: '',
@@ -668,6 +715,7 @@ const newMembership = ref({
 const membersQuery = computed(() => {
   const typeValue = selectedTypeItem.value?.value
   const statusValue = selectedStatusItem.value?.value
+  const paymentValue = selectedPaymentItem.value?.value
 
   return {
     page: currentPage.value,
@@ -675,6 +723,7 @@ const membersQuery = computed(() => {
     search: searchQuery.value || undefined,
     status: statusValue && statusValue !== 'all' ? statusValue : undefined,
     membershipType: typeValue && typeValue !== 'all' ? typeValue : undefined,
+    paymentStatus: paymentValue && paymentValue !== 'all' ? paymentValue : undefined,
     sortBy: 'nameFamily',
     sortOrder: 'asc' as const,
   }
@@ -752,7 +801,7 @@ watch(isCreateMembershipOpen, open => {
 })
 
 // Watch for filter changes to reset page
-watch([searchQuery, selectedTypeItem, selectedStatusItem], () => {
+watch([searchQuery, selectedTypeItem, selectedStatusItem, selectedPaymentItem], () => {
   currentPage.value = 1 // Reset to first page when filters change
 })
 
@@ -815,6 +864,8 @@ function formatDate(dateString: string): string {
 }
 
 function getMemberActions(member: MemberListItem) {
+  const isPendingApplication = member.status === 'pending'
+
   return [
     [{ label: 'View Profile', icon: 'i-heroicons-eye', click: () => viewMember(member.id) }],
     [
@@ -828,11 +879,13 @@ function getMemberActions(member: MemberListItem) {
         label: 'Renew Membership',
         icon: 'i-heroicons-arrow-path',
         click: () => confirmRenewMembership(member),
+        show: !isPendingApplication,
       },
       {
         label: 'Send Reminder',
         icon: 'i-heroicons-envelope',
         click: () => confirmSendReminder(member),
+        show: !isPendingApplication,
       },
     ],
     [
@@ -843,7 +896,7 @@ function getMemberActions(member: MemberListItem) {
         show: member.status === 'active',
       },
       {
-        label: 'Delete Member',
+        label: isPendingApplication ? 'Delete Application' : 'Delete Member',
         icon: 'i-heroicons-trash',
         click: () => confirmDeleteMember(member),
       },
@@ -870,6 +923,7 @@ function clearFilters() {
   searchQuery.value = ''
   selectedTypeItem.value = membershipTypeOptions.find(o => o.value === 'all')
   selectedStatusItem.value = statusOptions.find(o => o.value === 'all')
+  selectedPaymentItem.value = paymentStatusOptions.find(o => o.value === 'all')
 }
 
 async function exportMemberships() {

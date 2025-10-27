@@ -115,6 +115,13 @@ export const useMembers = () => {
     })
   }
 
+  const updateMemberPayment = async (id: string, paymentReference: string) => {
+    return await $fetch<ApiResponse<{ success: boolean }>>(`/api/members/${id}/payment`, {
+      method: 'POST',
+      body: { paymentReference },
+    })
+  }
+
   const activateMember = async (id: string, data: MemberActionRequest = {}) => {
     return await $fetch<ApiResponse<MemberDetail>>(`/api/members/${id}/activate`, {
       method: 'POST',
@@ -166,6 +173,7 @@ export const useMembers = () => {
     // Mutations
     createMember,
     updateMember,
+    updateMemberPayment,
     deleteMember,
     activateMember,
     suspendMember,

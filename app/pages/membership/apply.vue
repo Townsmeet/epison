@@ -98,7 +98,7 @@ useHead(() => ({
 const toast = useToast()
 const router = useRouter()
 const isSubmitting = ref(false)
-const { createMember, updateMember, getMember } = useMembers()
+const { createMember, updateMember, updateMemberPayment, getMember } = useMembers()
 
 // Form state with Zod schema
 const state = reactive<MembershipFormData>({
@@ -266,7 +266,7 @@ async function loadPaystackScript() {
   })
 }
 
-function startPaystackPayment(): Promise<{ reference: string }> {
+function startPaystackPayment(applicationId?: string): Promise<{ reference: string }> {
   return new Promise((resolve, reject) => {
     ;(async () => {
       const amount = amountNaira.value
@@ -307,6 +307,11 @@ function startPaystackPayment(): Promise<{ reference: string }> {
         ref,
         metadata: {
           custom_fields: [
+            {
+              display_name: 'Application ID',
+              variable_name: 'application_id',
+              value: applicationId || 'unknown',
+            },
             {
               display_name: 'Membership Type',
               variable_name: 'membership_type',
@@ -510,8 +515,7 @@ const onSubmit = async (_event: FormSubmitEvent<MembershipFormData>) => {
       return
     }
 
-    // Apply mode: Start Paystack and wait for success
-    const { reference } = await startPaystackPayment()
+    // Apply mode: Create application first, then process payment
 
     // Upload publications if any
     let publicationUrls: string[] = []
@@ -542,7 +546,7 @@ const onSubmit = async (_event: FormSubmitEvent<MembershipFormData>) => {
       }
     }
 
-    // Prepare member data for API
+    // Step 1: Create application with pending status (no payment reference yet)
     const createData: import('../../../types/members').CreateMemberRequest = {
       // Personal Information
       title: state.title,
@@ -581,7 +585,7 @@ const onSubmit = async (_event: FormSubmitEvent<MembershipFormData>) => {
       // Membership Details
       membershipType: state.membershipType,
       fees: state.fees,
-      paymentReference: reference,
+      // No payment reference yet - will be added after successful payment
 
       // Related data
       publications: publicationUrls,
@@ -589,16 +593,26 @@ const onSubmit = async (_event: FormSubmitEvent<MembershipFormData>) => {
 
     const createResponse = await createMember(createData)
     if (!createResponse.success) {
-      throw new Error(createResponse.error || 'Failed to create member')
+      throw new Error(createResponse.error || 'Failed to create application')
     }
 
     if (!createResponse.data) {
       throw new Error('No data returned from server')
     }
 
+    // Step 2: Process payment with application ID
+    const { reference } = await startPaystackPayment(createResponse.data.id)
+
+    // Step 3: Update application with payment reference
+    const paymentUpdateResponse = await updateMemberPayment(createResponse.data.id, reference)
+    if (!paymentUpdateResponse.success) {
+      console.warn('Failed to update payment reference:', paymentUpdateResponse.error)
+      // Don't throw error here - payment was successful, just log the issue
+    }
+
     toast.add({
       title: 'Application Submitted',
-      description: `We received your application and payment. Ref: ${reference}`,
+      description: `Payment successful! Your application is under review. Ref: ${reference}`,
       icon: 'i-heroicons-check-circle',
       color: 'success',
     })
@@ -641,7 +655,7 @@ const onSubmit = async (_event: FormSubmitEvent<MembershipFormData>) => {
       } else {
         errorTitle = 'Application Failed'
         errorDescription =
-          'Unable to submit your application. Please check your information and try again.'
+          'Unable to submit your application. If payment was successful, please contact support with your payment reference.'
         errorColor = 'error'
       }
     }
