@@ -45,43 +45,119 @@
             </div>
 
             <UFormField label="Select Ticket" name="ticket" required>
-              <div class="space-y-3">
+              <div class="space-y-6">
+                <!-- Categorized Tickets -->
                 <div
-                  v-for="ticket in tickets"
-                  :key="ticket.value"
-                  class="relative flex items-start p-4 border rounded-lg cursor-pointer transition-all"
-                  :class="[
-                    form.ticket === ticket.value
-                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600',
-                  ]"
-                  @click="form.ticket = ticket.value"
+                  v-for="category in ticketStructure.categorized"
+                  :key="category.id"
+                  class="space-y-3"
                 >
-                  <div class="flex items-center h-5">
-                    <URadio
-                      v-model="form.ticket"
-                      :value="ticket.value"
-                      class="pointer-events-none"
-                    />
-                  </div>
-                  <div class="ml-3 flex-1">
-                    <div class="flex items-center justify-between">
-                      <label
-                        class="font-medium text-gray-900 dark:text-white cursor-pointer"
-                        @click.stop="form.ticket = ticket.value"
-                      >
-                        {{ ticket.label.split(' (')[0] }}
-                      </label>
-                      <span class="text-lg font-semibold text-primary-600 dark:text-primary-400">
-                        ₦{{ (ticket.amount / 100).toLocaleString() }}
-                      </span>
-                    </div>
+                  <div class="border-l-4 border-primary-500 pl-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                      {{ category.name }}
+                    </h3>
                     <p
-                      v-if="ticket.description"
-                      class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+                      v-if="category.description"
+                      class="text-sm text-gray-600 dark:text-gray-300 mt-1"
                     >
-                      {{ ticket.description }}
+                      {{ category.description }}
                     </p>
+                  </div>
+
+                  <div class="ml-6 space-y-3">
+                    <div
+                      v-for="ticket in category.tickets"
+                      :key="ticket.id"
+                      class="relative flex items-start p-4 border rounded-lg cursor-pointer transition-all"
+                      :class="[
+                        form.ticket === ticket.id
+                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600',
+                      ]"
+                      @click="form.ticket = ticket.id"
+                    >
+                      <div class="flex items-center h-5">
+                        <URadio
+                          v-model="form.ticket"
+                          :value="ticket.id"
+                          class="pointer-events-none"
+                        />
+                      </div>
+                      <div class="ml-3 flex-1">
+                        <div class="flex items-center justify-between">
+                          <label
+                            class="font-medium text-gray-900 dark:text-white cursor-pointer"
+                            @click.stop="form.ticket = ticket.id"
+                          >
+                            {{ ticket.name }}
+                          </label>
+                          <span
+                            class="text-lg font-semibold text-primary-600 dark:text-primary-400"
+                          >
+                            ₦{{ (ticket.price / 100).toLocaleString() }}
+                          </span>
+                        </div>
+                        <p
+                          v-if="ticket.description"
+                          class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+                        >
+                          {{ ticket.description }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Uncategorized Tickets -->
+                <div v-if="ticketStructure.uncategorized.length" class="space-y-3">
+                  <h3
+                    v-if="ticketStructure.categorized.length"
+                    class="text-lg font-semibold text-gray-900 dark:text-white"
+                  >
+                    Other Tickets
+                  </h3>
+
+                  <div class="space-y-3">
+                    <div
+                      v-for="ticket in ticketStructure.uncategorized"
+                      :key="ticket.id"
+                      class="relative flex items-start p-4 border rounded-lg cursor-pointer transition-all"
+                      :class="[
+                        form.ticket === ticket.id
+                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600',
+                      ]"
+                      @click="form.ticket = ticket.id"
+                    >
+                      <div class="flex items-center h-5">
+                        <URadio
+                          v-model="form.ticket"
+                          :value="ticket.id"
+                          class="pointer-events-none"
+                        />
+                      </div>
+                      <div class="ml-3 flex-1">
+                        <div class="flex items-center justify-between">
+                          <label
+                            class="font-medium text-gray-900 dark:text-white cursor-pointer"
+                            @click.stop="form.ticket = ticket.id"
+                          >
+                            {{ ticket.name }}
+                          </label>
+                          <span
+                            class="text-lg font-semibold text-primary-600 dark:text-primary-400"
+                          >
+                            ₦{{ (ticket.price / 100).toLocaleString() }}
+                          </span>
+                        </div>
+                        <p
+                          v-if="ticket.description"
+                          class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+                        >
+                          {{ ticket.description }}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -103,33 +179,24 @@
 <script setup lang="ts">
 import { z } from 'zod'
 
+import type { TicketDisplayStructure } from '../../../../types/event'
+
 const route = useRoute()
 const slug = computed(() => route.params.slug as string)
-const { getPublicEventBySlug, createPublicEventRegistration } = useEvents()
+const { getPublicEventBySlug, getPublicTicketsStructured, createPublicEventRegistration } =
+  useEvents()
+
 // Fetch the public event by slug (same as detail page)
 const { data: eventResponse } = await getPublicEventBySlug(slug.value)
 const event = computed(() => eventResponse.value)
 
+// Fetch structured tickets
+const { data: ticketsResponse } = await getPublicTicketsStructured(event.value?.id || '')
+const ticketStructure = computed<TicketDisplayStructure>(
+  () => ticketsResponse.value?.data || { categorized: [], uncategorized: [] }
+)
+
 const submitting = ref(false)
-
-// Types
-type Ticket = {
-  label: string
-  value: string
-  amount: number
-  description?: string
-}
-
-// Derive tickets from event.tickets (public tickets already filtered server-side)
-const tickets = computed<Ticket[]>(() => {
-  const eventTickets = event.value?.tickets ?? []
-  return eventTickets.map(t => ({
-    label: t.name,
-    value: String(t.id),
-    amount: Number(t.price),
-    description: t.description,
-  }))
-})
 
 const form = reactive({
   name: '',
@@ -162,9 +229,10 @@ function validate() {
 
 // Initialize selected ticket when tickets load
 watchEffect(() => {
-  const [firstTicket] = tickets.value
+  const structure = ticketStructure.value
+  const firstTicket = structure.categorized[0]?.tickets[0] || structure.uncategorized[0]
   if (!form.ticket && firstTicket) {
-    form.ticket = firstTicket.value
+    form.ticket = firstTicket.id
   }
 })
 

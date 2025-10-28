@@ -42,9 +42,11 @@ export default defineEventHandler(async eventHandler => {
     const ticketData = {
       id: ticketId,
       eventId,
+      categoryId: body.categoryId || null,
       name: body.name,
       price: body.price,
       quantity: body.quantity,
+      displayOrder: body.displayOrder,
       salesStart: body.salesStart,
       salesEnd: body.salesEnd,
       description: body.description,

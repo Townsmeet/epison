@@ -209,10 +209,28 @@ async function addMedia() {
   isUploading.value = true
 
   try {
-    // For demo purposes, we'll use the object URL
-    // In production, you should upload the file to your server first
-    // and use the returned URL
-    const fileUrl = newMedia.previewUrl
+    // Upload file to S3 first
+    const formData = new FormData()
+    formData.append('file', newMedia.file, newMedia.file.name)
+    formData.append('folder', 'events/gallery')
+    formData.append(
+      'key',
+      `${props.event.slug || props.event.id}-${Date.now()}-${newMedia.file.name}`
+    )
+
+    const uploadResponse = await $fetch<{
+      url: string
+      key: string
+      contentType: string
+      size: number
+      filename: string
+    }>('/api/uploads', {
+      method: 'POST',
+      body: formData,
+    })
+
+    // Use the uploaded S3 URL
+    const fileUrl = uploadResponse.url
 
     const mediaData = {
       type: newMedia.type,
@@ -251,9 +269,22 @@ async function addMedia() {
   } catch (error) {
     console.error('Error adding media:', error)
 
+    let errorMessage = 'An error occurred while adding media'
+
+    if (error instanceof Error) {
+      errorMessage = error.message
+    } else if (typeof error === 'object' && error && 'data' in error) {
+      const errorData = error.data as { statusMessage?: string; message?: string }
+      if (errorData?.statusMessage) {
+        errorMessage = errorData.statusMessage
+      } else if (errorData?.message) {
+        errorMessage = errorData.message
+      }
+    }
+
     useToast().add({
       title: 'Upload failed',
-      description: error instanceof Error ? error.message : 'An error occurred while adding media',
+      description: errorMessage,
       color: 'error',
       icon: 'i-heroicons-exclamation-triangle',
     })
@@ -288,6 +319,11 @@ async function removeMedia(id: string) {
 }
 
 function resetForm() {
+  // Clean up blob URL to prevent memory leaks
+  if (newMedia.previewUrl) {
+    URL.revokeObjectURL(newMedia.previewUrl)
+  }
+
   newMedia.type = 'image'
   newMedia.url = ''
   newMedia.caption = ''
@@ -299,4 +335,11 @@ function resetForm() {
     fileInput.value.value = ''
   }
 }
+
+// Cleanup on component unmount
+onUnmounted(() => {
+  if (newMedia.previewUrl) {
+    URL.revokeObjectURL(newMedia.previewUrl)
+  }
+})
 </script>

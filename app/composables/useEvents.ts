@@ -8,8 +8,16 @@ import type {
   EventCommitteeMember,
   AbstractSubmission,
   EventMedia,
+  TicketCategory,
+  TicketDisplayStructure,
 } from '../../types/event'
 import type { ApiResponse, PaginatedResponse } from '../../types/api'
+// Ticket category types
+interface CreateTicketCategoryRequest {
+  name: string
+  description?: string
+  displayOrder?: number
+}
 
 export interface EventListQuery {
   page?: number
@@ -311,6 +319,17 @@ export const useEvents = () => {
     })
   }
 
+  const updateEventTicket = async (
+    ticketId: string,
+    data: Omit<EventTicket, 'id' | 'eventId' | 'createdAt' | 'updatedAt'>
+  ) => {
+    return await $fetch<EventTicket>(`/api/admin/tickets/${ticketId}`, {
+      method: 'PUT',
+      body: data,
+      credentials: 'include',
+    })
+  }
+
   const deleteEventTicket = async (eventId: string, ticketId: string) => {
     return await $fetch<ApiResponse>(`/api/admin/events/${eventId}/tickets/${ticketId}`, {
       method: 'DELETE',
@@ -461,6 +480,68 @@ export const useEvents = () => {
     return refreshCookie(`event-media-${eventId}`)
   }
 
+  // ===== Ticket Categories =====
+  const getTicketCategories = (eventId: string) => {
+    return useLazyFetch<ApiResponse<TicketCategory[]>>(`/api/admin/events/${eventId}/categories`, {
+      key: `event-categories-${eventId}`,
+      server: false,
+    })
+  }
+
+  const getTicketsWithCategories = (eventId: string) => {
+    return useLazyFetch<ApiResponse<TicketDisplayStructure>>(
+      `/api/admin/events/${eventId}/tickets-with-categories`,
+      {
+        key: `event-tickets-categories-${eventId}`,
+        server: false,
+      }
+    )
+  }
+
+  const getPublicTicketsStructured = (eventId: string) => {
+    return useLazyFetch<ApiResponse<TicketDisplayStructure>>(
+      `/api/events/${eventId}/tickets-structured`,
+      {
+        key: `public-tickets-structured-${eventId}`,
+        server: false,
+      }
+    )
+  }
+
+  const createTicketCategory = async (eventId: string, data: CreateTicketCategoryRequest) => {
+    return await $fetch<TicketCategory>(`/api/admin/events/${eventId}/categories`, {
+      method: 'POST',
+      body: data,
+    })
+  }
+
+  const updateTicketCategory = async (
+    categoryId: string,
+    data: Partial<CreateTicketCategoryRequest>
+  ) => {
+    return await $fetch<TicketCategory>(`/api/admin/categories/${categoryId}`, {
+      method: 'PUT',
+      body: data,
+    })
+  }
+
+  const deleteTicketCategory = async (categoryId: string) => {
+    return await $fetch<{ success: boolean; message: string }>(
+      `/api/admin/categories/${categoryId}`,
+      {
+        method: 'DELETE',
+      }
+    )
+  }
+
+  const refreshTicketCategories = (eventId: string) => {
+    return refreshCookie(`event-categories-${eventId}`)
+  }
+
+  const refreshTicketsWithCategories = (eventId: string) => {
+    return refreshCookie(`event-tickets-categories-${eventId}`)
+  }
+
   return {
     // GET requests
     getEvents,
@@ -483,6 +564,7 @@ export const useEvents = () => {
     createEventSponsor,
     deleteEventSponsor,
     createEventTicket,
+    updateEventTicket,
     deleteEventTicket,
     createEventCommitteeMember,
     deleteEventCommitteeMember,
@@ -500,5 +582,15 @@ export const useEvents = () => {
     refreshEventCommittee,
     refreshEventSubmissions,
     refreshEventMedia,
+
+    // Ticket Categories
+    getTicketCategories,
+    getTicketsWithCategories,
+    getPublicTicketsStructured,
+    createTicketCategory,
+    updateTicketCategory,
+    deleteTicketCategory,
+    refreshTicketCategories,
+    refreshTicketsWithCategories,
   }
 }

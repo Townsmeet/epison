@@ -34,18 +34,40 @@ export interface Event {
   updatedAt: string
 }
 
-export interface EventTicket {
+export interface TicketCategory {
   id: string
   eventId: string
   name: string
+  description?: string
+  displayOrder: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface EventTicket {
+  id: string
+  eventId: string
+  categoryId?: string
+  name: string
   price: number // in kobo
   quantity: number
+  displayOrder: number
   salesStart?: string
   salesEnd?: string
   description?: string
   isPublic: boolean
   createdAt: string
   updatedAt: string
+}
+
+// For UI display with nested structure
+export interface TicketCategoryWithTickets extends TicketCategory {
+  tickets: EventTicket[]
+}
+
+export interface TicketDisplayStructure {
+  categorized: TicketCategoryWithTickets[]
+  uncategorized: EventTicket[]
 }
 
 export interface EventSponsor {

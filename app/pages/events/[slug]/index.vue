@@ -1,6 +1,8 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <div class="relative bg-white dark:bg-gray-900 overflow-hidden">
+  <div
+    class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+  >
+    <div class="relative bg-white dark:bg-gray-900 overflow-hidden shadow-2xl">
       <div class="max-w-7xl mx-auto">
         <div
           class="relative z-10 pb-8 bg-white dark:bg-gray-900 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32"
@@ -90,18 +92,60 @@
                     View upcoming events
                   </UButton>
                 </div>
-                <div v-if="event?.theme" class="mt-6">
-                  <div class="text-xl font-extrabold text-gray-900 dark:text-white">Theme</div>
-                  <div class="text-lg font-bold text-gray-900 dark:text-white mt-1">
-                    {{ event.theme }}
+                <!-- Enhanced Theme Section -->
+                <div v-if="event?.theme" class="mt-8">
+                  <div class="relative">
+                    <div
+                      class="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 rounded-2xl"
+                    />
+                    <div
+                      class="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-primary-200/50 dark:border-primary-700/50 shadow-lg"
+                    >
+                      <div class="flex items-center mb-3">
+                        <div
+                          class="w-2 h-8 bg-gradient-to-b from-primary-500 to-secondary-500 rounded-full mr-3"
+                        />
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Event Theme</h3>
+                      </div>
+                      <div
+                        class="text-2xl font-extrabold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent leading-tight"
+                      >
+                        "{{ event.theme }}"
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div v-if="event?.subthemes && event.subthemes.length" class="mt-4">
-                  <div class="text-base font-semibold text-gray-900 dark:text-white">Subthemes</div>
-                  <div
-                    class="text-sm font-medium text-gray-900 dark:text-white mt-1 flex flex-wrap gap-x-4 gap-y-1"
+
+                <!-- Enhanced Subthemes Section -->
+                <div v-if="event?.subthemes && event.subthemes.length" class="mt-6">
+                  <h4
+                    class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center"
                   >
-                    <span v-for="(s, si) in event.subthemes" :key="`${s}-${si}`">{{ s }}</span>
+                    <UIcon name="i-heroicons-light-bulb" class="w-5 h-5 mr-2 text-primary-500" />
+                    Key Focus Areas
+                  </h4>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div
+                      v-for="(subtheme, index) in event.subthemes"
+                      :key="`${subtheme}-${index}`"
+                      class="group relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 p-4 border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-300 hover:scale-[1.02]"
+                    >
+                      <div
+                        class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary-500/10 to-secondary-500/10 rounded-full -translate-y-10 translate-x-10"
+                      />
+                      <div class="relative">
+                        <div class="flex items-center">
+                          <div
+                            class="w-2 h-2 bg-primary-500 rounded-full mr-3 group-hover:scale-125 transition-transform"
+                          />
+                          <span
+                            class="font-medium text-gray-900 dark:text-white text-sm leading-relaxed"
+                          >
+                            {{ subtheme }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -120,7 +164,9 @@
       </div>
     </div>
 
-    <div class="py-12 bg-white dark:bg-gray-900">
+    <div
+      class="py-16 bg-gradient-to-b from-white via-gray-50/50 to-white dark:from-gray-900 dark:via-gray-800/50 dark:to-gray-900"
+    >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="lg:grid lg:grid-cols-3 lg:gap-8">
           <div class="lg:col-span-2">
@@ -130,65 +176,137 @@
               <p>{{ event.description }}</p>
             </div>
 
-            <!-- Submission Guidelines and Important Dates -->
-            <div
-              v-if="
-                event?.submissionGuidelines ||
-                (event?.submissionDates && event.submissionDates.length)
-              "
-              class="mt-8"
-            >
-              <div v-if="event?.submissionGuidelines">
-                <h3 class="font-bold mb-1">Submission Guidelines</h3>
+            <!-- Featured Gallery Section (for past events) -->
+            <div v-if="isPast && event?.gallery?.length" class="mt-12">
+              <div class="text-center mb-8">
+                <h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                  Event Highlights
+                </h3>
+                <p class="text-gray-600 dark:text-gray-300">
+                  Relive the memorable moments from this event
+                </p>
+              </div>
+
+              <!-- Hero Gallery Image -->
+              <div class="relative mb-8 group">
+                <img
+                  :src="normalizeUrl(galleryImages[0]?.url) || ''"
+                  :alt="galleryImages[0]?.caption || 'Event highlight'"
+                  class="w-full h-96 object-cover rounded-2xl shadow-2xl cursor-pointer transition-all duration-500 group-hover:scale-[1.02]"
+                  @click="openGalleryModal(0)"
+                />
                 <div
-                  class="whitespace-pre-line text-sm bg-gray-50 dark:bg-gray-900 rounded p-3 mb-4"
-                >
-                  {{ event.submissionGuidelines }}
+                  class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl"
+                />
+                <div class="absolute bottom-6 left-6 right-6">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <h4 class="text-white text-xl font-bold mb-1">{{ event.title }}</h4>
+                      <p class="text-white/80 text-sm">
+                        {{ formatDateRange(event.startDate, event.endDate) }}
+                      </p>
+                    </div>
+                    <UButton
+                      color="neutral"
+                      variant="solid"
+                      size="sm"
+                      icon="i-heroicons-photo"
+                      @click="openGalleryModal(0)"
+                    >
+                      View Gallery
+                    </UButton>
+                  </div>
                 </div>
               </div>
-              <div v-if="event?.submissionDates && event.submissionDates.length">
-                <h3 class="font-bold mb-1">Important Dates</h3>
-                <ul class="text-xs space-y-1">
-                  <li v-for="d in event.submissionDates" :key="d.label">
-                    <span class="font-semibold">{{ d.label }}:</span>
-                    <span v-if="d.date">{{ d.date }}</span
-                    ><span v-if="!d.date && d.startDate && d.endDate"
-                      >{{ d.startDate }} - {{ d.endDate }}</span
-                    >
-                  </li>
-                </ul>
+
+              <!-- Gallery Grid -->
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div
+                  v-for="(image, index) in galleryImages.slice(1, 9)"
+                  :key="image.id"
+                  class="relative group cursor-pointer"
+                  @click="openGalleryModal(index + 1)"
+                >
+                  <img
+                    :src="normalizeUrl(image.url) || ''"
+                    :alt="image.caption || 'Event image'"
+                    class="w-full h-32 object-cover rounded-xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg"
+                  />
+                  <div
+                    class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 rounded-xl"
+                  />
+                  <div
+                    class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300"
+                  >
+                    <UIcon name="i-heroicons-magnifying-glass-plus" class="w-8 h-8 text-white" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="text-center">
+                <UButton
+                  v-if="galleryImages.length > 9"
+                  color="primary"
+                  size="lg"
+                  variant="soft"
+                  @click="openGalleryModal(0)"
+                >
+                  View All {{ galleryImages.length }} Photos
+                  <UIcon name="i-heroicons-arrow-right" class="ml-2" />
+                </UButton>
               </div>
             </div>
 
             <!-- Speakers (always show; placeholder when empty) -->
             <div v-if="event && event.speakers?.length" class="mt-12">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Speakers</h3>
+              <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+                Featured Speakers
+              </h3>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div
                   v-for="sp in event?.speakers || []"
                   :key="sp.id"
-                  class="flex items-start gap-4 p-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+                  class="group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
                 >
-                  <img
-                    :src="
-                      normalizeUrl(sp.photoUrl) ||
-                      `https://picsum.photos/seed/speaker-${sp.id}/160/160`
-                    "
-                    :alt="sp.name"
-                    class="h-16 w-16 rounded-full object-cover"
-                    @error="onSpeakerImgError"
+                  <div
+                    class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-500/10 to-secondary-500/10 rounded-full -translate-y-16 translate-x-16"
                   />
-                  <div>
-                    <p class="font-medium text-gray-900 dark:text-white">{{ sp.name }}</p>
-                    <p v-if="sp.title || sp.org" class="text-sm text-gray-600 dark:text-gray-300">
-                      {{ [sp.title, sp.org].filter(Boolean).join(', ') }}
-                    </p>
-                    <p
-                      v-if="sp.bio"
-                      class="mt-2 text-sm text-gray-500 dark:text-gray-400 line-clamp-3"
-                    >
-                      {{ sp.bio }}
-                    </p>
+                  <div class="relative p-6">
+                    <div class="flex items-start gap-4">
+                      <div class="relative">
+                        <img
+                          :src="
+                            normalizeUrl(sp.photoUrl) ||
+                            `https://picsum.photos/seed/speaker-${sp.id}/160/160`
+                          "
+                          :alt="sp.name"
+                          class="h-20 w-20 rounded-2xl object-cover ring-4 ring-white dark:ring-gray-700 shadow-lg"
+                          @error="onSpeakerImgError"
+                        />
+                        <div
+                          class="absolute -bottom-2 -right-2 w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center"
+                        >
+                          <UIcon name="i-heroicons-microphone" class="w-3 h-3 text-white" />
+                        </div>
+                      </div>
+                      <div class="flex-1">
+                        <h4 class="font-bold text-gray-900 dark:text-white text-lg">
+                          {{ sp.name }}
+                        </h4>
+                        <p
+                          v-if="sp.title || sp.org"
+                          class="text-sm text-primary-600 dark:text-primary-400 font-medium mt-1"
+                        >
+                          {{ [sp.title, sp.org].filter(Boolean).join(', ') }}
+                        </p>
+                        <p
+                          v-if="sp.bio"
+                          class="mt-3 text-sm text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed"
+                        >
+                          {{ sp.bio }}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -201,32 +319,53 @@
               <!-- Organizing Committee -->
               <div
                 v-if="event?.committee && event.committee.length"
-                class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
+                class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700"
               >
                 <div class="p-6">
-                  <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                  <h3
+                    class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center"
+                  >
+                    <UIcon name="i-heroicons-users" class="w-6 h-6 mr-2 text-primary-500" />
                     Organizing Committee
                   </h3>
                   <ul class="space-y-4">
-                    <li v-for="m in event.committee" :key="m.id" class="flex items-start gap-3">
-                      <UIcon name="i-heroicons-user" class="h-5 w-5 text-gray-400 mt-0.5" />
-                      <div>
-                        <div class="font-medium text-gray-900 dark:text-white">{{ m.name }}</div>
-                        <div class="text-sm text-gray-600 dark:text-gray-300">
-                          <span v-if="m.role">{{ m.role }}</span>
-                          <span v-if="m.role && (m.email || m.phone)" class="mx-2">•</span>
-                          <NuxtLink
-                            v-if="m.email"
-                            :to="`mailto:${m.email}`"
-                            class="hover:underline"
-                            >{{ m.email }}</NuxtLink
+                    <li v-for="m in event.committee" :key="m.id" class="group">
+                      <div
+                        class="flex items-start gap-4 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200"
+                      >
+                        <div
+                          class="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center flex-shrink-0"
+                        >
+                          <UIcon name="i-heroicons-user" class="h-5 w-5 text-white" />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <div class="font-semibold text-gray-900 dark:text-white">
+                            {{ m.name }}
+                          </div>
+                          <div
+                            v-if="m.role"
+                            class="text-sm text-primary-600 dark:text-primary-400 font-medium"
                           >
-                          <span v-if="m.phone">
-                            <span v-if="m.email" class="mx-2">•</span>
-                            <NuxtLink :to="`tel:${m.phone}`" class="hover:underline">{{
-                              m.phone
-                            }}</NuxtLink>
-                          </span>
+                            {{ m.role }}
+                          </div>
+                          <div class="mt-1 space-y-1">
+                            <NuxtLink
+                              v-if="m.email"
+                              :to="`mailto:${m.email}`"
+                              class="text-xs text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center"
+                            >
+                              <UIcon name="i-heroicons-envelope" class="w-3 h-3 mr-1" />
+                              {{ m.email }}
+                            </NuxtLink>
+                            <NuxtLink
+                              v-if="m.phone"
+                              :to="`tel:${m.phone}`"
+                              class="text-xs text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center"
+                            >
+                              <UIcon name="i-heroicons-phone" class="w-3 h-3 mr-1" />
+                              {{ m.phone }}
+                            </NuxtLink>
+                          </div>
                         </div>
                       </div>
                     </li>
@@ -237,22 +376,30 @@
               <!-- Sponsors (always show; placeholder when empty) -->
               <div
                 v-if="event?.sponsors?.length"
-                class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
+                class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700"
               >
                 <div class="p-6">
-                  <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Sponsors</h3>
-                  <div class="grid grid-cols-2 gap-4">
+                  <h3
+                    class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center"
+                  >
+                    <UIcon
+                      name="i-heroicons-building-office"
+                      class="w-6 h-6 mr-2 text-primary-500"
+                    />
+                    Our Sponsors
+                  </h3>
+                  <div class="grid grid-cols-1 gap-4">
                     <a
                       v-for="s in event?.sponsors || []"
                       :key="s.id"
                       :href="s.website || '#'"
                       target="_blank"
-                      class="flex items-center justify-center p-2 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+                      class="group flex items-center justify-center p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-700 hover:border-primary-300 dark:hover:border-primary-600 transition-all duration-300 hover:scale-105 hover:shadow-lg"
                     >
                       <img
                         :src="normalizeUrl(s.logoUrl) || ''"
                         :alt="s.name"
-                        class="h-10 object-contain"
+                        class="h-12 object-contain group-hover:scale-110 transition-transform duration-300"
                         @error="onSponsorImgError"
                       />
                     </a>
@@ -261,32 +408,61 @@
               </div>
               <div
                 v-else-if="event"
-                class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
+                class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700"
               >
-                <div class="p-6">
-                  <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Sponsors</h3>
+                <div class="p-6 text-center">
+                  <div
+                    class="w-16 h-16 bg-gradient-to-br from-primary-500/20 to-secondary-500/20 rounded-full flex items-center justify-center mx-auto mb-4"
+                  >
+                    <UIcon name="i-heroicons-building-office" class="w-8 h-8 text-primary-500" />
+                  </div>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Sponsors</h3>
                   <p class="text-sm text-gray-600 dark:text-gray-300">
-                    Sponsorship information will be available soon.
+                    Sponsorship opportunities available. Contact us for more information.
                   </p>
                 </div>
               </div>
 
-              <!-- Gallery (only for past events) -->
+              <!-- Enhanced Gallery (only for past events) -->
               <div
                 v-if="isPast && event?.gallery?.length"
-                class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
+                class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700"
               >
                 <div class="p-6">
-                  <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Gallery</h3>
-                  <div class="grid grid-cols-2 gap-2">
+                  <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                      <UIcon name="i-heroicons-photo" class="w-6 h-6 mr-2 text-primary-500" />
+                      Event Gallery
+                    </h3>
+                    <UBadge color="primary" variant="soft" size="sm">
+                      {{ (event?.gallery || []).filter(g => g.type !== 'video').length }} Photos
+                    </UBadge>
+                  </div>
+                  <div class="grid grid-cols-1 gap-4">
                     <img
-                      v-for="g in (event?.gallery || []).filter(g => g.type !== 'video')"
+                      v-for="(g, index) in (event?.gallery || [])
+                        .filter(g => g.type !== 'video')
+                        .slice(0, 3)"
                       :key="g.id"
                       :src="normalizeUrl(g.url) || ''"
                       :alt="g.caption || 'Event image'"
-                      class="rounded object-cover h-24 w-full"
+                      :class="[
+                        'rounded-xl object-cover w-full cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-lg',
+                        index === 0 ? 'h-48' : 'h-32',
+                      ]"
+                      @click="openGalleryModal(index)"
                     />
                   </div>
+                  <UButton
+                    v-if="(event?.gallery || []).filter(g => g.type !== 'video').length > 3"
+                    color="primary"
+                    variant="soft"
+                    class="w-full mt-4"
+                    @click="openGalleryModal(0)"
+                  >
+                    View All
+                    {{ (event?.gallery || []).filter(g => g.type !== 'video').length }} Photos
+                  </UButton>
                 </div>
               </div>
             </div>
@@ -294,6 +470,104 @@
         </div>
       </div>
     </div>
+
+    <!-- Gallery Modal -->
+    <UModal v-model:open="showGalleryModal" :ui="{ wrapper: 'max-w-7xl' }">
+      <template #content>
+        <div class="relative bg-black">
+          <!-- Close Button -->
+          <UButton
+            color="neutral"
+            variant="ghost"
+            icon="i-heroicons-x-mark"
+            size="lg"
+            class="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white hover:text-white"
+            @click="showGalleryModal = false"
+          />
+
+          <!-- Navigation Buttons -->
+          <UButton
+            v-if="galleryImages.length > 1"
+            color="neutral"
+            variant="ghost"
+            icon="i-heroicons-chevron-left"
+            size="lg"
+            class="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white hover:text-white"
+            @click="prevGalleryImage"
+          />
+          <UButton
+            v-if="galleryImages.length > 1"
+            color="neutral"
+            variant="ghost"
+            icon="i-heroicons-chevron-right"
+            size="lg"
+            class="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white hover:text-white"
+            @click="nextGalleryImage"
+          />
+
+          <!-- Main Image -->
+          <div class="flex items-center justify-center min-h-[70vh] max-h-[80vh]">
+            <img
+              v-if="galleryImages[currentGalleryIndex]"
+              :src="normalizeUrl(galleryImages[currentGalleryIndex]?.url) || ''"
+              :alt="galleryImages[currentGalleryIndex]?.caption || 'Event image'"
+              class="max-w-full max-h-full object-contain"
+            />
+          </div>
+
+          <!-- Image Info -->
+          <div
+            v-if="galleryImages[currentGalleryIndex]"
+            class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6"
+          >
+            <div class="text-white">
+              <p
+                v-if="galleryImages[currentGalleryIndex]?.caption"
+                class="text-lg font-medium mb-2"
+              >
+                {{ galleryImages[currentGalleryIndex]?.caption }}
+              </p>
+              <div class="flex items-center justify-between">
+                <p class="text-sm text-white/80">
+                  {{ currentGalleryIndex + 1 }} of {{ galleryImages.length }}
+                </p>
+                <div class="flex items-center space-x-2">
+                  <UBadge color="neutral" variant="soft" size="sm">
+                    {{ event?.title }}
+                  </UBadge>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Thumbnail Strip -->
+          <div v-if="galleryImages.length > 1" class="absolute bottom-20 left-1/2 -translate-x-1/2">
+            <div class="flex space-x-2 bg-black/50 rounded-full p-2 backdrop-blur-sm">
+              <button
+                v-for="(image, index) in galleryImages.slice(0, 10)"
+                :key="image.id"
+                :class="[
+                  'w-12 h-12 rounded-lg overflow-hidden border-2 transition-all',
+                  index === currentGalleryIndex
+                    ? 'border-white scale-110'
+                    : 'border-transparent hover:border-white/50',
+                ]"
+                @click="currentGalleryIndex = index"
+              >
+                <img
+                  :src="normalizeUrl(image.url) || ''"
+                  :alt="image.caption || 'Thumbnail'"
+                  class="w-full h-full object-cover"
+                />
+              </button>
+              <div v-if="galleryImages.length > 10" class="flex items-center px-2">
+                <span class="text-white/60 text-xs">+{{ galleryImages.length - 10 }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </UModal>
 
     <!-- Abstract Submission Modal -->
     <UModal v-model:open="showSubmissionForm" :dismissible="false">
@@ -580,8 +854,8 @@
                     variant="ghost"
                     :disabled="isSubmitting"
                     @click="handleSubmissionBack"
-                    >Back</UButton
-                  >
+                    >Back
+                  </UButton>
                   <UButton
                     type="button"
                     color="primary"
@@ -620,6 +894,13 @@ function _slugify(s: string) {
 // Normalize potentially relative URLs from backend to absolute URLs for <img src>
 function normalizeUrl(u?: string | null): string | undefined {
   if (!u) return undefined
+
+  // Check if it's a blob URL (indicates upload failure)
+  if (u.startsWith('blob:')) {
+    console.warn('Blob URL detected - image was not properly uploaded to S3:', u)
+    return undefined // Return undefined to trigger fallback
+  }
+
   if (/^https?:\/\//i.test(u)) return u
   try {
     const origin = typeof window !== 'undefined' ? window.location.origin : ''
@@ -787,6 +1068,68 @@ const isPast = computed(() => {
   return end.getTime() < Date.now()
 })
 
+const registerPath = computed(() => {
+  return `/events/${slug.value}/register`
+})
+
+// Gallery functionality
+const showGalleryModal = ref(false)
+const currentGalleryIndex = ref(0)
+
+const galleryImages = computed(() => {
+  return (event.value?.gallery || []).filter(g => g.type !== 'video')
+})
+
+function openGalleryModal(index: number) {
+  currentGalleryIndex.value = index
+  showGalleryModal.value = true
+}
+
+// Keyboard navigation for gallery
+function handleGalleryKeydown(event: KeyboardEvent) {
+  if (!showGalleryModal.value) return
+
+  switch (event.key) {
+    case 'ArrowLeft':
+      event.preventDefault()
+      prevGalleryImage()
+      break
+    case 'ArrowRight':
+      event.preventDefault()
+      nextGalleryImage()
+      break
+    case 'Escape':
+      event.preventDefault()
+      showGalleryModal.value = false
+      break
+  }
+}
+
+// Add keyboard event listener
+onMounted(() => {
+  document.addEventListener('keydown', handleGalleryKeydown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleGalleryKeydown)
+})
+
+function nextGalleryImage() {
+  if (currentGalleryIndex.value < galleryImages.value.length - 1) {
+    currentGalleryIndex.value++
+  } else {
+    currentGalleryIndex.value = 0
+  }
+}
+
+function prevGalleryImage() {
+  if (currentGalleryIndex.value > 0) {
+    currentGalleryIndex.value--
+  } else {
+    currentGalleryIndex.value = galleryImages.value.length - 1
+  }
+}
+
 // Abstract submission functionality
 const showSubmissionForm = ref(false)
 const submissionStep = ref(1) // 1 = guidelines, 2 = form
@@ -821,6 +1164,23 @@ const subthemeOptions = computed(() => {
 // Form submission
 const submissionFormRef = ref<HTMLFormElement>()
 const keywordsInput = ref('')
+
+type AbstractSubmissionData = {
+  title: string
+  abstract: string
+  authors: string[]
+  correspondingAuthor: {
+    name: string
+    email: string
+    affiliation: string
+    phone?: string
+  }
+  keywords: string[]
+  category: 'oral' | 'poster' | 'workshop'
+  subtheme?: string
+  notes?: string
+}
+
 const formData = reactive<AbstractSubmissionData>({
   title: '',
   abstract: '',
@@ -1104,9 +1464,23 @@ async function handleSubmit(e?: Event) {
 
     // Handle network or other errors
     const errorMessage =
-      error?.response?._data?.message ||
-      error?.message ||
-      'There was an error submitting your abstract. Please try again.'
+      error &&
+      typeof error === 'object' &&
+      'response' in error &&
+      error.response &&
+      typeof error.response === 'object' &&
+      '_data' in error.response &&
+      error.response._data &&
+      typeof error.response._data === 'object' &&
+      'message' in error.response._data &&
+      typeof error.response._data.message === 'string'
+        ? error.response._data.message
+        : error &&
+            typeof error === 'object' &&
+            'message' in error &&
+            typeof error.message === 'string'
+          ? error.message
+          : 'There was an error submitting your abstract. Please try again.'
 
     useToast().add({
       title: 'Submission Failed',
@@ -1124,13 +1498,13 @@ function onImgError(e: Event) {
   if (!el) return
   let idx = parseInt(el.dataset?.fallbackIdx ?? '0', 10)
   if (Number.isNaN(idx) || idx < 0) idx = 0
-  const fallbacks: string[] = [
+  const fallbacks = [
     'https://picsum.photos/seed/episonh1/1600/900',
     'https://picsum.photos/seed/episonh2/1600/900',
     'https://placehold.co/1600x900/png',
-  ]
+  ] as const
   if (idx >= fallbacks.length) return
-  const fb = (fallbacks[idx] ?? fallbacks[0]) as string
+  const fb = idx < fallbacks.length ? fallbacks[idx] : fallbacks[0]
   try {
     el.src = fb
   } catch {
@@ -1140,18 +1514,18 @@ function onImgError(e: Event) {
 }
 
 // Speakers avatar fallback (square)
-function onSpeakerImgError(e: Event) {
+const onSpeakerImgError = (e: Event) => {
   const el = e.target as HTMLImageElement | null
   if (!el) return
   let idx = parseInt(el.dataset?.fallbackIdx ?? '0', 10)
   if (Number.isNaN(idx) || idx < 0) idx = 0
-  const fallbacks: string[] = [
+  const fallbacks = [
     'https://picsum.photos/seed/speaker1/160/160',
     'https://picsum.photos/seed/speaker2/160/160',
     'https://placehold.co/160x160/png',
-  ]
+  ] as const
   if (idx >= fallbacks.length) return
-  const fb = (fallbacks[idx] ?? fallbacks[0]) as string
+  const fb = idx < fallbacks.length ? fallbacks[idx] : fallbacks[0]
   try {
     el.src = fb
   } catch {
@@ -1166,13 +1540,13 @@ function onSponsorImgError(e: Event) {
   if (!el) return
   let idx = parseInt(el.dataset?.fallbackIdx ?? '0', 10)
   if (Number.isNaN(idx) || idx < 0) idx = 0
-  const fallbacks: string[] = [
+  const fallbacks = [
     'https://placehold.co/160x80?text=Sponsor',
     'https://picsum.photos/seed/sponsor1/160/80',
     'https://picsum.photos/seed/sponsor2/160/80',
-  ]
+  ] as const
   if (idx >= fallbacks.length) return
-  const fb = (fallbacks[idx] ?? fallbacks[0]) as string
+  const fb = idx < fallbacks.length ? fallbacks[idx] : fallbacks[0]
   try {
     el.src = fb
   } catch {

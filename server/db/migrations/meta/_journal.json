@@ -64,6 +64,13 @@
       "when": 1761318279654,
       "tag": "0008_supreme_rumiko_fujikawa",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1761588121813,
+      "tag": "0009_common_wallop",
+      "breakpoints": true
     }
   ]
 }

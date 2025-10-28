@@ -48,10 +48,19 @@ export const createEventSchema = z.object({
 export const updateEventSchema = createEventSchema.partial().omit({ slug: true })
 
 // ===== Event Tickets =====
+// ===== Ticket Categories =====
+export const createTicketCategorySchema = z.object({
+  name: z.string().min(1).max(100),
+  description: z.string().max(500).optional(),
+  displayOrder: z.number().int().min(0).default(0),
+})
+
 export const createEventTicketSchema = z.object({
+  categoryId: z.string().optional(),
   name: z.string().min(1).max(100),
   price: z.number().int().min(0), // kobo
   quantity: z.number().int().min(0),
+  displayOrder: z.number().int().min(0).default(0),
   salesStart: z.string().datetime().optional(),
   salesEnd: z.string().datetime().optional(),
   description: z.string().max(1000).optional(),
@@ -191,6 +200,7 @@ export const submissionListQuerySchema = z.object({
 
 // ===== Types =====
 export type CreateEventRequest = z.infer<typeof createEventSchema>
+export type CreateTicketCategoryRequest = z.infer<typeof createTicketCategorySchema>
 export type CreateEventTicketRequest = z.infer<typeof createEventTicketSchema>
 export type CreateEventRegistrationRequest = z.infer<typeof createEventRegistrationSchema>
 export type CreateAbstractSubmissionRequest = z.infer<typeof createAbstractSubmissionSchema>

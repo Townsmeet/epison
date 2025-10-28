@@ -184,14 +184,31 @@ export const event = sqliteTable('event', {
     .notNull(),
 })
 
-export const eventTicket = sqliteTable('event_ticket', {
+export const ticketCategory = sqliteTable('ticket_category', {
   id: text('id').primaryKey(),
   eventId: text('event_id')
     .notNull()
     .references(() => event.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
+  description: text('description'),
+  displayOrder: integer('display_order').default(0).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).defaultNow().notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+})
+
+export const eventTicket = sqliteTable('event_ticket', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id')
+    .notNull()
+    .references(() => event.id, { onDelete: 'cascade' }),
+  categoryId: text('category_id').references(() => ticketCategory.id, { onDelete: 'set null' }),
+  name: text('name').notNull(),
   price: integer('price').notNull(), // amount in kobo
   quantity: integer('quantity').notNull(),
+  displayOrder: integer('display_order').default(0).notNull(),
   salesStart: text('sales_start'),
   salesEnd: text('sales_end'),
   description: text('description'),
