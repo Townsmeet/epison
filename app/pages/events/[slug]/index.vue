@@ -590,12 +590,10 @@
                 />
               </div>
             </template>
-            <div v-if="submissionStep === 1" class="overflow-y-auto p-6">
+            <div v-if="submissionStep === 1" class="overflow-y-auto">
               <div v-if="event?.submissionGuidelines">
                 <h3 class="font-bold mb-1">Submission Guidelines</h3>
-                <div
-                  class="whitespace-pre-line text-sm bg-gray-50 dark:bg-gray-900 rounded p-3 mb-4"
-                >
+                <div class="whitespace-pre-line bg-gray-50 dark:bg-gray-900 rounded p-3 mb-4">
                   {{ event.submissionGuidelines }}
                 </div>
               </div>
@@ -625,7 +623,7 @@
               <!-- Render the saved submission form as before -->
               <form
                 ref="submissionFormRef"
-                class="flex-1 flex flex-col overflow-y-auto p-6 space-y-6"
+                class="flex-1 flex flex-col overflow-y-auto p-3 space-y-6"
               >
                 <!-- Submission Category -->
                 <div>

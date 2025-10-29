@@ -102,15 +102,25 @@
                 class="hidden sm:flex h-10 w-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               />
 
-              <!-- Mobile menu button -->
-              <UButton
-                color="neutral"
-                variant="ghost"
-                :icon="isMobileMenuOpen ? 'i-heroicons-x-mark' : 'i-heroicons-bars-3'"
-                :aria-label="isMobileMenuOpen ? 'Close menu' : 'Open menu'"
-                class="md:hidden flex items-center justify-center h-10 w-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                @click="isMobileMenuOpen = !isMobileMenuOpen"
-              />
+              <!-- Mobile buttons -->
+              <div class="flex items-center md:hidden">
+                <UButton
+                  to="/membership/apply"
+                  color="primary"
+                  variant="solid"
+                  class="text-sm font-medium bg-gradient-to-r from-primary-600 to-primary-700"
+                >
+                  Join Us
+                </UButton>
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  :icon="isMobileMenuOpen ? 'i-heroicons-x-mark' : 'i-heroicons-bars-3'"
+                  :aria-label="isMobileMenuOpen ? 'Close menu' : 'Open menu'"
+                  class="flex items-center justify-center h-10 w-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  @click="isMobileMenuOpen = !isMobileMenuOpen"
+                />
+              </div>
             </div>
           </div>
         </div>
