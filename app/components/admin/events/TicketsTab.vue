@@ -173,10 +173,10 @@
               <UButton
                 :disabled="!canAddTicket"
                 :loading="isCreating"
-                icon="i-heroicons-plus"
+                :icon="isEditingTicket ? 'i-heroicons-check' : 'i-heroicons-plus'"
                 @click="addTicket"
               >
-                Add Ticket
+                {{ isEditingTicket ? 'Update' : 'Add' }} Ticket
               </UButton>
             </div>
           </div>
@@ -328,34 +328,54 @@ const categoryOptions = computed(() => {
   }
 })
 
+// Ticket state
+const isEditingTicket = ref(false)
+const currentTicketId = ref<string | null>(null)
+
 // Ticket Management
 async function addTicket() {
   if (!canAddTicket.value || isCreating.value) return
 
   isCreating.value = true
   try {
-    const ticketData = {
+    // Ensure all required fields are properly typed and converted
+    const ticketData: Omit<EventTicket, 'id' | 'eventId' | 'createdAt' | 'updatedAt'> = {
       name: String(newTicket.value.name).trim(),
-      price: (Number(newTicket.value.price) || 0) * 100, // Convert naira to kobo
-      quantity: Number(newTicket.value.quantity) || 0,
+      price: newTicket.value.price !== undefined ? Number(newTicket.value.price) * 100 : 0, // Convert naira to kobo
+      quantity: newTicket.value.quantity !== undefined ? Number(newTicket.value.quantity) : 0,
       categoryId: newTicket.value.categoryId || undefined,
       displayOrder: 0,
       salesStart: newTicket.value.salesStart || undefined,
       salesEnd: newTicket.value.salesEnd || undefined,
       description: newTicket.value.description?.trim() || undefined,
-      isPublic: true,
+      isPublic: newTicket.value.isPublic !== undefined ? Boolean(newTicket.value.isPublic) : true,
+      // Add any other required fields from EventTicket type here
     }
 
-    await createEventTicket(props.event.id, ticketData)
+    if (isEditingTicket.value && currentTicketId.value) {
+      // Update existing ticket
+      await updateEventTicket(currentTicketId.value, ticketData)
+      useToast().add({ title: 'Ticket updated', color: 'success' })
+    } else {
+      // Create new ticket
+      await createEventTicket(props.event.id, ticketData)
+      useToast().add({ title: 'Ticket added', color: 'success' })
+    }
+
     await refreshData()
     resetTicketForm()
     showTicketForm.value = false
-    useToast().add({ title: 'Ticket added', color: 'success' })
   } catch (error) {
-    console.error('Error adding ticket:', error)
-    useToast().add({ title: 'Error adding ticket', color: 'error' })
+    console.error('Error saving ticket:', error)
+    useToast().add({
+      title: `Error ${isEditingTicket.value ? 'updating' : 'adding'} ticket`,
+      color: 'error',
+      description: error instanceof Error ? error.message : undefined,
+    })
   } finally {
     isCreating.value = false
+    isEditingTicket.value = false
+    currentTicketId.value = null
   }
 }
 
@@ -370,7 +390,11 @@ async function removeTicket(id: string) {
   }
 }
 
-async function editTicket(ticket: EventTicket) {
+function editTicket(ticket: EventTicket) {
+  // Set edit mode
+  isEditingTicket.value = true
+  currentTicketId.value = ticket.id
+
   // Populate form with ticket data
   Object.assign(newTicket.value, {
     categoryId: ticket.categoryId || '',
@@ -382,7 +406,16 @@ async function editTicket(ticket: EventTicket) {
     description: ticket.description || '',
     isPublic: ticket.isPublic,
   })
+
   showTicketForm.value = true
+
+  // Scroll to form if needed
+  nextTick(() => {
+    const formElement = document.getElementById('ticket-form')
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  })
 }
 
 async function moveTicket(ticketId: string, newCategoryId: string | null) {
@@ -432,17 +465,19 @@ function cancelTicketForm() {
   showTicketForm.value = false
 }
 
-const resetTicketForm = () => {
+function resetTicketForm() {
   newTicket.value = {
+    categoryId: '',
     name: '',
+    price: undefined,
+    quantity: undefined,
+    salesStart: '',
+    salesEnd: '',
     description: '',
-    price: 0,
-    quantity: 1,
-    categoryId: undefined,
-    salesStart: new Date().toISOString().split('T')[0],
-    salesEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    isPublic: true,
   }
-  selectedCategory.value = undefined
+  isEditingTicket.value = false
+  currentTicketId.value = null
 }
 
 // Category Management
@@ -476,10 +511,17 @@ async function saveCategory() {
 }
 
 function editCategory(category: TicketCategory) {
-  editingCategory.value = category
-  categoryForm.name = category.name
-  categoryForm.description = category.description || ''
-  showCategoryModal.value = true
+  // Reset the form first to clear any previous state
+  categoryForm.name = ''
+  categoryForm.description = ''
+
+  // Set the editing category and populate the form
+  nextTick(() => {
+    editingCategory.value = { ...category }
+    categoryForm.name = category.name
+    categoryForm.description = category.description || ''
+    showCategoryModal.value = true
+  })
 }
 
 async function deleteCategory(categoryId: string) {
@@ -506,14 +548,26 @@ function getCategoryMenuItems(category: TicketCategory) {
       {
         label: 'Edit Category',
         icon: 'i-heroicons-pencil',
-        click: () => editCategory(category),
+        onClick: () => {
+          editCategory(category)
+          // Close the dropdown after clicking
+          const dropdown = document.activeElement as HTMLElement
+          if (dropdown) dropdown.blur()
+        },
       },
     ],
     [
       {
         label: 'Delete Category',
         icon: 'i-heroicons-trash',
-        click: () => deleteCategory(category.id),
+        onClick: () => {
+          if (confirm('Are you sure you want to delete this category?')) {
+            deleteCategory(category.id)
+          }
+          // Close the dropdown after clicking
+          const dropdown = document.activeElement as HTMLElement
+          if (dropdown) dropdown.blur()
+        },
       },
     ],
   ]

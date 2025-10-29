@@ -18,8 +18,8 @@
           icon="i-heroicons-users"
           :class="[_getStatusBadgeClass('Registrations')]"
           @click="currentTab = 'Registrations' as any"
-          >Registrations</UButton
-        >
+          >Registrations
+        </UButton>
         <UButton color="error" variant="outline" icon="i-heroicons-trash" @click="handleDeleteEvent"
           >Delete</UButton
         >
@@ -330,8 +330,8 @@
                     variant="soft"
                     class="mr-2"
                     @click="editStep--"
-                    >Back</UButton
-                  >
+                    >Back
+                  </UButton>
                   <UButton v-if="editStep < 3" color="primary" @click="editStep++">Next</UButton>
                   <UButton
                     v-else
@@ -362,8 +362,9 @@ definePageMeta({ layout: 'admin' })
 const route = useRoute()
 const id = computed(() => route.params.id as string)
 
-const { getEvent, deleteEvent, refreshEvent, updateEvent } = useEvents()
-const { getEventSubmissions, updateSubmissionStatus } = useSubmissions()
+const events = useEvents()
+const { getEvent, deleteEvent, refreshEvent } = events
+const submissions = useSubmissions()
 
 // Fetch event data from API
 const { data: eventResponse, pending: _eventLoading, error: _eventError } = await getEvent(id.value)
@@ -584,7 +585,7 @@ async function handleUpdateEvent() {
         isUploadingBanner.value = false
       }
     }
-    await updateEvent(event.value.id, payload)
+    await events.updateEvent(event.value.id, payload)
     await refreshEvent(event.value.id)
     isEditOpen.value = false
     useToast().add({
@@ -665,6 +666,29 @@ function exportEvent() {
   if (!event.value) return
   useToast().add({ title: 'Export started', description: 'Exporting event data...', color: 'info' })
 }
+// Function to update submission status
+async function changeSubmissionStatus(
+  submissionId: string,
+  newStatus: AbstractSubmission['status']
+) {
+  try {
+    await submissions.updateSubmission(submissionId, { status: newStatus })
+    await refreshEvent(event.value?.id || '')
+    useToast().add({
+      title: 'Submission updated',
+      description: `Submission status changed to ${newStatus}`,
+      color: 'success',
+    })
+  } catch (error) {
+    console.error('Error updating submission status:', error)
+    useToast().add({
+      title: 'Error',
+      description: 'Failed to update submission status',
+      color: 'error',
+    })
+  }
+}
+
 function cancelEvent() {
   if (!event.value) return
   useToast().add({
@@ -1094,8 +1118,40 @@ const _submissionSearch = ref('')
 const _submissionStatusFilter = ref('')
 const _submissionCategoryFilter = ref('')
 
+// Paginated response type is now defined in the API types
+
+// Get submissions for the current event
+const { data: submissionsData } = useAsyncData<AbstractSubmission[]>(
+  `event-${id.value}-submissions`,
+  async (): Promise<AbstractSubmission[]> => {
+    try {
+      const { data } = await submissions.getSubmissions({ q: `eventId:${id.value}` })
+
+      if (!data.value) {
+        return []
+      }
+
+      // Handle both direct array and paginated response
+      if (Array.isArray(data.value)) {
+        return data.value
+      }
+
+      // Handle paginated response
+      if ('data' in data.value && Array.isArray(data.value.data)) {
+        return data.value.data
+      }
+
+      return []
+    } catch (error) {
+      console.error('Error fetching submissions:', error)
+      return []
+    }
+  },
+  { watch: [id] }
+)
+
 const eventSubmissions = computed<AbstractSubmission[]>(() => {
-  return event.value ? (getEventSubmissions(parseInt(event.value.id)) as AbstractSubmission[]) : []
+  return submissionsData.value || []
 })
 
 const _submissionStatusOptions = [
@@ -1207,14 +1263,5 @@ function _getSubmissionActions(submission: AbstractSubmission) {
       },
     ],
   ]
-}
-
-function changeSubmissionStatus(submissionId: number, newStatus: AbstractSubmission['status']) {
-  updateSubmissionStatus(submissionId, newStatus)
-  useToast().add({
-    title: 'Submission Updated',
-    description: `Status changed to ${newStatus.replace('_', ' ')}`,
-    color: 'success',
-  })
 }
 </script>
