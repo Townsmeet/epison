@@ -121,11 +121,16 @@
         <UTextarea v-model="form.address" :rows="3" class="w-full" />
       </UFormField>
 
-      <UFormField label="State" name="state" hint="Select your state of residence" required>
+      <UFormField
+        label="Geopolitical Zone"
+        name="geopoliticalZone"
+        hint="Select your geopolitical zone"
+        required
+      >
         <USelect
-          v-model="form.state"
-          :items="nigerianStates"
-          placeholder="Select state"
+          v-model="form.geopoliticalZone"
+          :items="geopoliticalZones"
+          placeholder="Select zone"
           class="w-full"
         />
       </UFormField>
@@ -148,44 +153,14 @@ const uploadError = ref('')
 
 const titles = ['Dr', 'Mr', 'Mrs', 'Miss', 'Prof', 'Engr', 'Chief', 'Ms']
 
-const nigerianStates = [
-  'Abia',
-  'Adamawa',
-  'Akwa Ibom',
-  'Anambra',
-  'Bauchi',
-  'Bayelsa',
-  'Benue',
-  'Borno',
-  'Cross River',
-  'Delta',
-  'Ebonyi',
-  'Edo',
-  'Ekiti',
-  'Enugu',
-  'FCT (Abuja)',
-  'Gombe',
-  'Imo',
-  'Jigawa',
-  'Kaduna',
-  'Kano',
-  'Katsina',
-  'Kebbi',
-  'Kogi',
-  'Kwara',
-  'Lagos',
-  'Nasarawa',
-  'Niger',
-  'Ogun',
-  'Ondo',
-  'Osun',
-  'Oyo',
-  'Plateau',
-  'Rivers',
-  'Sokoto',
-  'Taraba',
-  'Yobe',
-  'Zamfara',
+const geopoliticalZones = [
+  'South South',
+  'South West',
+  'South East',
+  'North Central',
+  'North West',
+  'North East',
+  'Not Applicable',
 ]
 
 function onEmailInput(e: Event) {

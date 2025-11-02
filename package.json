@@ -10,7 +10,8 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "prepare": "husky",
-    "create-admin": "tsx app/scripts/create-admin.ts"
+    "create-admin": "tsx app/scripts/create-admin.ts",
+    "upload-members": "tsx app/scripts/upload-members.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.893.0",

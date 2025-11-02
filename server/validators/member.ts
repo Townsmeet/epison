@@ -66,8 +66,10 @@ export const memberListQuerySchema = z.object({
   search: z.string().optional(),
   status: z.string().optional(),
   membershipType: z.string().optional(),
+  paymentStatus: z.string().optional(),
   sortBy: z.string().optional(),
   sortOrder: z.enum(['asc', 'desc']).default('asc').optional(),
+  geopoliticalZone: z.string().optional(), // <-- added
 })
 
 export const memberStatsQuerySchema = z.object({

@@ -1,4 +1,4 @@
-import { like, or, eq, desc, asc } from 'drizzle-orm'
+import { like, or, eq, desc, asc, sql, and } from 'drizzle-orm'
 import { db } from '../../utils/drizzle'
 import { member } from '../../db/schema'
 import { z } from 'zod'
@@ -8,7 +8,17 @@ const directoryQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   search: z.string().optional(),
-  state: z.string().optional(),
+  geopoliticalZone: z
+    .enum([
+      'South South',
+      'South West',
+      'South East',
+      'North Central',
+      'North West',
+      'North East',
+      'Not Applicable',
+    ])
+    .optional(),
   membershipType: z.string().optional(),
   sortBy: z.enum(['name', 'joinedDate']).default('name'),
   sortOrder: z.enum(['asc', 'desc']).default('asc'),
@@ -19,7 +29,7 @@ export default defineEventHandler(async event => {
     // Parse and validate query parameters
     const query = await getValidatedQuery(event, directoryQuerySchema.parse)
 
-    const { page, limit, search, state, membershipType, sortBy, sortOrder } = query
+    const { page, limit, search, geopoliticalZone, membershipType, sortBy, sortOrder } = query
     const offset = (page - 1) * limit
 
     // Build where conditions - only show active members
@@ -32,13 +42,15 @@ export default defineEventHandler(async event => {
           like(member.nameFamily, `%${search}%`),
           like(member.email, `%${search}%`),
           like(member.position, `%${search}%`),
-          like(member.employer, `%${search}%`)
+          like(member.employer, `%${search}%`),
+          like(member.geopoliticalZone, `%${search}%`),
+          like(member.membershipType, `%${search}%`)
         )!
       )
     }
 
-    if (state) {
-      conditions.push(eq(member.state, state))
+    if (geopoliticalZone) {
+      conditions.push(eq(member.geopoliticalZone, geopoliticalZone))
     }
 
     if (membershipType) {
@@ -49,13 +61,26 @@ export default defineEventHandler(async event => {
     const sortColumn = sortBy === 'joinedDate' ? member.joinedDate : member.nameFamily
     const sortFn = sortOrder === 'desc' ? desc : asc
 
-    // Get total count
-    const totalResult = await db
-      .select({ count: db.$count(member.id) })
-      .from(member)
-      .where(conditions.length > 0 ? conditions[0] : undefined)
+    // Debug logs
+    console.log('Directory API QUERY:', {
+      page,
+      limit,
+      search,
+      geopoliticalZone,
+      membershipType,
+      sortBy,
+      sortOrder,
+    })
+    console.log('Directory API CONDITIONS:', conditions)
+    console.log('Directory API OFFSET:', offset)
 
-    const total = totalResult[0]?.count || 0
+    // Get total count
+    const [countResult] = await db
+      .select({ count: sql<number>`count(*)`.as('count') })
+      .from(member)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+
+    const total = countResult?.count || 0
 
     // Get members with pagination - only essential public information
     const members = await db
@@ -67,19 +92,30 @@ export default defineEventHandler(async event => {
         avatar: member.avatar,
         position: member.position,
         employer: member.employer,
-        state: member.state,
+        geopoliticalZone: member.geopoliticalZone,
         membershipType: member.membershipType,
         joinedDate: member.joinedDate,
       })
       .from(member)
-      .where(conditions.length > 0 ? conditions[0] : undefined)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(sortFn(sortColumn))
       .limit(limit)
       .offset(offset)
 
+    // Format the response to ensure avatar URLs are properly constructed
+    const formattedMembers = members.map(m => ({
+      ...m,
+      // If avatar is a path (not a full URL), construct the full URL
+      avatar: m.avatar
+        ? m.avatar.startsWith('http')
+          ? m.avatar
+          : `${process.env.STORAGE_BASE_URL || ''}${m.avatar}`
+        : null,
+    }))
+
     return {
       success: true,
-      data: members,
+      data: formattedMembers,
       pagination: {
         page,
         limit,
@@ -89,9 +125,13 @@ export default defineEventHandler(async event => {
     }
   } catch (error) {
     console.error('Error fetching member directory:', error)
+    const errorMessage = import.meta.dev
+      ? `Failed to fetch member directory: ${error instanceof Error ? error.message : String(error)}`
+      : 'Failed to fetch member directory. Please try again later.'
+
     return {
       success: false,
-      error: 'Failed to fetch member directory',
+      error: errorMessage,
       data: [],
       pagination: {
         page: 1,

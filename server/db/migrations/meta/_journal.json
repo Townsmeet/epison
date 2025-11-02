@@ -71,6 +71,13 @@
       "when": 1761588121813,
       "tag": "0009_common_wallop",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1761967996898,
+      "tag": "0010_petite_squirrel_girl",
+      "breakpoints": true
     }
   ]
 }

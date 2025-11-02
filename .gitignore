@@ -22,3 +22,6 @@ logs
 .env
 .env.*
 !.env.example
+
+# Member data file
+public/episonmembers.xlsx

@@ -22,13 +22,15 @@ export default defineEventHandler(
       const limit = query.limit ?? 10
       const search = (query.search || '').trim()
       const status = query.status || ''
-      // Accept both `type` and `membershipType` for backward compatibility with client
-      // Validator currently defines `membershipType`, while clients may send `type`.
-      const type = (query as Record<string, unknown>)?.['type']
-        ? String((query as Record<string, unknown>)['type'])
-        : (query as Record<string, unknown>)?.['membershipType']
-          ? String((query as Record<string, unknown>)['membershipType'])
-          : ''
+      // Accept only 'membershipType' (ignore 'type', always use same for both client and server)
+      const membershipType =
+        typeof query.membershipType === 'string' && query.membershipType.trim() !== ''
+          ? query.membershipType
+          : undefined
+      const geoPoliticalZone =
+        typeof query.geopoliticalZone === 'string' && query.geopoliticalZone.trim() !== ''
+          ? query.geopoliticalZone
+          : undefined
       const sortBy = (query as Record<string, unknown>)?.['sortBy']
         ? String((query as Record<string, unknown>)['sortBy'])
         : 'nameFirst'
@@ -47,7 +49,9 @@ export default defineEventHandler(
           or(
             like(member.nameFirst, `%${search}%`),
             like(member.nameFamily, `%${search}%`),
-            like(member.email, `%${search}%`)
+            like(member.email, `%${search}%`),
+            like(member.geopoliticalZone, `%${search}%`),
+            like(member.membershipType, `%${search}%`)
           )
         )
       }
@@ -56,8 +60,12 @@ export default defineEventHandler(
         conditions.push(eq(member.status, status))
       }
 
-      if (type) {
-        conditions.push(eq(member.membershipType, type))
+      if (membershipType) {
+        conditions.push(eq(member.membershipType, membershipType))
+      }
+
+      if (geoPoliticalZone) {
+        conditions.push(eq(member.geopoliticalZone, geoPoliticalZone))
       }
 
       if (paymentStatus) {
@@ -67,6 +75,15 @@ export default defineEventHandler(
           conditions.push(isNull(member.paymentReference))
         }
       }
+      // Debug log (remove after confirming fix)
+      console.log('SQL Filter Conditions:', JSON.stringify(conditions))
+      console.log('Query values:', {
+        search,
+        status,
+        membershipType,
+        geoPoliticalZone,
+        paymentStatus,
+      })
 
       // Build order by clause
       const orderByMap = {

@@ -24,12 +24,9 @@ export const useMembers = () => {
   const getMembers = (
     query: MemberListQuery | Ref<MemberListQuery> | ComputedRef<MemberListQuery> = {}
   ) => {
-    // If query is a ref/computed, use it directly; otherwise wrap it
-    const queryRef = isRef(query) ? query : ref(query)
-
     return useFetch<PaginatedResponse<MemberListItem>>('/api/members', {
-      query: queryRef,
-      watch: [queryRef],
+      query,
+      watch: [query],
       server: true,
       default: () => ({
         success: false,

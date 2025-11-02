@@ -18,12 +18,13 @@
               icon="i-heroicons-magnifying-glass"
               placeholder="Search by name, position, or employer..."
               size="lg"
+              class="w-full"
             />
           </div>
           <USelect
-            v-model="selectedState"
-            :items="stateOptions"
-            placeholder="All States"
+            v-model="selectedGeopoliticalZone"
+            :items="geopoliticalZones"
+            placeholder="All Zones"
             size="lg"
           />
           <USelect
@@ -94,9 +95,9 @@
               </p>
 
               <div class="flex flex-wrap gap-2 mt-3">
-                <UBadge v-if="member.state" color="info" variant="subtle" size="xs">
+                <UBadge v-if="member.geopoliticalZone" color="info" variant="subtle" size="xs">
                   <UIcon name="i-heroicons-map-pin" class="w-3 h-3" />
-                  {{ member.state }}
+                  {{ member.geopoliticalZone }}
                 </UBadge>
 
                 <UBadge v-if="member.membershipType" color="success" variant="subtle" size="xs">
@@ -142,20 +143,28 @@ useSeoMeta({
 
 interface DirectoryMember {
   id: string
-  title: string | null
+  title?: string
   nameFirst: string
   nameFamily: string
   avatar: string | null
   position: string | null
   employer: string | null
-  state: string | null
+  geopoliticalZone:
+    | 'South South'
+    | 'South West'
+    | 'South East'
+    | 'North Central'
+    | 'North West'
+    | 'North East'
+    | 'Not Applicable'
+    | null
   membershipType: string | null
   joinedDate: string | null
 }
 
 const searchQuery = ref('')
-const selectedState = ref('')
-const selectedMembershipType = ref('')
+const selectedGeopoliticalZone = ref<string | undefined>(undefined)
+const selectedMembershipType = ref<string | undefined>(undefined)
 const currentPage = ref(1)
 const debouncedSearch = ref('')
 
@@ -168,57 +177,18 @@ watch(searchQuery, newValue => {
   }, 500)
 })
 
-const stateOptions = [
-  'All States',
-  'Abia',
-  'Adamawa',
-  'Akwa Ibom',
-  'Anambra',
-  'Bauchi',
-  'Bayelsa',
-  'Benue',
-  'Borno',
-  'Cross River',
-  'Delta',
-  'Ebonyi',
-  'Edo',
-  'Ekiti',
-  'Enugu',
-  'FCT (Abuja)',
-  'Gombe',
-  'Imo',
-  'Jigawa',
-  'Kaduna',
-  'Kano',
-  'Katsina',
-  'Kebbi',
-  'Kogi',
-  'Kwara',
-  'Lagos',
-  'Nasarawa',
-  'Niger',
-  'Ogun',
-  'Ondo',
-  'Osun',
-  'Oyo',
-  'Plateau',
-  'Rivers',
-  'Sokoto',
-  'Taraba',
-  'Yobe',
-  'Zamfara',
+const geopoliticalZones = [
+  'All Zones',
+  'South South',
+  'South West',
+  'South East',
+  'North Central',
+  'North West',
+  'North East',
+  'Not Applicable',
 ]
 
-const membershipTypeOptions = [
-  'All Types',
-  'Regular',
-  'Regular IEA',
-  'Early Career',
-  'Student',
-  'Honorary',
-  'Associate',
-  'Fellow',
-]
+const membershipTypeOptions = ['All Types', 'Regular', 'Early Career']
 
 // Build query params
 const queryParams = computed(() => {
@@ -231,8 +201,8 @@ const queryParams = computed(() => {
     params.search = debouncedSearch.value
   }
 
-  if (selectedState.value && selectedState.value !== 'All States') {
-    params.state = selectedState.value
+  if (selectedGeopoliticalZone.value && selectedGeopoliticalZone.value !== 'All Zones') {
+    params.geopoliticalZone = selectedGeopoliticalZone.value
   }
 
   if (selectedMembershipType.value && selectedMembershipType.value !== 'All Types') {
@@ -242,17 +212,35 @@ const queryParams = computed(() => {
   return params
 })
 
-// Fetch members
-const {
-  data,
-  pending,
-  refresh: _refresh,
-} = await useFetch('/api/members/directory', {
-  query: queryParams,
-  watch: [queryParams],
+// Define the API response type
+interface DirectoryResponse {
+  data: DirectoryMember[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
+
+// Fetch members with proper typing
+const { data, pending, _refresh, _error, execute } = useFetch<DirectoryResponse>(
+  '/api/members/directory',
+  {
+    query: queryParams,
+    server: false,
+    immediate: true,
+    // No need for 'watch' here, manual watcher below handles refetch
+  }
+)
+
+// Manual watcher for bullet-proof SSR/CSR reactivity
+watch([currentPage, debouncedSearch, selectedGeopoliticalZone, selectedMembershipType], () => {
+  console.log('Fetching directory data for page', currentPage.value)
+  execute()
 })
 
-const members = computed(() => data.value?.data || [])
+const members = computed<DirectoryMember[]>(() => data.value?.data || [])
 const pagination = computed(
   () => data.value?.pagination || { page: 1, limit: 12, total: 0, totalPages: 0 }
 )
@@ -275,7 +263,7 @@ function formatMembershipType(type: string | null): string {
 }
 
 // Reset page when filters change
-watch([debouncedSearch, selectedState, selectedMembershipType], () => {
+watch([debouncedSearch, selectedGeopoliticalZone, selectedMembershipType], () => {
   currentPage.value = 1
 })
 </script>

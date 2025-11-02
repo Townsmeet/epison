@@ -78,7 +78,17 @@ export const member = sqliteTable('member', {
   sex: text('sex'), // 'Male' | 'Female' or free text
   dob: text('dob'), // ISO date string
   address: text('address'),
-  state: text('state'), // Nigerian state
+  geopoliticalZone: text('geopolitical_zone', {
+    enum: [
+      'South South',
+      'South West',
+      'South East',
+      'North Central',
+      'North West',
+      'North East',
+      'Not Applicable',
+    ],
+  }), // Nigerian geopolitical zone
   telephone: text('telephone'),
   fax: text('fax'),
   email: text('email').notNull().unique(),

@@ -23,7 +23,14 @@ export interface MemberDetail {
   sex?: string
   dob?: string
   address?: string
-  state?: string
+  geopoliticalZone?:
+    | 'South South'
+    | 'South West'
+    | 'South East'
+    | 'North Central'
+    | 'North West'
+    | 'North East'
+    | 'Not Applicable'
   telephone?: string
   fax?: string
   email: string
@@ -77,10 +84,18 @@ export interface CreateMemberRequest {
   sex?: string
   dob?: string
   address?: string
-  state?: string
+  geopoliticalZone?:
+    | 'South South'
+    | 'South West'
+    | 'South East'
+    | 'North Central'
+    | 'North West'
+    | 'North East'
+    | 'Not Applicable'
   telephone?: string
   fax?: string
   email: string
+  avatar?: string
 
   // Employment & Education
   position?: string
@@ -114,9 +129,9 @@ export interface CreateMemberRequest {
   publications?: string[]
 }
 
-export interface UpdateMemberRequest extends Partial<CreateMemberRequest> {
-  // Optional because update endpoints use the URL path parameter for the ID
+export interface UpdateMemberRequest extends Partial<Omit<CreateMemberRequest, 'id'>> {
   id?: string
+  avatar?: string
 }
 
 export interface MemberActionRequest {

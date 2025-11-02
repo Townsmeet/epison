@@ -18,6 +18,9 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
       'Invalid member update data'
     )) as UpdateMemberRequest
 
+    // Debug log the incoming request body
+    console.log('Incoming member update request with body:', JSON.stringify(body, null, 2))
+
     if (!memberId) {
       throw createError({
         statusCode: 400,
@@ -69,6 +72,7 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
     if (body.telephone !== undefined) updateData.telephone = body.telephone
     if (body.fax !== undefined) updateData.fax = body.fax
     if (body.email !== undefined) updateData.email = body.email
+    if (body.avatar !== undefined) updateData.avatar = body.avatar
 
     // Employment & Education
     if (body.position !== undefined) updateData.position = body.position

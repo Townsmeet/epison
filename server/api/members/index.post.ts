@@ -17,6 +17,9 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
       'Invalid member data'
     )) as CreateMemberRequest
 
+    // Debug log the incoming request body
+    console.log('Incoming member creation request with body:', JSON.stringify(body, null, 2))
+
     // Check if email already exists
     const existingMember = await db
       .select({ id: member.id })
@@ -55,6 +58,7 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
       telephone: body.telephone,
       fax: body.fax,
       email: body.email,
+      avatar: body.avatar,
 
       // Employment & Education
       position: body.position,
