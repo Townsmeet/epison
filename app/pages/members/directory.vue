@@ -224,15 +224,12 @@ interface DirectoryResponse {
 }
 
 // Fetch members with proper typing
-const { data, pending, _refresh, _error, execute } = useFetch<DirectoryResponse>(
-  '/api/members/directory',
-  {
-    query: queryParams,
-    server: false,
-    immediate: true,
-    // No need for 'watch' here, manual watcher below handles refetch
-  }
-)
+const { data, pending, execute } = useFetch<DirectoryResponse>('/api/members/directory', {
+  query: queryParams,
+  server: false,
+  immediate: true,
+  // No need for 'watch' here, manual watcher below handles refetch
+})
 
 // Manual watcher for bullet-proof SSR/CSR reactivity
 watch([currentPage, debouncedSearch, selectedGeopoliticalZone, selectedMembershipType], () => {
