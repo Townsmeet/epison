@@ -6,6 +6,7 @@ import { event, eventTicket, eventRegistration } from '../../../db/schema'
 import { createEventRegistrationSchema } from '../../../validators/event'
 import { addActivity } from '../../../utils/activity'
 import { validateBody } from '../../../validators'
+import { sendEventRegistrationEmail } from '../../../utils/event-email'
 
 export default defineEventHandler(async eventHandler => {
   const eventId = getRouterParam(eventHandler, 'id')
@@ -135,6 +136,21 @@ export default defineEventHandler(async eventHandler => {
       entityType: 'registration',
       entityId: registrationId,
       metadata: { eventId, attendeeEmail: body.attendeeEmail, totalAmount },
+    })
+
+    // Kick off confirmation email (non-blocking failure)
+    sendEventRegistrationEmail({
+      eventName: eventData.title,
+      attendeeName: body.attendeeName,
+      attendeeEmail: body.attendeeEmail,
+      eventDate: eventData.startDate,
+      eventLocation: eventData.location || 'To be announced',
+      registrationId,
+      hasPaid: registrationData.paymentStatus === 'Paid',
+      ticketName: ticketData?.name,
+      paymentReference,
+    }).catch(error => {
+      console.error('Failed to send registration email:', error)
     })
 
     return {

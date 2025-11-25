@@ -8,6 +8,7 @@ import type { CreateMemberRequest, MemberDetail } from '../../../types/members'
 import { validateBody } from '../../validators'
 import { createMemberSchema } from '../../validators/member'
 import { addActivity } from '../../utils/activity'
+import { sendMembershipApplicationEmail } from '../../utils/event-email'
 
 export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<MemberDetail>> => {
   try {
@@ -204,6 +205,19 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
       entityType: 'member',
       entityId: memberId,
       metadata: { email: memberData.email, membershipType: memberData.membershipType },
+    })
+
+    // Send confirmation email (non-blocking failure)
+    const memberFullName = `${memberData.nameFirst}${memberData.nameMiddle ? ` ${memberData.nameMiddle}` : ''} ${memberData.nameFamily}`
+    sendMembershipApplicationEmail({
+      memberName: memberFullName,
+      memberEmail: memberData.email,
+      membershipType: memberData.membershipType || '',
+      memberId,
+      paymentReference: memberData.paymentReference,
+      fees: memberData.fees || 0,
+    }).catch(error => {
+      console.error('Failed to send membership application email:', error)
     })
 
     return {
