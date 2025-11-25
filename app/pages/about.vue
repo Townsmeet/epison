@@ -471,6 +471,13 @@ const boardOfTrustees = [
     image: '/botmembers/michael-asuzu.jpeg',
   },
   {
+    name: 'Prof. Ekanem E. Ekanem',
+    position: 'Trustee',
+    institution: 'Babcock University',
+    bio: 'Professor of Epidemiology. Executive Director, The Centre for Epidemiologic Research & Training, Ikorodu, Lagos.',
+    image: '/botmembers/ekanem.png',
+  },
+  {
     name: 'Prof. Sunday Aremu Omilabu',
     position: 'Trustee',
     institution: 'University of Lagos',
