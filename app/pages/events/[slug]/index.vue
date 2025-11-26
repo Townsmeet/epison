@@ -1029,6 +1029,11 @@ watchEffect(() => {
       twitterDescription: eventDescription,
       twitterImage: eventImage,
     })
+
+    defineOgImage({
+      url: eventImage,
+      alt: event.value.title,
+    })
   }
 })
 

@@ -155,6 +155,11 @@ useSeoMeta({
   twitterImage: 'https://epison.ng/hero.jpeg',
 })
 
+defineOgImage({
+  url: '/hero.jpeg',
+  alt: 'Events - Conferences, Workshops & Seminars | EPISON',
+})
+
 const route = useRoute()
 const router = useRouter()
 const { getPublicEvents } = useEvents()

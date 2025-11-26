@@ -13,6 +13,7 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     'nuxt-charts',
     '@nuxtjs/seo',
+    'nuxt-og-image',
   ],
 
   colorMode: {

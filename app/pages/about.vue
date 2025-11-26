@@ -343,6 +343,11 @@ useSeoMeta({
   twitterImage: 'https://epison.ng/hero.jpeg',
 })
 
+defineOgImage({
+  url: '/hero.jpeg',
+  alt: 'About EPISON - Epidemiological Society of Nigeria',
+})
+
 const goals = [
   {
     icon: 'i-heroicons-users',

@@ -207,6 +207,11 @@ useSeoMeta({
   twitterImage: 'https://epison.ng/hero.jpeg',
 })
 
+defineOgImage({
+  url: '/hero.jpeg',
+  alt: 'Knowledge Hub - Blog & Resources | EPISON',
+})
+
 const searchQuery = ref('')
 const selectedTag = ref<string | null>(null)
 

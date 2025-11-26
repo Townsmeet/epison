@@ -385,4 +385,9 @@ useSeoMeta({
     "Become part of Nigeria's leading epidemiological community with benefits including IEA membership, professional development, and networking opportunities.",
   twitterImage: 'https://epison.ng/hero.jpeg',
 })
+
+defineOgImage({
+  url: '/hero.jpeg',
+  alt: 'Membership - Join EPISON',
+})
 </script>

@@ -139,6 +139,22 @@ useSeoMeta({
   title: 'Member Directory - EPISON',
   description:
     'Browse our directory of public health professionals and epidemiologists in Nigeria.',
+  ogTitle: 'Member Directory - EPISON',
+  ogDescription:
+    'Browse our directory of public health professionals and epidemiologists in Nigeria.',
+  ogImage: 'https://epison.ng/hero.jpeg',
+  ogUrl: 'https://epison.ng/members/directory',
+  ogType: 'website',
+  twitterCard: 'summary_large_image',
+  twitterTitle: 'Member Directory - EPISON',
+  twitterDescription:
+    'Browse our directory of public health professionals and epidemiologists in Nigeria.',
+  twitterImage: 'https://epison.ng/hero.jpeg',
+})
+
+defineOgImage({
+  url: '/hero.jpeg',
+  alt: 'Member Directory - EPISON',
 })
 
 interface DirectoryMember {

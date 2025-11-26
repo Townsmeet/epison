@@ -386,6 +386,11 @@ useSeoMeta({
   twitterImage: 'https://epison.ng/hero.jpeg',
 })
 
+defineOgImage({
+  url: '/hero.jpeg',
+  alt: 'Epidemiological Society of Nigeria - EPISON',
+})
+
 const { getPublicEvents } = useEvents()
 
 // Fetch up to 3 upcoming public events
