@@ -1005,6 +1005,33 @@ const event = computed<ExtendedEvent | null>(() => {
   } as ExtendedEvent
 })
 
+// Dynamic SEO metadata based on event data
+watchEffect(() => {
+  if (event.value) {
+    const eventTitle = `${event.value.title} | EPISON`
+    const eventDescription = event.value.description
+      ? `${event.value.description.substring(0, 155)}...`
+      : `Join us for ${event.value.title} - a ${event.value.type} organized by the Epidemiological Society of Nigeria.`
+
+    const eventImage = normalizeUrl(event.value.bannerUrl) || 'https://epison.ng/hero.jpeg'
+    const eventUrl = `https://epison.ng/events/${slug.value}`
+
+    useSeoMeta({
+      title: eventTitle,
+      description: eventDescription,
+      ogTitle: event.value.title,
+      ogDescription: eventDescription,
+      ogImage: eventImage,
+      ogUrl: eventUrl,
+      ogType: 'website',
+      twitterCard: 'summary_large_image',
+      twitterTitle: event.value.title,
+      twitterDescription: eventDescription,
+      twitterImage: eventImage,
+    })
+  }
+})
+
 // Refresh if slug changes while staying on the same component instance
 watch(slug, async () => {
   await refreshPublicEvent()

@@ -325,6 +325,24 @@
 </template>
 
 <script setup lang="ts">
+// SEO Configuration
+useSeoMeta({
+  title: 'About EPISON - Epidemiological Society of Nigeria',
+  description:
+    'Learn about the Epidemiological Society of Nigeria (EPISON), registered in 2010 with joint membership in the International Epidemiological Association. Meet our leadership and discover our goals for advancing epidemiology in Nigeria.',
+  ogTitle: 'About EPISON - Epidemiological Society of Nigeria',
+  ogDescription:
+    "Discover EPISON's mission to advance epidemiological practice, research, and teaching throughout Nigeria since 2010.",
+  ogImage: 'https://epison.ng/hero.jpeg',
+  ogUrl: 'https://epison.ng/about',
+  ogType: 'website',
+  twitterCard: 'summary_large_image',
+  twitterTitle: 'About EPISON - Epidemiological Society of Nigeria',
+  twitterDescription:
+    "Discover EPISON's mission to advance epidemiological practice, research, and teaching throughout Nigeria since 2010.",
+  twitterImage: 'https://epison.ng/hero.jpeg',
+})
+
 const goals = [
   {
     icon: 'i-heroicons-users',

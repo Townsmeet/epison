@@ -137,6 +137,24 @@
 </template>
 
 <script setup lang="ts">
+// SEO Configuration
+useSeoMeta({
+  title: 'Events - Conferences, Workshops & Seminars | EPISON',
+  description:
+    'Join EPISON for conferences, workshops, and networking events that advance epidemiological knowledge and practice across Nigeria.',
+  ogTitle: 'Events - Conferences, Workshops & Seminars | EPISON',
+  ogDescription:
+    'Discover upcoming conferences, workshops, and networking events advancing epidemiological knowledge.',
+  ogImage: 'https://epison.ng/hero.jpeg',
+  ogUrl: 'https://epison.ng/events',
+  ogType: 'website',
+  twitterCard: 'summary_large_image',
+  twitterTitle: 'Events - Conferences, Workshops & Seminars | EPISON',
+  twitterDescription:
+    'Discover upcoming conferences, workshops, and networking events advancing epidemiological knowledge.',
+  twitterImage: 'https://epison.ng/hero.jpeg',
+})
+
 const route = useRoute()
 const router = useRouter()
 const { getPublicEvents } = useEvents()

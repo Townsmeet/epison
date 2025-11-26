@@ -172,7 +172,25 @@
 </template>
 
 <script setup lang="ts">
+// SEO Configuration
 import { z } from 'zod'
+
+useSeoMeta({
+  title: 'Contact Us - EPISON | Epidemiological Society of Nigeria',
+  description:
+    'Get in touch with the Epidemiological Society of Nigeria (EPISON). Contact us for inquiries about membership, events, partnerships, and more.',
+  ogTitle: 'Contact Us - EPISON',
+  ogDescription:
+    'Get in touch with EPISON for inquiries about membership, events, partnerships, and more.',
+  ogImage: 'https://epison.ng/hero.jpeg',
+  ogUrl: 'https://epison.ng/contact',
+  ogType: 'website',
+  twitterCard: 'summary_large_image',
+  twitterTitle: 'Contact Us - EPISON',
+  twitterDescription:
+    'Get in touch with EPISON for inquiries about membership, events, partnerships, and more.',
+  twitterImage: 'https://epison.ng/hero.jpeg',
+})
 
 const schema = z.object({
   firstName: z.string().min(1, 'First name is required').max(100, 'First name is too long'),

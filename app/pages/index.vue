@@ -368,6 +368,24 @@
 </template>
 
 <script setup lang="ts">
+// SEO Configuration
+useSeoMeta({
+  title: 'Epidemiological Society of Nigeria - EPISON',
+  description:
+    'The Epidemiological Society of Nigeria (EPISON) is a professional organization dedicated to advancing public health through research, education, and evidence-based practice in epidemiology.',
+  ogTitle: 'Epidemiological Society of Nigeria - EPISON',
+  ogDescription:
+    'Join us in advancing public health through research, education, and evidence-based practice in epidemiology.',
+  ogImage: 'https://epison.ng/hero.jpeg',
+  ogUrl: 'https://epison.ng',
+  ogType: 'website',
+  twitterCard: 'summary_large_image',
+  twitterTitle: 'Epidemiological Society of Nigeria - EPISON',
+  twitterDescription:
+    'Join us in advancing public health through research, education, and evidence-based practice in epidemiology.',
+  twitterImage: 'https://epison.ng/hero.jpeg',
+})
+
 const { getPublicEvents } = useEvents()
 
 // Fetch up to 3 upcoming public events

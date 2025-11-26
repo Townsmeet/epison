@@ -189,6 +189,24 @@
 </template>
 
 <script setup lang="ts">
+// SEO Configuration
+useSeoMeta({
+  title: 'Knowledge Hub - Blog & Resources | EPISON',
+  description:
+    'Expert insights, guidelines, training materials, and resources for epidemiology professionals and public health practitioners in Nigeria.',
+  ogTitle: 'Knowledge Hub - Blog & Resources | EPISON',
+  ogDescription:
+    'Access expert insights and resources for epidemiology professionals and public health practitioners.',
+  ogImage: 'https://epison.ng/hero.jpeg',
+  ogUrl: 'https://epison.ng/blog',
+  ogType: 'website',
+  twitterCard: 'summary_large_image',
+  twitterTitle: 'Knowledge Hub - Blog & Resources | EPISON',
+  twitterDescription:
+    'Access expert insights and resources for epidemiology professionals and public health practitioners.',
+  twitterImage: 'https://epison.ng/hero.jpeg',
+})
+
 const searchQuery = ref('')
 const selectedTag = ref<string | null>(null)
 

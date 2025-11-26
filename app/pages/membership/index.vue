@@ -368,14 +368,21 @@
 </template>
 
 <script setup lang="ts">
-useHead({
-  title: 'Membership - EPISON',
-  meta: [
-    {
-      name: 'description',
-      content:
-        'Join the Epidemiological Society of Nigeria (EPISON) and become part of a professional community dedicated to advancing epidemiology in Nigeria.',
-    },
-  ],
+// SEO Configuration
+useSeoMeta({
+  title: 'Membership - Join EPISON | Epidemiological Society of Nigeria',
+  description:
+    'Join the Epidemiological Society of Nigeria (EPISON) and become part of a professional community dedicated to advancing epidemiology in Nigeria. Early career and regular membership options available.',
+  ogTitle: 'Membership - Join EPISON',
+  ogDescription:
+    "Become part of Nigeria's leading epidemiological community with benefits including IEA membership, professional development, and networking opportunities.",
+  ogImage: 'https://epison.ng/hero.jpeg',
+  ogUrl: 'https://epison.ng/membership',
+  ogType: 'website',
+  twitterCard: 'summary_large_image',
+  twitterTitle: 'Membership - Join EPISON',
+  twitterDescription:
+    "Become part of Nigeria's leading epidemiological community with benefits including IEA membership, professional development, and networking opportunities.",
+  twitterImage: 'https://epison.ng/hero.jpeg',
 })
 </script>
