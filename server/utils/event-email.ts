@@ -160,11 +160,63 @@ export async function sendMembershipApplicationEmail(params: MembershipApplicati
   `
 
   try {
+    // Send confirmation to applicant
     await sendEmail({
       to: memberEmail,
       subject,
       htmlContent,
     })
+
+    // Send notification to admin
+    const adminNotificationContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Membership Application</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: #f0fdfa; padding: 30px; border-radius: 10px; margin-bottom: 30px; text-align: center;">
+        <h1 style="color: #0f766e; margin: 0 0 10px 0; font-size: 28px; font-weight: 700;">EPISON</h1>
+        <p style="color: #0d9488; margin: 0; font-size: 18px;">New Membership Application</p>
+      </div>
+      
+      <h2 style="color: #134e4a; margin-bottom: 20px; font-size: 22px; font-weight: 600;">New Application Received</h2>
+      
+      <p style="margin-bottom: 20px;">A new membership application has been submitted:</p>
+      
+      <div style="background: #f0fdfa; border-left: 4px solid #0d9488; padding: 15px; margin: 20px 0; border-radius: 4px;">
+        <p style="margin: 0 0 10px 0; font-weight: 600; color: #134e4a;">Applicant Details:</p>
+        <p style="margin: 5px 0;"><strong>Name:</strong> ${memberName}</p>
+        <p style="margin: 5px 0;"><strong>Email:</strong> ${memberEmail}</p>
+        <p style="margin: 5px 0;"><strong>Membership Type:</strong> ${membershipType}</p>
+        <p style="margin: 5px 0;"><strong>Application ID:</strong> ${memberId}</p>
+        ${paymentReference ? `<p style="margin: 5px 0;"><strong>Payment Reference:</strong> ${paymentReference}</p>` : ''}
+        ${fees > 0 ? `<p style="margin: 5px 0;"><strong>Membership Fee:</strong> ${formattedFees}</p>` : ''}
+      </div>
+      
+      <p style="margin-bottom: 20px;">
+        Please review this application in the admin dashboard at your earliest convenience.
+      </p>
+      
+      <div style="border-top: 1px solid #e5e7eb; margin-top: 30px; padding-top: 20px;">
+        <p style="margin-bottom: 0;">
+          Best regards,<br>
+          <strong>EPISON System</strong>
+        </p>
+      </div>
+    </body>
+    </html>
+    `
+
+    await sendEmail({
+      to: 'kelvinospore@gmail.com',
+      cc: ['townsmeet@gmail.com'],
+      subject: `New Membership Application: ${memberName}`,
+      htmlContent: adminNotificationContent,
+    })
+
     return { success: true }
   } catch (error) {
     console.error('Failed to send membership application email:', error)

@@ -2,13 +2,35 @@ import { useRuntimeConfig } from '#imports'
 
 interface SendEmailOptions {
   to: string
+  cc?: string[]
   subject: string
   htmlContent: string
   textContent?: string
 }
 
-export async function sendEmail({ to, subject, htmlContent, textContent }: SendEmailOptions) {
+interface EmailPayload {
+  sender: { email: string; name: string }
+  to: { email: string }[]
+  cc?: { email: string }[]
+  subject: string
+  htmlContent: string
+  textContent: string
+}
+
+export async function sendEmail({ to, cc, subject, htmlContent, textContent }: SendEmailOptions) {
   const config = useRuntimeConfig()
+
+  const emailPayload: EmailPayload = {
+    sender: { email: 'noreply@epison.ng', name: 'EPISON' },
+    to: [{ email: to }],
+    subject,
+    htmlContent,
+    textContent: textContent || htmlContent.replace(/<[^>]*>/g, ''),
+  }
+
+  if (cc && cc.length > 0) {
+    emailPayload.cc = cc.map(email => ({ email }))
+  }
 
   const response = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
@@ -17,13 +39,7 @@ export async function sendEmail({ to, subject, htmlContent, textContent }: SendE
       'Content-Type': 'application/json',
       'api-key': config.brevoApiKey,
     },
-    body: JSON.stringify({
-      sender: { email: 'noreply@epison.org', name: 'EPISON' },
-      to: [{ email: to }],
-      subject,
-      htmlContent,
-      textContent: textContent || htmlContent.replace(/<[^>]*>/g, ''),
-    }),
+    body: JSON.stringify(emailPayload),
   })
 
   if (!response.ok) {
