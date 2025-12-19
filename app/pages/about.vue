@@ -402,8 +402,8 @@ const leadership = [
   {
     name: 'Dr. Matthew Ashikeni',
     position: 'President',
-    institution: 'University of Ibadan',
-    bio: 'Professor of Epidemiology with over 20 years of experience in infectious disease epidemiology and control.',
+    institution: 'Baze University Abuja',
+    bio: 'Chief Consultant PH Physician/ Former Executive Secretary FCT Primary Health Care Board/Health Administration with over 35 years experience.',
     image: '/excomembers/president.jpeg',
   },
   {
@@ -428,10 +428,10 @@ const leadership = [
     image: '/excomembers/secretary-general.jpeg',
   },
   {
-    name: 'Dr. Bernadine Nsa Ekpenyong',
+    name: 'Prof. Bernadine Nsa Ekpenyong',
     position: 'Assistant Secretary',
     institution: 'University of Calabar',
-    bio: 'Associate Professor and unit Head, Epidemiology & Biostatistics Unit, Department of Public Health, UNICAL, Public Health Epidemiologist, Consultant Optometrist, Editor and Researcher',
+    bio: 'Professor and unit Head, Epidemiology & Biostatistics Unit, Department of Public Health, UNICAL, Public Health Epidemiologist, Consultant Optometrist, Editor and Researcher',
     image: '/excomembers/assistant-secretary.jpeg',
   },
   {
