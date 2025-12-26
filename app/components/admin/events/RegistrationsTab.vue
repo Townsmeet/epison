@@ -203,7 +203,7 @@ const registrations = computed(() => {
     eventDate: '',
     type: reg.category || 'Member',
     date: reg.registeredAt,
-    amount: reg.totalAmount,
+    amount: reg.totalAmount / 100,
     status: reg.paymentStatus,
     reference: reg.reference || '',
   }))
