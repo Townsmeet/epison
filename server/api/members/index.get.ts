@@ -75,15 +75,6 @@ export default defineEventHandler(
           conditions.push(isNull(member.paymentReference))
         }
       }
-      // Debug log (remove after confirming fix)
-      console.log('SQL Filter Conditions:', JSON.stringify(conditions))
-      console.log('Query values:', {
-        search,
-        status,
-        membershipType,
-        geoPoliticalZone,
-        paymentStatus,
-      })
 
       // Build order by clause
       const orderByMap = {

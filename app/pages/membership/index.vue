@@ -364,6 +364,26 @@
         </div>
       </div>
     </section>
+
+    <!-- Existing Members Renewal Section -->
+    <section class="py-16 bg-gradient-to-r from-primary-600 to-teal-600">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+          <h2 class="text-3xl font-bold text-white mb-4">Already a Member?</h2>
+          <p class="text-lg text-primary-100 mb-8 max-w-2xl mx-auto">
+            Renew your membership to continue enjoying EPISON benefits. All memberships follow a
+            calendar year cycle and are due for renewal at the start of each year.
+          </p>
+
+          <UButton to="/membership/renew" color="neutral" size="xl" class="shadow-lg">
+            <template #leading>
+              <UIcon name="i-heroicons-arrow-path" class="w-5 h-5" />
+            </template>
+            Renew Your Membership
+          </UButton>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 

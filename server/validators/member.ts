@@ -81,3 +81,10 @@ export const memberStatsQuerySchema = z.object({
 export const memberIdParamSchema = z.object({
   id: z.string().min(1, 'Member ID is required'),
 })
+
+// Renewal schema - only email can be updated
+export const renewMemberSchema = z.object({
+  email: z.string().email('Invalid email address').max(255).optional(),
+  fees: z.number().min(0, 'Fee amount must be positive'),
+  paymentReference: z.string().min(1, 'Payment reference is required').max(100),
+})

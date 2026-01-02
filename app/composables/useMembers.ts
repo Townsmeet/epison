@@ -133,8 +133,19 @@ export const useMembers = () => {
     })
   }
 
-  const renewMember = async (id: string, data: MemberActionRequest) => {
+  const renewMember = async (
+    id: string,
+    data: { email?: string; fees: number; paymentReference: string }
+  ) => {
     return await $fetch<ApiResponse<MemberDetail>>(`/api/members/${id}/renew`, {
+      method: 'POST',
+      body: data,
+    })
+  }
+
+  // Admin renewal (no payment required)
+  const adminRenewMember = async (id: string, data: { reason?: string; notes?: string } = {}) => {
+    return await $fetch<ApiResponse<MemberDetail>>(`/api/admin/members/${id}/renew`, {
       method: 'POST',
       body: data,
     })
@@ -175,6 +186,7 @@ export const useMembers = () => {
     activateMember,
     suspendMember,
     renewMember,
+    adminRenewMember,
     remindMember,
 
     // Utilities

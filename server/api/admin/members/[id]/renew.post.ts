@@ -1,29 +1,23 @@
 import type { H3Event } from 'h3'
 import { getRouterParam, createError } from 'h3'
 import { eq } from 'drizzle-orm'
-import { db } from '../../../utils/drizzle'
-import { member, memberHistory } from '../../../db/schema'
-import type { ApiResponse } from '../../../../types/api'
-import type { MemberDetail } from '../../../../types/members'
-import { validateBody } from '../../../validators'
-import { renewMemberSchema } from '../../../validators/member'
-import { addActivity } from '../../../utils/activity'
-import { sendMembershipRenewalEmail } from '../../../utils/event-email'
+import { db } from '../../../../utils/drizzle'
+import { member, memberHistory } from '../../../../db/schema'
+import type { ApiResponse } from '../../../../../types/api'
+import type { MemberDetail } from '../../../../../types/members'
+import { validateBody } from '../../../../validators'
+import { memberActionSchema } from '../../../../validators/member'
+import { addActivity } from '../../../../utils/activity'
+import { sendMembershipRenewalEmail } from '../../../../utils/event-email'
 
-interface RenewMemberRequest {
-  email?: string
-  fees: number
-  paymentReference: string
-}
-
+/**
+ * Admin endpoint to renew a member's membership without payment.
+ * Uses calendar-based expiry (December 31st of current year).
+ */
 export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<MemberDetail>> => {
   try {
     const memberId = getRouterParam(event, 'id')
-    const body = (await validateBody(
-      event,
-      renewMemberSchema,
-      'Invalid renewal request'
-    )) as RenewMemberRequest
+    const body = await validateBody(event, memberActionSchema, 'Invalid renewal request')
 
     if (!memberId) {
       throw createError({
@@ -44,55 +38,32 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
 
     const memberData = existingMember[0]
 
-    // If email is being updated, check if it's already taken by another member
-    if (body.email && body.email !== memberData.email) {
-      const emailExists = await db
-        .select({ id: member.id })
-        .from(member)
-        .where(eq(member.email, body.email))
-        .limit(1)
-
-      if (emailExists.length > 0) {
-        throw createError({
-          statusCode: 409,
-          statusMessage: 'A member with this email already exists',
-        })
-      }
-    }
-
     // Calendar-based expiry: always set to December 31st of the current year
     const now = new Date()
     const currentYear = now.getFullYear()
     const newExpiryDate = `${currentYear}-12-31`
     const oldExpiryDate = memberData.expiryDate || 'N/A'
 
-    // Update member - only email is editable during renewal
-    const updateData: Record<string, unknown> = {
-      expiryDate: newExpiryDate,
-      status: 'active', // Renewing activates the membership
-      fees: body.fees,
-      paymentReference: body.paymentReference,
-    }
-
-    // Update email if provided
-    if (body.email) {
-      updateData.email = body.email
-    }
-
-    await db.update(member).set(updateData).where(eq(member.id, memberId))
+    // Update member
+    await db
+      .update(member)
+      .set({
+        expiryDate: newExpiryDate,
+        status: 'active', // Renewing activates the membership
+      })
+      .where(eq(member.id, memberId))
 
     // Create history entry
     await db.insert(memberHistory).values({
       id: `history_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       memberId,
-      action: `Membership renewed. Previous expiry: ${oldExpiryDate}. New expiry: ${newExpiryDate}`,
+      action: `Membership renewed by admin. Previous expiry: ${oldExpiryDate}. New expiry: ${newExpiryDate}`,
       type: 'renewal',
-      notes: `Payment reference: ${body.paymentReference}. Fees: ₦${body.fees.toLocaleString()}`,
+      notes: body.notes || 'Renewed via admin panel (no payment required)',
     })
 
     // Fetch updated member
     const updatedMember = await db.select().from(member).where(eq(member.id, memberId)).limit(1)
-
     const updatedMemberData = updatedMember[0]
 
     // Parse other languages JSON
@@ -108,7 +79,6 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
 
     const memberDetail: MemberDetail = {
       id: updatedMemberData.id,
-      // Personal Information
       title: updatedMemberData.title ?? undefined,
       nameFamily: updatedMemberData.nameFamily,
       nameMiddle: updatedMemberData.nameMiddle ?? undefined,
@@ -120,42 +90,28 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
       fax: updatedMemberData.fax ?? undefined,
       email: updatedMemberData.email,
       avatar: updatedMemberData.avatar ?? undefined,
-
-      // Employment & Education
       position: updatedMemberData.position ?? undefined,
       employer: updatedMemberData.employer ?? undefined,
       department: updatedMemberData.department ?? undefined,
       qualifications: updatedMemberData.qualifications ?? undefined,
       experience: updatedMemberData.experience ?? undefined,
-
-      // Languages
       motherTongue: updatedMemberData.motherTongue ?? undefined,
       otherLanguages,
       otherLanguageText: updatedMemberData.otherLanguageText ?? undefined,
-
-      // Areas of Expertise
       expertiseDescription: updatedMemberData.expertiseDescription ?? undefined,
-      expertise: [], // Would need separate query
+      expertise: [],
       expertiseOther: updatedMemberData.expertiseOther ?? undefined,
-
-      // Employment Classification
       agency: updatedMemberData.agency ?? undefined,
       typeOfWork: updatedMemberData.typeOfWork ?? undefined,
       typeOfWorkOther: updatedMemberData.typeOfWorkOther ?? undefined,
       retiredSince: updatedMemberData.retiredSince ?? undefined,
-
-      // Membership Details
       membershipType: updatedMemberData.membershipType ?? '',
       status: updatedMemberData.status ?? 'pending',
       joinedDate: updatedMemberData.joinedDate ?? '',
       expiryDate: updatedMemberData.expiryDate ?? '',
       fees: updatedMemberData.fees ?? 0,
       paymentReference: updatedMemberData.paymentReference ?? undefined,
-
-      // Related data
-      publications: [], // Would need separate query
-
-      // Timestamps
+      publications: [],
       createdAt: updatedMemberData.createdAt.toISOString(),
       updatedAt: updatedMemberData.updatedAt.toISOString(),
     }
@@ -163,23 +119,22 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
     // Activity log
     await addActivity({
       type: 'Membership',
-      title: 'Membership renewed',
-      description: `${memberData.nameFirst} ${memberData.nameFamily} renewed membership until ${newExpiryDate}`,
+      title: 'Membership renewed by admin',
+      description: `${memberData.nameFirst} ${memberData.nameFamily} membership renewed until ${newExpiryDate}`,
       entityType: 'member',
       entityId: memberId!,
-      metadata: { oldExpiryDate, newExpiryDate, paymentReference: body.paymentReference },
+      metadata: { oldExpiryDate, newExpiryDate, renewedBy: 'admin' },
     })
 
     // Send renewal confirmation email
-    const memberEmail = body.email || memberData.email
     await sendMembershipRenewalEmail({
       memberName:
         `${memberData.title || ''} ${memberData.nameFirst} ${memberData.nameFamily}`.trim(),
-      memberEmail,
+      memberEmail: memberData.email,
       membershipType: memberData.membershipType || 'Regular',
       memberId,
-      paymentReference: body.paymentReference,
-      fees: body.fees,
+      paymentReference: 'ADMIN-RENEWAL',
+      fees: 0,
       newExpiryDate,
     })
 
@@ -189,7 +144,7 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
       message: `Membership renewed successfully. New expiry date: December 31, ${currentYear}`,
     }
   } catch (error: unknown) {
-    console.error('Error renewing membership:', error)
+    console.error('Error renewing membership (admin):', error)
     if (typeof error === 'object' && error && 'statusCode' in error) throw error as unknown as Error
 
     return {

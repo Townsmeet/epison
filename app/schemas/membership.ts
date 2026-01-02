@@ -89,3 +89,12 @@ export type ExpertiseData = z.infer<typeof expertiseSchema>
 export type ClassificationData = z.infer<typeof classificationSchema>
 export type PaymentData = z.infer<typeof paymentSchema>
 export type MembershipFormData = z.infer<typeof membershipFormSchema>
+
+// Renewal Schema - only email is editable during renewal
+export const renewalFormSchema = z.object({
+  email: z.string().email('Invalid email address').max(255),
+  fees: z.number().min(0, 'Fee amount must be positive'),
+  paymentReference: z.string().min(1, 'Payment reference is required'),
+})
+
+export type RenewalFormData = z.infer<typeof renewalFormSchema>

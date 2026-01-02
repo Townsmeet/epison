@@ -653,7 +653,7 @@ const {
   deleteMember,
   activateMember,
   suspendMember,
-  renewMember,
+  adminRenewMember,
   remindMember,
   refreshStats,
 } = useMembers()
@@ -1058,10 +1058,11 @@ function confirmActivateMember(member: MemberListItem) {
 }
 
 function confirmRenewMembership(member: MemberListItem) {
+  const currentYear = new Date().getFullYear()
   confirmationModal.value = {
     isOpen: true,
     title: 'Renew Membership',
-    message: `Are you sure you want to renew the membership for ${getFullName(member)}? This will extend their membership period.`,
+    message: `Are you sure you want to renew the membership for ${getFullName(member)}? Their membership will be extended until December 31, ${currentYear}.`,
     confirmText: 'Renew',
     confirmColor: 'primary',
     onConfirm: () => renewMembershipAction(member.id),
@@ -1115,14 +1116,15 @@ async function activateMemberAction(id: string) {
 
 async function renewMembershipAction(id: string) {
   try {
-    await renewMember(id, { reason: 'Renewed via admin panel', period: '1 year' })
+    const currentYear = new Date().getFullYear()
+    await adminRenewMember(id, { notes: 'Renewed via admin panel' })
     confirmationModal.value.isOpen = false
     await refreshMembers()
     await refreshStats()
     await refreshStatsData()
     useToast().add({
       title: 'Membership renewed',
-      description: 'Membership has been renewed successfully',
+      description: `Membership renewed until December 31, ${currentYear}`,
       color: 'success',
     })
   } catch (error: unknown) {

@@ -38,12 +38,11 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
     // Generate member ID
     const memberId = `member_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-    // Set default dates
+    // Set default dates - Calendar-based expiry (December 31st of current year)
     const now = new Date()
     const joinedDate = now.toISOString().split('T')[0]
-    const expiryDate = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate())
-      .toISOString()
-      .split('T')[0]
+    const currentYear = now.getFullYear()
+    const expiryDate = `${currentYear}-12-31`
 
     // Insert member
     await db.insert(member).values({
