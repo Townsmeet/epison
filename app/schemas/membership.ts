@@ -94,7 +94,7 @@ export type MembershipFormData = z.infer<typeof membershipFormSchema>
 export const renewalFormSchema = z.object({
   email: z.string().email('Invalid email address').max(255),
   fees: z.number().min(0, 'Fee amount must be positive'),
-  paymentReference: z.string().min(1, 'Payment reference is required'),
+  paymentReference: z.string().optional(),
 })
 
 export type RenewalFormData = z.infer<typeof renewalFormSchema>

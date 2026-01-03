@@ -156,11 +156,35 @@
                 {{ formatMembershipType(memberData.data.membershipType) }}
               </p>
             </div>
+            <div v-if="isAlreadyRenewed" class="col-span-2">
+              <p class="text-gray-500 dark:text-gray-400">Current Expiry Date</p>
+              <p class="font-medium text-gray-900 dark:text-white">
+                {{ formatDate(memberData.data.expiryDate) }}
+              </p>
+            </div>
           </div>
         </div>
 
+        <!-- Already Renewed Message -->
+        <div v-if="isAlreadyRenewed" class="px-6 py-12 text-center">
+          <div
+            class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4"
+          >
+            <UIcon
+              name="i-heroicons-check-badge"
+              class="h-10 w-10 text-green-600 dark:text-green-400"
+            />
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Already Renewed</h3>
+          <p class="text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-6">
+            Your membership is already up to date for {{ currentYear }}. It is valid until
+            {{ formatDate(memberData.data.expiryDate) }}.
+          </p>
+          <UButton color="neutral" variant="soft" to="/">Back to Home</UButton>
+        </div>
+
         <!-- Renewal Form -->
-        <div class="px-6 py-6">
+        <div v-else class="px-6 py-6">
           <UForm
             :schema="renewalFormSchema"
             :state="formState"
@@ -235,6 +259,7 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from '#ui/types'
 import { renewalFormSchema, type RenewalFormData } from '~/schemas/membership'
+import type { MemberListItem } from '../../../types/members'
 
 definePageMeta({ layout: 'default' })
 
@@ -265,17 +290,7 @@ const isSearching = ref(false)
 const hasSearched = ref(false)
 const debouncedSearch = ref('')
 
-interface SearchResult {
-  id: string
-  title?: string
-  nameFirst: string
-  nameFamily: string
-  email: string
-  status: string
-  membershipType: string
-  avatar?: string
-}
-const searchResults = ref<SearchResult[]>([])
+const searchResults = ref<MemberListItem[]>([])
 
 // Debounce search
 let searchTimeout: ReturnType<typeof setTimeout>
@@ -302,14 +317,7 @@ async function searchForMembership() {
   searchResults.value = []
 
   try {
-    // Use the main members API which includes all statuses and email
-    const response = await $fetch<{
-      success: boolean
-      data: SearchResult[]
-      pagination: { total: number }
-    }>('/api/members', {
-      query: { search: query, limit: 10 },
-    })
+    const response = await searchMembers(query, 10)
 
     if (response.success && response.data && response.data.length > 0) {
       searchResults.value = response.data
@@ -338,14 +346,9 @@ function clearMemberSelection() {
 }
 
 // Fetch member data (only when memberId is set)
-const { renewMember, getMember } = useMembers()
-const {
-  data: memberData,
-  pending: memberPending,
-  error: memberError,
-} = memberId.value
-  ? getMember(memberId.value)
-  : { data: ref(null), pending: ref(false), error: ref(null) }
+const { getMember, renewMember, searchMembers } = useMembers()
+
+const { data: memberData, pending: memberPending, error: memberError } = await getMember(memberId)
 
 // Status color mapping
 function getStatusColor(status: string): 'success' | 'warning' | 'error' | 'neutral' {
@@ -378,6 +381,14 @@ const renewalFee = computed(() => {
   return feeMap[type] ?? 30000 // Default to regular if unknown
 })
 
+// Check if membership is already renewed for the current year
+const isAlreadyRenewed = computed(() => {
+  if (!memberData.value?.data?.expiryDate) return false
+  const expiry = new Date(memberData.value.data.expiryDate)
+  const currentYearEnd = new Date(currentYear, 11, 31) // Dec 31 of current year
+  return expiry >= currentYearEnd
+})
+
 // Check if membership is expired
 // const isExpired = computed(() => {
 //   if (!memberData.value?.data?.expiryDate) return true
@@ -386,8 +397,8 @@ const renewalFee = computed(() => {
 
 // Form state
 const formState = reactive<RenewalFormData>({
-  email: '',
-  fees: 0,
+  email: memberData.value?.data?.email || '',
+  fees: renewalFee.value,
   paymentReference: '',
 })
 
@@ -442,6 +453,7 @@ async function loadPaystackScript() {
 
 function startPaystackPayment(): Promise<{ reference: string }> {
   return new Promise((resolve, reject) => {
+    let isResolved = false
     ;(async () => {
       const amount = renewalFee.value
       if (!formState.email) {
@@ -499,6 +511,7 @@ function startPaystackPayment(): Promise<{ reference: string }> {
           ],
         },
         callback: (response: PaystackResponse) => {
+          isResolved = true
           toast.add({
             title: 'Payment successful',
             description: `Reference: ${response.reference}`,
@@ -507,8 +520,10 @@ function startPaystackPayment(): Promise<{ reference: string }> {
           resolve({ reference: response.reference })
         },
         onClose: () => {
-          toast.add({ title: 'Payment cancelled', color: 'info' })
-          reject(new Error('CLOSED'))
+          if (!isResolved) {
+            toast.add({ title: 'Payment cancelled', color: 'info' })
+            reject(new Error('CLOSED'))
+          }
         },
       })
       handler.openIframe()
@@ -528,11 +543,13 @@ async function onSubmit(_event: FormSubmitEvent<RenewalFormData>) {
     formState.paymentReference = reference
 
     // Process renewal with backend
+    console.log('Processing renewal for member:', memberId.value)
     const result = await renewMember(memberId.value, {
       email: formState.email,
       fees: formState.fees,
       paymentReference: reference,
     })
+    console.log('Renewal result:', result)
 
     if (result.success) {
       toast.add({
@@ -543,7 +560,8 @@ async function onSubmit(_event: FormSubmitEvent<RenewalFormData>) {
       })
 
       // Redirect to success page
-      router.push({
+      console.log('Navigating to success page...')
+      await router.push({
         path: '/membership/success',
         query: {
           type: 'renewal',
@@ -551,12 +569,14 @@ async function onSubmit(_event: FormSubmitEvent<RenewalFormData>) {
           ref: reference,
         },
       })
+      console.log('Navigation call completed')
     } else {
       throw new Error(result.error || 'Failed to process renewal')
     }
   } catch (err) {
     if (err instanceof Error && err.message === 'CLOSED') {
       // User cancelled payment, no error needed
+      isSubmitting.value = false
       return
     }
     console.error('Renewal error:', err)
@@ -565,14 +585,24 @@ async function onSubmit(_event: FormSubmitEvent<RenewalFormData>) {
       description: err instanceof Error ? err.message : 'An error occurred during renewal.',
       color: 'error',
     })
-  } finally {
     isSubmitting.value = false
   }
+  // Note: We don't use finally here because we want isSubmitting to stay true
+  // during the navigation process if successful.
 }
 
 // Utility functions
 function formatNaira(n: number): string {
   return new Intl.NumberFormat('en-NG').format(n)
+}
+
+function formatDate(dateStr: string | undefined): string {
+  if (!dateStr) return 'N/A'
+  return new Date(dateStr).toLocaleDateString('en-NG', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
 }
 
 // function formatDate(dateStr: string | undefined): string {

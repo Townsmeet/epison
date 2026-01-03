@@ -1,4 +1,5 @@
 import type { Ref, ComputedRef } from 'vue'
+import { toValue } from 'vue'
 import type {
   MemberListItem,
   MemberDetail,
@@ -43,10 +44,12 @@ export const useMembers = () => {
     })
   }
 
-  const getMember = (id: string) => {
-    return useFetch<ApiResponse<MemberDetail>>(`/api/members/${id}`, {
-      key: `member-${id}`,
+  const getMember = (id: string | Ref<string> | ComputedRef<string>) => {
+    return useFetch<ApiResponse<MemberDetail>>(() => `/api/members/${toValue(id)}`, {
+      key: `member-${toValue(id)}`,
       server: true,
+      immediate: !!toValue(id),
+      watch: [() => toValue(id)],
       default: () => ({
         success: false,
         error: 'Member not found',
@@ -158,6 +161,13 @@ export const useMembers = () => {
     })
   }
 
+  // Search members (for renewal/lookup)
+  const searchMembers = async (query: string, limit = 10) => {
+    return await $fetch<PaginatedResponse<MemberListItem>>('/api/members', {
+      query: { search: query, limit },
+    })
+  }
+
   // Utility functions for reactive data management
   const refreshMembers = (query: MemberListQuery = {}) => {
     return refreshCookie(`members-${JSON.stringify(query)}`)
@@ -188,6 +198,7 @@ export const useMembers = () => {
     renewMember,
     adminRenewMember,
     remindMember,
+    searchMembers,
 
     // Utilities
     refreshMembers,

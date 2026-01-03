@@ -105,7 +105,7 @@
               <!-- Mobile buttons -->
               <div class="flex items-center md:hidden">
                 <UButton
-                  to="/membership/apply"
+                  to="/membership"
                   color="primary"
                   variant="solid"
                   class="text-sm font-medium bg-gradient-to-r from-primary-600 to-primary-700"
@@ -155,7 +155,7 @@
 
             <div class="pt-2 border-t border-gray-200 dark:border-gray-800 mt-2">
               <UButton
-                to="/membership/apply"
+                to="/membership"
                 color="primary"
                 variant="solid"
                 class="w-full justify-center py-3 text-base font-medium mt-2 bg-gradient-to-r from-primary-600 to-primary-700"
