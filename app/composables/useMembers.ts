@@ -143,6 +143,7 @@ export const useMembers = () => {
     return await $fetch<ApiResponse<MemberDetail>>(`/api/members/${id}/renew`, {
       method: 'POST',
       body: data,
+      retry: 3,
     })
   }
 

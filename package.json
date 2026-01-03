@@ -11,7 +11,8 @@
     "postinstall": "nuxt prepare",
     "prepare": "husky",
     "create-admin": "tsx app/scripts/create-admin.ts",
-    "upload-members": "tsx app/scripts/upload-members.ts"
+    "upload-members": "tsx app/scripts/upload-members.ts",
+    "update-member-types": "tsx app/scripts/update-member-types.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.893.0",

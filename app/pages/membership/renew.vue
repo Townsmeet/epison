@@ -231,12 +231,10 @@
               color="primary"
               size="lg"
               block
+              icon="i-heroicons-credit-card"
               :loading="isSubmitting"
               :disabled="isSubmitting || renewalFee <= 0"
             >
-              <template #leading>
-                <UIcon name="i-heroicons-credit-card" class="w-5 h-5" />
-              </template>
               Pay ₦{{ formatNaira(renewalFee) }} & Renew
             </UButton>
           </UForm>
