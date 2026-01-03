@@ -434,6 +434,7 @@ type PaystackConfig = {
   metadata?: Record<string, unknown>
   callback: (response: PaystackResponse) => void
   onClose: () => void
+  subaccount?: string
 }
 type PaystackHandler = { openIframe: () => void }
 type PaystackPopLocal = { setup: (config: PaystackConfig) => PaystackHandler }
@@ -525,6 +526,7 @@ function startPaystackPayment(): Promise<{ reference: string }> {
             reject(new Error('CLOSED'))
           }
         },
+        subaccount: config.public.paystackSubaccountCode as string | undefined,
       })
       handler.openIframe()
     })().catch((e: unknown) => {

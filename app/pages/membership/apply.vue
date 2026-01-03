@@ -160,6 +160,7 @@ type PaystackConfig = {
   metadata?: Record<string, unknown> | { custom_fields?: PaystackCustomField[] }
   callback: (response: PaystackResponse) => void
   onClose: () => void
+  subaccount?: string
 }
 type PaystackHandler = { openIframe: () => void }
 type PaystackPop = { setup: (config: PaystackConfig) => PaystackHandler }
@@ -331,6 +332,7 @@ function startPaystackPayment(applicationId?: string): Promise<{ reference: stri
           toast.add({ title: 'Payment cancelled', color: 'info' })
           reject(new Error('CLOSED'))
         },
+        subaccount: config.public.paystackSubaccountCode as string | undefined,
       })
       handler.openIframe()
     })().catch((e: unknown) => {

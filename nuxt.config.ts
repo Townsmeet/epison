@@ -46,6 +46,7 @@ export default defineNuxtConfig({
     // Expose ONLY safe values to client
     public: {
       paystackKey: process.env.NUXT_PAYSTACK_PUBLIC_KEY,
+      paystackSubaccountCode: process.env.NUXT_PAYSTACK_MEMBERSHIP_SUBACCOUNT_CODE,
       // expose public base URL if needed by client to render image URLs
       s3PublicBaseUrl: process.env.NUXT_S3_PUBLIC_BASE_URL,
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
