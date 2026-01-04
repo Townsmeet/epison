@@ -20,6 +20,24 @@
         <UFormField label="Phone">
           <UInput v-model="newMember.phone" placeholder="+234 ..." />
         </UFormField>
+        <div class="md:col-span-4">
+          <label class="text-xs text-gray-600 dark:text-gray-300 mb-1 block"
+            >Photo (optional)</label
+          >
+          <input
+            type="file"
+            accept="image/*"
+            class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 dark:file:bg-gray-700 dark:file:text-gray-200"
+            @change="onNewPhotoSelected"
+          />
+          <div v-if="newPhotoPreview" class="mt-2">
+            <img
+              :src="newPhotoPreview"
+              alt="Photo preview"
+              class="h-16 w-16 object-cover rounded-full border border-gray-200 dark:border-gray-700"
+            />
+          </div>
+        </div>
       </div>
       <div class="mt-4 flex justify-end">
         <UButton
@@ -63,13 +81,27 @@
           :key="m.id"
           class="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4"
         >
-          <div>
-            <div class="font-medium text-gray-900 dark:text-white">{{ m.name }}</div>
-            <div class="text-sm text-gray-500 dark:text-gray-300 break-words">
-              <span v-if="m.role">{{ m.role }}</span>
-              <span v-if="m.role && (m.email || m.phone)" class="mx-2">•</span>
-              <span v-if="m.email" class="break-all">{{ m.email }}</span>
-              <span v-if="m.phone" class="ml-2 break-all">{{ m.phone }}</span>
+          <div class="flex items-center gap-3">
+            <img
+              v-if="m.photoUrl"
+              :src="m.photoUrl"
+              :alt="m.name"
+              class="h-12 w-12 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+            />
+            <div
+              v-else
+              class="h-12 w-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
+            >
+              <UIcon name="i-heroicons-user" class="w-6 h-6 text-gray-400" />
+            </div>
+            <div>
+              <div class="font-medium text-gray-900 dark:text-white">{{ m.name }}</div>
+              <div class="text-sm text-gray-500 dark:text-gray-300 break-words">
+                <span v-if="m.role">{{ m.role }}</span>
+                <span v-if="m.role && (m.email || m.phone)" class="mx-2">•</span>
+                <span v-if="m.email" class="break-all">{{ m.email }}</span>
+                <span v-if="m.phone" class="ml-2 break-all">{{ m.phone }}</span>
+              </div>
             </div>
           </div>
           <div class="flex items-center gap-2">
@@ -123,6 +155,40 @@
             <UFormField label="Phone">
               <UInput v-model="editMember.phone" />
             </UFormField>
+            <div class="md:col-span-2">
+              <label class="text-xs text-gray-600 dark:text-gray-300 mb-1 block"
+                >Photo (optional)</label
+              >
+              <div class="flex items-center gap-4">
+                <div v-if="editPhotoPreview || editMember.photoUrl" class="relative">
+                  <img
+                    :src="editPhotoPreview || editMember.photoUrl"
+                    alt="Member photo"
+                    class="h-16 w-16 object-cover rounded-full border border-gray-200 dark:border-gray-700"
+                  />
+                  <button
+                    v-if="editPhotoPreview || editMember.photoUrl"
+                    type="button"
+                    class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600"
+                    @click="removeEditPhoto"
+                  >
+                    <UIcon name="i-heroicons-x-mark" class="w-3 h-3" />
+                  </button>
+                </div>
+                <div
+                  v-else
+                  class="h-16 w-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
+                >
+                  <UIcon name="i-heroicons-user" class="w-8 h-8 text-gray-400" />
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  class="block flex-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 dark:file:bg-gray-700 dark:file:text-gray-200"
+                  @change="onEditPhotoSelected"
+                />
+              </div>
+            </div>
           </div>
 
           <template #footer>
@@ -177,6 +243,57 @@ const newMember = reactive({
   phone: '',
 })
 
+// Photo upload for new member
+const newPhotoFile = ref<File | null>(null)
+const newPhotoPreview = ref<string | null>(null)
+
+function onNewPhotoSelected(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) {
+    newPhotoFile.value = null
+    newPhotoPreview.value = null
+    return
+  }
+  newPhotoFile.value = file
+  newPhotoPreview.value = URL.createObjectURL(file)
+}
+
+function _slugify(s: string) {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+}
+
+async function uploadPhoto(file: File, memberName: string): Promise<string | undefined> {
+  const ext = file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')) : ''
+  const base = props.event.slug || _slugify(props.event.title)
+  const key = `committee-${base}-${_slugify(memberName)}-${Date.now()}${ext}`
+  const form = new FormData()
+  form.append('file', file)
+  form.append('folder', 'events/committee')
+  form.append('key', key)
+
+  try {
+    const uploadResp = await $fetch<{ url: string }>(`/api/uploads`, {
+      method: 'POST',
+      body: form,
+      credentials: 'include',
+    })
+    return uploadResp.url
+  } catch (err) {
+    console.error('Photo upload failed:', err)
+    useToast().add({
+      title: 'Upload failed',
+      description: 'Could not upload photo. Please try again.',
+      color: 'error',
+    })
+    return undefined
+  }
+}
+
 const canAdd = computed(() => newMember.name.trim().length > 0)
 
 const isCreating = ref(false)
@@ -187,11 +304,18 @@ async function addMember() {
 
   isCreating.value = true
   try {
+    // Upload photo if provided
+    let photoUrl: string | undefined
+    if (newPhotoFile.value) {
+      photoUrl = await uploadPhoto(newPhotoFile.value, newMember.name)
+    }
+
     const memberData = {
       name: newMember.name.trim(),
       role: newMember.role?.trim() || undefined,
       email: newMember.email?.trim() || undefined,
       phone: newMember.phone?.trim() || undefined,
+      photoUrl,
     }
 
     const created = await createEventCommitteeMember(props.event.id, memberData)
@@ -212,6 +336,8 @@ async function addMember() {
     isSyncing.value = false
 
     Object.assign(newMember, { name: '', role: '', email: '', phone: '' })
+    newPhotoFile.value = null
+    newPhotoPreview.value = null
     useToast().add({ title: 'Member added', color: 'success' })
   } catch (error) {
     console.error('Error adding committee member:', error)
@@ -247,16 +373,46 @@ const editMember = reactive<{
   role?: string
   email?: string
   phone?: string
+  photoUrl?: string
 }>({
   id: undefined,
   name: '',
   role: '',
   email: '',
   phone: '',
+  photoUrl: undefined,
 })
+
+// Photo upload for edit member
+const editPhotoFile = ref<File | null>(null)
+const editPhotoPreview = ref<string | null>(null)
+const removeExistingPhoto = ref(false)
+
+function onEditPhotoSelected(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) {
+    editPhotoFile.value = null
+    editPhotoPreview.value = null
+    return
+  }
+  editPhotoFile.value = file
+  editPhotoPreview.value = URL.createObjectURL(file)
+  removeExistingPhoto.value = false
+}
+
+function removeEditPhoto() {
+  editPhotoFile.value = null
+  editPhotoPreview.value = null
+  editMember.photoUrl = undefined
+  removeExistingPhoto.value = true
+}
 
 function startEdit(m: EventCommitteeMember) {
   Object.assign(editMember, m)
+  editPhotoFile.value = null
+  editPhotoPreview.value = null
+  removeExistingPhoto.value = false
   isEditing.value = true
 }
 
@@ -267,11 +423,20 @@ async function applyEdit() {
 
   isUpdating.value = true
   try {
+    // Upload new photo if provided
+    let photoUrl: string | undefined = editMember.photoUrl
+    if (editPhotoFile.value) {
+      photoUrl = await uploadPhoto(editPhotoFile.value, editMember.name)
+    } else if (removeExistingPhoto.value) {
+      photoUrl = undefined
+    }
+
     const updateData = {
       name: editMember.name.trim(),
       role: editMember.role?.trim() || undefined,
       email: editMember.email?.trim() || undefined,
       phone: editMember.phone?.trim() || undefined,
+      photoUrl,
     }
 
     await updateEventCommitteeMember(editMember.id, updateData)

@@ -1,0 +1,1 @@
+ALTER TABLE `event_committee_member` ADD `photo_url` text;

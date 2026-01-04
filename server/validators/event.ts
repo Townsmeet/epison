@@ -81,6 +81,7 @@ export const createEventCommitteeMemberSchema = z.object({
   role: z.string().max(100).optional(),
   email: z.string().email().optional(),
   phone: z.string().max(50).optional(),
+  photoUrl: z.string().url().optional(),
 })
 
 // ===== Event Media =====

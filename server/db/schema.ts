@@ -276,6 +276,7 @@ export const eventCommitteeMember = sqliteTable('event_committee_member', {
   role: text('role'),
   email: text('email'),
   phone: text('phone'),
+  photoUrl: text('photo_url'),
   createdAt: integer('created_at', { mode: 'timestamp' }).defaultNow().notNull(),
 })
 

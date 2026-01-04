@@ -107,6 +107,7 @@ export interface EventCommitteeMember {
   role?: string
   email?: string
   phone?: string
+  photoUrl?: string
   createdAt: string
 }
 

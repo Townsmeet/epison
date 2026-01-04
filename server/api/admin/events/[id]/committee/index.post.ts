@@ -51,6 +51,7 @@ export default defineEventHandler(async eventHandler => {
       role: body.role,
       email: body.email,
       phone: body.phone,
+      photoUrl: body.photoUrl,
       createdAt: new Date(),
     }
 

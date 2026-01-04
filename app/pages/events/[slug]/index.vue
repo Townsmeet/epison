@@ -2,148 +2,158 @@
   <div
     class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
   >
+    <!-- Hero Section with Banner -->
     <div class="relative bg-white dark:bg-gray-900 overflow-hidden shadow-2xl">
-      <div class="max-w-7xl mx-auto">
+      <!-- Banner Background (covers entire hero) -->
+      <div class="absolute inset-0">
+        <img
+          v-if="event"
+          class="w-full h-full object-cover"
+          :src="heroImage"
+          :alt="event?.title || 'Event cover'"
+          @error="onImgError"
+        />
+        <!-- Gradient overlay for text readability -->
         <div
-          class="relative z-10 pb-8 bg-white dark:bg-gray-900 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32"
-        >
-          <div class="pt-10 sm:pt-16 lg:pt-8 lg:pb-14 lg:overflow-hidden">
-            <div class="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 lg:mt-16 lg:px-8">
-              <div class="lg:text-left">
-                <span
-                  v-if="event"
-                  class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium"
-                  :class="badgeClass"
-                >
-                  {{ typeLabel }}
-                </span>
-                <h1
-                  class="text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white sm:text-5xl md:text-6xl mt-4"
-                >
-                  <span v-if="event?.title" class="block">{{ event!.title }}</span>
-                  <span v-else class="block sr-only">Loading event...</span>
-                </h1>
-                <div v-if="event" class="mt-6 space-y-4">
-                  <div class="flex items-center text-gray-700 dark:text-gray-200">
-                    <UIcon
-                      name="i-heroicons-calendar"
-                      class="flex-shrink-0 h-5 w-5 text-gray-500"
-                    />
-                    <span class="ml-2 font-medium">{{
-                      formatDateRange(event.startDate, event.endDate)
-                    }}</span>
-                  </div>
-                  <div class="flex items-center text-gray-700 dark:text-gray-200">
-                    <UIcon name="i-heroicons-map-pin" class="flex-shrink-0 h-5 w-5 text-gray-500" />
-                    <span class="ml-2 font-medium">{{ event.location }}</span>
-                  </div>
-                  <!-- Past Event Notice -->
-                  <div
-                    v-if="isPast"
-                    class="flex items-start p-3 rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200 border border-amber-200 dark:border-amber-800"
-                  >
-                    <UIcon name="i-heroicons-information-circle" class="h-5 w-5 mt-0.5 mr-2" />
-                    <div>
-                      <p class="text-sm font-medium">This event has ended.</p>
-                      <p v-if="event.endDate" class="text-xs opacity-80">
-                        Ended on
-                        {{
-                          new Date(event.endDate).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          })
-                        }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  v-if="event"
-                  class="mt-6 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4"
-                >
-                  <NuxtLink
-                    v-if="!isPast && event.status === 'registration_open'"
-                    :to="registerPath"
-                    class="w-full sm:w-auto"
-                  >
-                    <UButton size="lg" color="primary" class="w-full sm:w-auto justify-center">
-                      Register Now
-                    </UButton>
-                  </NuxtLink>
-                  <UButton
-                    v-if="!isPast && canSubmitAbstract"
-                    size="lg"
-                    color="secondary"
-                    variant="soft"
-                    class="w-full sm:w-auto justify-center"
-                    @click="showSubmissionForm = true"
-                  >
-                    Submit Abstract
-                  </UButton>
-                  <UButton
-                    v-else-if="isPast"
-                    to="/events"
-                    size="lg"
-                    color="neutral"
-                    variant="soft"
-                    class="w-full sm:w-auto justify-center"
-                  >
-                    View upcoming events
-                  </UButton>
-                </div>
-                <!-- Enhanced Theme Section -->
-                <div v-if="event?.theme" class="mt-8">
-                  <div class="relative">
-                    <div
-                      class="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 rounded-2xl"
-                    />
-                    <div
-                      class="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-primary-200/50 dark:border-primary-700/50 shadow-lg"
-                    >
-                      <div class="flex items-center mb-3">
-                        <div
-                          class="w-2 h-8 bg-gradient-to-b from-primary-500 to-secondary-500 rounded-full mr-3"
-                        />
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Event Theme</h3>
-                      </div>
-                      <div
-                        class="text-2xl font-extrabold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent leading-tight"
-                      >
-                        "{{ event.theme }}"
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          class="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-white/70 dark:from-gray-900 dark:via-gray-900/95 dark:to-gray-900/70 lg:from-white lg:via-white/90 lg:to-transparent lg:dark:from-gray-900 lg:dark:via-gray-900/90 lg:dark:to-transparent"
+        />
+      </div>
 
-                <!-- Enhanced Subthemes Section -->
-                <div v-if="event?.subthemes && event.subthemes.length" class="mt-6">
-                  <h4
-                    class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center"
+      <!-- Content Container -->
+      <div class="relative max-w-7xl mx-auto">
+        <div class="relative z-10 py-10 sm:py-16 lg:py-20 lg:max-w-2xl lg:w-full">
+          <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="lg:text-left">
+              <span
+                v-if="event"
+                class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium"
+                :class="badgeClass"
+              >
+                {{ typeLabel }}
+              </span>
+              <h1
+                class="text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white sm:text-5xl md:text-6xl mt-4"
+              >
+                <span v-if="event?.title" class="block">{{ event!.title }}</span>
+                <span v-else class="block sr-only">Loading event...</span>
+              </h1>
+              <div v-if="event" class="mt-6 space-y-4">
+                <div class="flex items-center text-gray-700 dark:text-gray-200">
+                  <UIcon name="i-heroicons-calendar" class="flex-shrink-0 h-5 w-5 text-gray-500" />
+                  <span class="ml-2 font-medium">{{
+                    formatDateRange(event.startDate, event.endDate)
+                  }}</span>
+                </div>
+                <div class="flex items-center text-gray-700 dark:text-gray-200">
+                  <UIcon name="i-heroicons-map-pin" class="flex-shrink-0 h-5 w-5 text-gray-500" />
+                  <span class="ml-2 font-medium">{{ event.location }}</span>
+                </div>
+                <!-- Past Event Notice -->
+                <div
+                  v-if="isPast"
+                  class="flex items-start p-3 rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200 border border-amber-200 dark:border-amber-800"
+                >
+                  <UIcon name="i-heroicons-information-circle" class="h-5 w-5 mt-0.5 mr-2" />
+                  <div>
+                    <p class="text-sm font-medium">This event has ended.</p>
+                    <p v-if="event.endDate" class="text-xs opacity-80">
+                      Ended on
+                      {{
+                        new Date(event.endDate).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })
+                      }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-if="event"
+                class="mt-6 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4"
+              >
+                <NuxtLink
+                  v-if="!isPast && event.status === 'registration_open'"
+                  :to="registerPath"
+                  class="w-full sm:w-auto"
+                >
+                  <UButton size="lg" color="primary" class="w-full sm:w-auto justify-center">
+                    Register Now
+                  </UButton>
+                </NuxtLink>
+                <UButton
+                  v-if="!isPast && canSubmitAbstract"
+                  size="lg"
+                  color="secondary"
+                  variant="soft"
+                  class="w-full sm:w-auto justify-center"
+                  @click="showSubmissionForm = true"
+                >
+                  Submit Abstract
+                </UButton>
+                <UButton
+                  v-else-if="isPast"
+                  to="/events"
+                  size="lg"
+                  color="neutral"
+                  variant="soft"
+                  class="w-full sm:w-auto justify-center"
+                >
+                  View upcoming events
+                </UButton>
+              </div>
+              <!-- Enhanced Theme Section -->
+              <div v-if="event?.theme" class="mt-8">
+                <div class="relative">
+                  <div
+                    class="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 rounded-2xl"
+                  />
+                  <div
+                    class="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-primary-200/50 dark:border-primary-700/50 shadow-lg"
                   >
-                    <UIcon name="i-heroicons-light-bulb" class="w-5 h-5 mr-2 text-primary-500" />
-                    Key Focus Areas
-                  </h4>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div
-                      v-for="(subtheme, index) in event.subthemes"
-                      :key="`${subtheme}-${index}`"
-                      class="group relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 p-4 border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-300 hover:scale-[1.02]"
-                    >
+                    <div class="flex items-center mb-3">
                       <div
-                        class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary-500/10 to-secondary-500/10 rounded-full -translate-y-10 translate-x-10"
+                        class="w-2 h-8 bg-gradient-to-b from-primary-500 to-secondary-500 rounded-full mr-3"
                       />
-                      <div class="relative">
-                        <div class="flex items-center">
-                          <div
-                            class="w-2 h-2 bg-primary-500 rounded-full mr-3 group-hover:scale-125 transition-transform"
-                          />
-                          <span
-                            class="font-medium text-gray-900 dark:text-white text-sm leading-relaxed"
-                          >
-                            {{ subtheme }}
-                          </span>
-                        </div>
+                      <h3 class="text-lg font-bold text-gray-900 dark:text-white">Event Theme</h3>
+                    </div>
+                    <div
+                      class="text-2xl font-extrabold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent leading-tight"
+                    >
+                      "{{ event.theme }}"
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Enhanced Subthemes Section -->
+              <div v-if="event?.subthemes && event.subthemes.length" class="mt-6">
+                <h4
+                  class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center"
+                >
+                  <UIcon name="i-heroicons-light-bulb" class="w-5 h-5 mr-2 text-primary-500" />
+                  Key Focus Areas
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div
+                    v-for="(subtheme, index) in event.subthemes"
+                    :key="`${subtheme}-${index}`"
+                    class="group relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 p-4 border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-300 hover:scale-[1.02]"
+                  >
+                    <div
+                      class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary-500/10 to-secondary-500/10 rounded-full -translate-y-10 translate-x-10"
+                    />
+                    <div class="relative">
+                      <div class="flex items-center">
+                        <div
+                          class="w-2 h-2 bg-primary-500 rounded-full mr-3 group-hover:scale-125 transition-transform"
+                        />
+                        <span
+                          class="font-medium text-gray-900 dark:text-white text-sm leading-relaxed"
+                        >
+                          {{ subtheme }}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -152,15 +162,6 @@
             </div>
           </div>
         </div>
-      </div>
-      <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-        <img
-          v-if="event"
-          class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full"
-          :src="heroImage"
-          :alt="event?.title || 'Event cover'"
-          @error="onImgError"
-        />
       </div>
     </div>
 
@@ -333,7 +334,14 @@
                       <div
                         class="flex items-start gap-4 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200"
                       >
+                        <img
+                          v-if="m.photoUrl"
+                          :src="m.photoUrl"
+                          :alt="m.name"
+                          class="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-200 dark:border-gray-700"
+                        />
                         <div
+                          v-else
                           class="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center flex-shrink-0"
                         >
                           <UIcon name="i-heroicons-user" class="h-5 w-5 text-white" />
@@ -924,6 +932,7 @@ type ExtendedEvent = ApiEvent & {
     role?: string
     email?: string
     phone?: string
+    photoUrl?: string
   }>
   sponsors?: Array<{
     id: number
