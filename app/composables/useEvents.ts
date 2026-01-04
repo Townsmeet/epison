@@ -364,6 +364,17 @@ export const useEvents = () => {
     })
   }
 
+  const updateEventCommitteeMember = async (
+    memberId: string,
+    data: Partial<Omit<EventCommitteeMember, 'id' | 'eventId' | 'createdAt'>>
+  ) => {
+    return await $fetch<EventCommitteeMember>(`/api/admin/committee/${memberId}`, {
+      method: 'PUT',
+      credentials: 'include',
+      body: data,
+    })
+  }
+
   // Event Submissions
   const getEventSubmissions = (eventId: string, query: SubmissionListQuery = {}) => {
     return useFetch<PaginatedResponse<AbstractSubmission>>(
@@ -567,6 +578,7 @@ export const useEvents = () => {
     updateEventTicket,
     deleteEventTicket,
     createEventCommitteeMember,
+    updateEventCommitteeMember,
     deleteEventCommitteeMember,
     createEventMedia,
     deleteEventMedia,

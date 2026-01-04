@@ -127,8 +127,20 @@
 
           <template #footer>
             <div class="flex justify-end gap-2">
-              <UButton color="neutral" variant="ghost" @click="isEditing = false">Cancel</UButton>
-              <UButton color="primary" @click="applyEdit">Save</UButton>
+              <UButton
+                color="neutral"
+                variant="ghost"
+                :disabled="isUpdating"
+                @click="isEditing = false"
+                >Cancel</UButton
+              >
+              <UButton
+                color="primary"
+                :loading="isUpdating"
+                :disabled="!editMember.name?.trim()"
+                @click="applyEdit"
+                >Save</UButton
+              >
             </div>
           </template>
         </UCard>
@@ -147,6 +159,7 @@ const props = defineProps<{ event: EventItem }>()
 const {
   getEventCommittee,
   createEventCommitteeMember,
+  updateEventCommitteeMember,
   deleteEventCommitteeMember,
   refreshEventCommittee,
 } = useEvents()
@@ -247,15 +260,47 @@ function startEdit(m: EventCommitteeMember) {
   isEditing.value = true
 }
 
-function applyEdit() {
-  if (!editMember.id) return
-  // Note: Update functionality would require an UPDATE endpoint
-  // For now, we'll just close the modal
-  useToast().add({
-    title: 'Feature not available',
-    description: 'Update committee member functionality will be available soon',
-    color: 'warning',
-  })
-  isEditing.value = false
+const isUpdating = ref(false)
+
+async function applyEdit() {
+  if (!editMember.id || isUpdating.value) return
+
+  isUpdating.value = true
+  try {
+    const updateData = {
+      name: editMember.name.trim(),
+      role: editMember.role?.trim() || undefined,
+      email: editMember.email?.trim() || undefined,
+      phone: editMember.phone?.trim() || undefined,
+    }
+
+    await updateEventCommitteeMember(editMember.id, updateData)
+
+    // Optimistically update local list
+    if (committeeResponse.value && Array.isArray(committeeResponse.value.data)) {
+      const index = committeeResponse.value.data.findIndex(
+        m => String(m.id) === String(editMember.id)
+      )
+      if (index !== -1) {
+        committeeResponse.value.data[index] = {
+          ...committeeResponse.value.data[index],
+          ...updateData,
+        }
+      }
+    }
+
+    // Refresh from API for consistency
+    isSyncing.value = true
+    await refreshEventCommittee(props.event.id)
+    isSyncing.value = false
+
+    isEditing.value = false
+    useToast().add({ title: 'Member updated', color: 'success' })
+  } catch (error) {
+    console.error('Error updating committee member:', error)
+    useToast().add({ title: 'Error updating member', color: 'error' })
+  } finally {
+    isUpdating.value = false
+  }
 }
 </script>
