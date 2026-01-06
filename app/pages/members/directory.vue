@@ -161,6 +161,7 @@ interface DirectoryMember {
   id: string
   title?: string
   nameFirst: string
+  nameMiddle: string | null
   nameFamily: string
   avatar: string | null
   position: string | null
@@ -260,7 +261,8 @@ const pagination = computed(
 
 // Helper functions
 function getFullName(member: DirectoryMember): string {
-  return `${member.nameFirst} ${member.nameFamily}`
+  const parts = [member.nameFirst, member.nameMiddle, member.nameFamily].filter(Boolean)
+  return parts.join(' ')
 }
 
 function getInitials(member: DirectoryMember): string {

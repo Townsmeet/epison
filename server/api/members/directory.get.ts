@@ -88,6 +88,7 @@ export default defineEventHandler(async event => {
         id: member.id,
         title: member.title,
         nameFirst: member.nameFirst,
+        nameMiddle: member.nameMiddle,
         nameFamily: member.nameFamily,
         avatar: member.avatar,
         position: member.position,
