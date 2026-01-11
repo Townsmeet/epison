@@ -48,6 +48,7 @@ export default defineEventHandler(
         conditions.push(
           or(
             like(member.nameFirst, `%${search}%`),
+            like(member.nameMiddle, `%${search}%`),
             like(member.nameFamily, `%${search}%`),
             like(member.email, `%${search}%`),
             like(member.geopoliticalZone, `%${search}%`),
@@ -103,6 +104,7 @@ export default defineEventHandler(
         .select({
           id: member.id,
           nameFirst: member.nameFirst,
+          nameMiddle: member.nameMiddle,
           nameFamily: member.nameFamily,
           email: member.email,
           membershipType: member.membershipType,
@@ -122,6 +124,7 @@ export default defineEventHandler(
       const members: MemberListItem[] = rows.map(r => ({
         id: r.id,
         nameFirst: r.nameFirst,
+        nameMiddle: r.nameMiddle ?? undefined,
         nameFamily: r.nameFamily,
         email: r.email,
         membershipType: r.membershipType ?? '',

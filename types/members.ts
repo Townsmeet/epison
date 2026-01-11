@@ -2,6 +2,7 @@
 export interface MemberListItem {
   id: string
   nameFirst: string
+  nameMiddle?: string
   nameFamily: string
   email: string
   membershipType: string

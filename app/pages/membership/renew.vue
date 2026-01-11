@@ -54,7 +54,7 @@
                 <div class="flex items-center justify-between">
                   <div class="min-w-0 flex-1">
                     <p class="font-medium text-gray-900 dark:text-white truncate">
-                      {{ result.nameFirst }} {{ result.nameFamily }}
+                      {{ getFullName(result) }}
                     </p>
                     <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
                       {{ result.email }}
@@ -146,8 +146,7 @@
             <div>
               <p class="text-gray-500 dark:text-gray-400">Name</p>
               <p class="font-medium text-gray-900 dark:text-white">
-                {{ memberData.data.title }} {{ memberData.data.nameFirst }}
-                {{ memberData.data.nameFamily }}
+                {{ memberData.data.title }} {{ getFullName(memberData.data) }}
               </p>
             </div>
             <div>
@@ -592,6 +591,15 @@ async function onSubmit(_event: FormSubmitEvent<RenewalFormData>) {
 }
 
 // Utility functions
+function getFullName(member: {
+  nameFirst: string
+  nameMiddle?: string | null
+  nameFamily: string
+}): string {
+  const parts = [member.nameFirst, member.nameMiddle, member.nameFamily].filter(Boolean)
+  return parts.join(' ')
+}
+
 function formatNaira(n: number): string {
   return new Intl.NumberFormat('en-NG').format(n)
 }
