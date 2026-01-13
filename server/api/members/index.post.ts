@@ -207,14 +207,8 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
     })
 
     // Send confirmation email (non-blocking failure)
-    const memberFullName = `${memberData.nameFirst}${memberData.nameMiddle ? ` ${memberData.nameMiddle}` : ''} ${memberData.nameFamily}`
     sendMembershipApplicationEmail({
-      memberName: memberFullName,
-      memberEmail: memberData.email,
-      membershipType: memberData.membershipType || '',
-      memberId,
-      paymentReference: memberData.paymentReference,
-      fees: memberData.fees || 0,
+      member: memberDetail,
     }).catch(error => {
       console.error('Failed to send membership application email:', error)
     })
