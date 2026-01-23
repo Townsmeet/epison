@@ -206,12 +206,14 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
       metadata: { email: memberData.email, membershipType: memberData.membershipType },
     })
 
-    // Send confirmation email (non-blocking failure)
-    sendMembershipApplicationEmail({
-      member: memberDetail,
-    }).catch(error => {
+    // Send confirmation email (non-blocking failure but awaited to ensure completion)
+    try {
+      await sendMembershipApplicationEmail({
+        member: memberDetail,
+      })
+    } catch (error) {
       console.error('Failed to send membership application email:', error)
-    })
+    }
 
     return {
       success: true,

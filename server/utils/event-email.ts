@@ -254,6 +254,16 @@ export interface MembershipApplicationEmailParams {
   member: MemberDetail
 }
 
+function escapeHtml(unsafe: string | undefined | null): string {
+  if (!unsafe) return ''
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
 export async function sendMembershipApplicationEmail(params: MembershipApplicationEmailParams) {
   const { member } = params
 
@@ -279,15 +289,15 @@ export async function sendMembershipApplicationEmail(params: MembershipApplicati
       
       <h2 style="color: #134e4a; margin-bottom: 20px; font-size: 22px; font-weight: 600;">Thank you for your application!</h2>
       
-      <p style="margin-bottom: 20px;">Dear ${member.nameFirst} ${member.nameFamily},</p>
+      <p style="margin-bottom: 20px;">Dear ${escapeHtml(member.nameFirst)} ${escapeHtml(member.nameFamily)},</p>
       
       <p style="margin-bottom: 20px;">We have successfully received your membership application for the <strong>Epidemiological Society of Nigeria (EPISON)</strong>.</p>
       
       <div style="background: #f0fdfa; border-left: 4px solid #0d9488; padding: 15px; margin: 20px 0; border-radius: 4px;">
         <p style="margin: 0 0 10px 0; font-weight: 600; color: #134e4a;">Application Details:</p>
-        <p style="margin: 5px 0;"><strong>Membership Type:</strong> ${member.membershipType}</p>
-        <p style="margin: 5px 0;"><strong>Application ID:</strong> ${member.id}</p>
-        ${member.paymentReference ? `<p style="margin: 5px 0;"><strong>Payment Reference:</strong> ${member.paymentReference}</p>` : ''}
+        <p style="margin: 5px 0;"><strong>Membership Type:</strong> ${escapeHtml(member.membershipType)}</p>
+        <p style="margin: 5px 0;"><strong>Application ID:</strong> ${escapeHtml(member.id)}</p>
+        ${member.paymentReference ? `<p style="margin: 5px 0;"><strong>Payment Reference:</strong> ${escapeHtml(member.paymentReference)}</p>` : ''}
         ${member.fees > 0 ? `<p style="margin: 5px 0;"><strong>Membership Fee:</strong> ${formattedFees}</p>` : ''}
       </div>
       
@@ -311,16 +321,8 @@ export async function sendMembershipApplicationEmail(params: MembershipApplicati
     </html>
   `
 
-  try {
-    // Send confirmation to applicant
-    await sendEmail({
-      to: member.email,
-      subject,
-      htmlContent,
-    })
-
-    // Send notification to admin
-    const adminNotificationContent = `
+  // Send notification to admin
+  const adminNotificationContent = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -347,37 +349,37 @@ export async function sendMembershipApplicationEmail(params: MembershipApplicati
       
       <div class="section">
         <div class="section-title">Personal Information</div>
-        <p><span class="label">Name:</span> <span class="value">${member.title || ''} ${member.nameFirst} ${member.nameMiddle || ''} ${member.nameFamily}</span></p>
-        <p><span class="label">Email:</span> <span class="value">${member.email}</span></p>
-        <p><span class="label">Sex:</span> <span class="value">${member.sex || 'N/A'}</span></p>
-        <p><span class="label">Date of Birth:</span> <span class="value">${member.dob || 'N/A'}</span></p>
-        <p><span class="label">Telephone:</span> <span class="value">${member.telephone || 'N/A'}</span></p>
-        <p><span class="label">Address:</span> <span class="value">${member.address || 'N/A'}</span></p>
+        <p><span class="label">Name:</span> <span class="value">${escapeHtml(member.title)} ${escapeHtml(member.nameFirst)} ${escapeHtml(member.nameMiddle)} ${escapeHtml(member.nameFamily)}</span></p>
+        <p><span class="label">Email:</span> <span class="value">${escapeHtml(member.email)}</span></p>
+        <p><span class="label">Sex:</span> <span class="value">${escapeHtml(member.sex) || 'N/A'}</span></p>
+        <p><span class="label">Date of Birth:</span> <span class="value">${escapeHtml(member.dob) || 'N/A'}</span></p>
+        <p><span class="label">Telephone:</span> <span class="value">${escapeHtml(member.telephone) || 'N/A'}</span></p>
+        <p><span class="label">Address:</span> <span class="value">${escapeHtml(member.address) || 'N/A'}</span></p>
       </div>
 
       <div class="section">
         <div class="section-title">Employment & Education</div>
-        <p><span class="label">Position:</span> <span class="value">${member.position || 'N/A'}</span></p>
-        <p><span class="label">Employer:</span> <span class="value">${member.employer || 'N/A'}</span></p>
-        <p><span class="label">Department:</span> <span class="value">${member.department || 'N/A'}</span></p>
-        <p><span class="label">Qualifications:</span> <span class="value">${member.qualifications || 'N/A'}</span></p>
-        <p><span class="label">Experience:</span> <span class="value">${member.experience || 'N/A'}</span></p>
+        <p><span class="label">Position:</span> <span class="value">${escapeHtml(member.position) || 'N/A'}</span></p>
+        <p><span class="label">Employer:</span> <span class="value">${escapeHtml(member.employer) || 'N/A'}</span></p>
+        <p><span class="label">Department:</span> <span class="value">${escapeHtml(member.department) || 'N/A'}</span></p>
+        <p><span class="label">Qualifications:</span> <span class="value">${escapeHtml(member.qualifications) || 'N/A'}</span></p>
+        <p><span class="label">Experience:</span> <span class="value">${escapeHtml(member.experience) || 'N/A'}</span></p>
       </div>
 
       <div class="section">
         <div class="section-title">Languages & Expertise</div>
-        <p><span class="label">Mother Tongue:</span> <span class="value">${member.motherTongue || 'N/A'}</span></p>
-        <p><span class="label">Other Languages:</span> <span class="value">${member.otherLanguages?.join(', ') || 'None'}</span></p>
-        <p><span class="label">Expertise Areas:</span> <span class="value">${member.expertise?.join(', ') || 'None'}</span></p>
-        <p><span class="label">Expertise Description:</span> <span class="value">${member.expertiseDescription || 'N/A'}</span></p>
+        <p><span class="label">Mother Tongue:</span> <span class="value">${escapeHtml(member.motherTongue) || 'N/A'}</span></p>
+        <p><span class="label">Other Languages:</span> <span class="value">${member.otherLanguages?.map(l => escapeHtml(l)).join(', ') || 'None'}</span></p>
+        <p><span class="label">Expertise Areas:</span> <span class="value">${member.expertise?.map(e => escapeHtml(e)).join(', ') || 'None'}</span></p>
+        <p><span class="label">Expertise Description:</span> <span class="value">${escapeHtml(member.expertiseDescription) || 'N/A'}</span></p>
       </div>
 
       <div class="section">
         <div class="section-title">Membership & Payment</div>
-        <p><span class="label">Membership Type:</span> <span class="value">${member.membershipType}</span></p>
-        <p><span class="label">Application ID:</span> <span class="value">${member.id}</span></p>
+        <p><span class="label">Membership Type:</span> <span class="value">${escapeHtml(member.membershipType)}</span></p>
+        <p><span class="label">Application ID:</span> <span class="value">${escapeHtml(member.id)}</span></p>
         <p><span class="label">Fees:</span> <span class="value">${formattedFees}</span></p>
-        <p><span class="label">Payment Reference:</span> <span class="value">${member.paymentReference || 'Pending'}</span></p>
+        <p><span class="label">Payment Reference:</span> <span class="value">${escapeHtml(member.paymentReference) || 'Pending'}</span></p>
       </div>
 
       ${
@@ -386,7 +388,7 @@ export async function sendMembershipApplicationEmail(params: MembershipApplicati
       <div class="section">
         <div class="section-title">Publications</div>
         <ul>
-          ${member.publications.map(pub => `<li>${pub}</li>`).join('')}
+          ${member.publications.map(pub => `<li>${escapeHtml(pub)}</li>`).join('')}
         </ul>
       </div>
       `
@@ -407,12 +409,23 @@ export async function sendMembershipApplicationEmail(params: MembershipApplicati
     </html>
     `
 
-    await sendEmail({
-      to: 'kelvinospore@gmail.com',
-      cc: ['townsmeet@gmail.com'],
-      subject: `New Membership Application: ${member.nameFirst} ${member.nameFamily}`,
-      htmlContent: adminNotificationContent,
-    })
+  try {
+    // Send both emails in parallel
+    await Promise.all([
+      // Send confirmation to applicant
+      sendEmail({
+        to: member.email,
+        subject,
+        htmlContent,
+      }),
+      // Send notification to admin
+      sendEmail({
+        to: 'kelvinospore@gmail.com',
+        cc: ['townsmeet@gmail.com'],
+        subject: `New Membership Application: ${member.nameFirst} ${member.nameFamily}`,
+        htmlContent: adminNotificationContent,
+      }),
+    ])
 
     return { success: true }
   } catch (error) {
