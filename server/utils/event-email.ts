@@ -410,22 +410,28 @@ export async function sendMembershipApplicationEmail(params: MembershipApplicati
     `
 
   try {
-    // Send both emails in parallel
-    await Promise.all([
-      // Send confirmation to applicant
-      sendEmail({
-        to: member.email,
-        subject,
-        htmlContent,
-      }),
-      // Send notification to admin
-      sendEmail({
-        to: 'kelvinospore@gmail.com',
-        cc: ['townsmeet@gmail.com'],
-        subject: `New Membership Application: ${member.nameFirst} ${member.nameFamily}`,
-        htmlContent: adminNotificationContent,
-      }),
-    ])
+    // Send confirmation to applicant first
+    console.log(`Sending membership application confirmation to member: ${member.email}`)
+    await sendEmail({
+      to: member.email,
+      subject,
+      htmlContent,
+    })
+    console.log(`Successfully sent application confirmation to member: ${member.email}`)
+
+    // Send notification to admin second
+    console.log(
+      `Sending membership application notification to admin for: ${member.nameFirst} ${member.nameFamily}`
+    )
+    await sendEmail({
+      to: 'kelvinospore@gmail.com',
+      cc: ['townsmeet@gmail.com'],
+      subject: `New Membership Application: ${member.nameFirst} ${member.nameFamily}`,
+      htmlContent: adminNotificationContent,
+    })
+    console.log(
+      `Successfully sent application notification to admin for: ${member.nameFirst} ${member.nameFamily}`
+    )
 
     return { success: true }
   } catch (error) {
