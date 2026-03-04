@@ -47,6 +47,7 @@ export interface SubmissionListQuery {
   status?: string
   category?: string
   sort?: string
+  eventId?: string
 }
 
 // Legacy type for backward compatibility

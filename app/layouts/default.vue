@@ -364,7 +364,7 @@ const navLinks: NavLink[] = [
   { label: 'About', to: '/about' },
   { label: 'Events', to: '/events' },
   { label: 'Membership', to: '/membership' },
-  { label: 'Blog', to: '/blog' },
+  // { label: 'Blog', to: '/blog' },
   { label: 'Journal', to: 'https://jeson.org.ng/index.php/jeson', target: '_blank' },
   { label: 'Contact', to: '/contact' },
 ]
@@ -393,7 +393,7 @@ const footerLinks: { quickLinks: FooterLink[]; resources: FooterLink[] } = {
     { label: 'About Us', to: '/about' },
     { label: 'Events', to: '/events' },
     { label: 'Membership', to: '/membership' },
-    { label: 'Blog', to: '/blog' },
+    // { label: 'Blog', to: '/blog' },
     { label: 'Journal', to: 'https://jeson.org.ng/index.php/jeson', target: '_blank' },
   ],
   resources: [

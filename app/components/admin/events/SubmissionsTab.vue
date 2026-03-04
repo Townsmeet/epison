@@ -3,10 +3,24 @@
     <UCard>
       <template #header>
         <div class="flex items-center justify-between">
-          <h3 class="text-lg font-semibold">Abstract Submissions</h3>
-          <UBadge v-if="eventSubmissions.length" color="neutral" variant="subtle">
-            {{ eventSubmissions.length }} total
-          </UBadge>
+          <div class="flex items-center gap-3">
+            <h3 class="text-lg font-semibold">Abstract Submissions</h3>
+            <UBadge v-if="eventSubmissions.length" color="neutral" variant="subtle">
+              {{ eventSubmissions.length }} total
+            </UBadge>
+          </div>
+          <UButton
+            v-if="eventSubmissions.length"
+            color="primary"
+            variant="soft"
+            size="sm"
+            icon="i-heroicons-arrow-down-tray"
+            :loading="isDownloading"
+            :disabled="isDownloading"
+            @click="downloadAllAsZip"
+          >
+            {{ isDownloading ? 'Generating...' : 'Download All as ZIP' }}
+          </UButton>
         </div>
       </template>
 
@@ -396,6 +410,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { jsPDF } from 'jspdf'
+import JSZip from 'jszip'
+import { saveAs } from 'file-saver'
 import type { AbstractSubmission } from '../../../../types/submissions'
 
 const props = defineProps<{ eventId: string | number }>()
@@ -413,6 +430,7 @@ const selectedSubmission = ref<AbstractSubmission | null>(null)
 
 // Loading state for status updates
 const updatingStatus = ref<string | null>(null)
+const isDownloading = ref(false)
 const updatingSubmissionId = ref<string | null>(null)
 
 // Fetch submissions for this event with reactive filters
@@ -677,5 +695,175 @@ function formatDate(dateString: string): string {
   if (!dateString) return ''
   const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' }
   return new Date(dateString).toLocaleDateString('en-US', options)
+}
+
+// ── PDF generation helpers ──
+
+function sanitizeFilename(title: string): string {
+  return title
+    .replace(/[^a-zA-Z0-9\s-]/g, '')
+    .replace(/\s+/g, '_')
+    .substring(0, 80)
+}
+
+function generateSubmissionPdf(submission: AbstractSubmission): ArrayBuffer {
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+  const pageWidth = doc.internal.pageSize.getWidth()
+  const margin = 20
+  const contentWidth = pageWidth - margin * 2
+  let y = margin
+
+  const lineHeight = 6
+  const sectionGap = 8
+
+  // Helper: add text with word-wrap & auto page-break
+  function addWrappedText(
+    text: string,
+    x: number,
+    startY: number,
+    maxWidth: number,
+    fontSize: number,
+    opts?: { bold?: boolean; color?: [number, number, number] }
+  ): number {
+    doc.setFontSize(fontSize)
+    if (opts?.bold) {
+      doc.setFont('helvetica', 'bold')
+    } else {
+      doc.setFont('helvetica', 'normal')
+    }
+    if (opts?.color) {
+      doc.setTextColor(...opts.color)
+    } else {
+      doc.setTextColor(30, 30, 30)
+    }
+    const lines = doc.splitTextToSize(text, maxWidth)
+    for (const line of lines) {
+      if (startY > doc.internal.pageSize.getHeight() - margin) {
+        doc.addPage()
+        startY = margin
+      }
+      doc.text(line, x, startY)
+      startY += lineHeight
+    }
+    return startY
+  }
+
+  // Helper: section label + value
+  function addField(label: string, value: string, startY: number): number {
+    startY = addWrappedText(label, margin, startY, contentWidth, 10, { bold: true })
+    startY = addWrappedText(value, margin, startY, contentWidth, 10)
+    return startY + 2
+  }
+
+  // ── Header line ──
+  doc.setDrawColor(34, 80, 148)
+  doc.setLineWidth(0.7)
+  doc.line(margin, y, pageWidth - margin, y)
+  y += 4
+
+  // Small top-right metadata
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(120, 120, 120)
+  const meta = `${submission.category.toUpperCase()}  •  ${submission.status.replace('_', ' ').toUpperCase()}`
+  doc.text(meta, pageWidth - margin, y, { align: 'right' })
+  y += 2
+
+  // ── Title ──
+  y = addWrappedText(submission.title, margin, y, contentWidth, 16, {
+    bold: true,
+    color: [20, 20, 20],
+  })
+  y += sectionGap
+
+  // ── Authors ──
+  y = addField('Authors', submission.authors.join(', '), y)
+  y += 2
+
+  // ── Corresponding Author ──
+  const ca = submission.correspondingAuthor
+  let caText = `${ca.name} (${ca.email})`
+  if (ca.affiliation) caText += `\nAffiliation: ${ca.affiliation}`
+  if (ca.phone) caText += `\nPhone: ${ca.phone}`
+  y = addField('Corresponding Author', caText, y)
+  y += 2
+
+  // ── Subtheme ──
+  if (submission.subtheme) {
+    y = addField('Subtheme', submission.subtheme, y)
+    y += 2
+  }
+
+  // ── Abstract ──
+  y = addField('Abstract', submission.abstract, y)
+  y += 2
+
+  // ── Keywords ──
+  if (submission.keywords.length > 0) {
+    y = addField('Keywords', submission.keywords.join(', '), y)
+    y += 2
+  }
+
+  // ── Submission Date ──
+  y = addField('Submitted', formatDate(submission.submissionDate), y)
+  y += 2
+
+  // ── Notes ──
+  if (submission.notes) {
+    y = addField('Notes', submission.notes, y)
+    y += 2
+  }
+
+  // ── Reviewer Comments ──
+  if (submission.reviewerComments) {
+    y = addField('Reviewer Comments', submission.reviewerComments, y)
+  }
+
+  // ── Footer line ──
+  const footerY = doc.internal.pageSize.getHeight() - 12
+  doc.setDrawColor(200, 200, 200)
+  doc.setLineWidth(0.3)
+  doc.line(margin, footerY, pageWidth - margin, footerY)
+  doc.setFontSize(7)
+  doc.setTextColor(160, 160, 160)
+  doc.text('EPISON — Abstract Submission', margin, footerY + 4)
+  doc.text(`Generated ${new Date().toLocaleDateString()}`, pageWidth - margin, footerY + 4, {
+    align: 'right',
+  })
+
+  return doc.output('arraybuffer')
+}
+
+async function downloadAllAsZip() {
+  if (!eventSubmissions.value.length) return
+
+  isDownloading.value = true
+  try {
+    const zip = new JSZip()
+
+    for (const submission of eventSubmissions.value) {
+      const pdfBuffer = generateSubmissionPdf(submission)
+      const filename = `${sanitizeFilename(submission.title)}.pdf`
+      zip.file(filename, pdfBuffer)
+    }
+
+    const blob = await zip.generateAsync({ type: 'blob' })
+    saveAs(blob, `submissions_export_${new Date().toISOString().slice(0, 10)}.zip`)
+
+    useToast().add({
+      title: 'Download Complete',
+      description: `${eventSubmissions.value.length} submissions exported as ZIP`,
+      color: 'success',
+    })
+  } catch (err) {
+    console.error('Error generating ZIP:', err)
+    useToast().add({
+      title: 'Download Failed',
+      description: 'Could not generate the ZIP file. Please try again.',
+      color: 'error',
+    })
+  } finally {
+    isDownloading.value = false
+  }
 }
 </script>
