@@ -52,4 +52,11 @@ export default defineNuxtConfig({
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
     },
   },
+
+  nitro: {
+    scheduledTasks: {
+      // Run payment verification every day at midnight
+      '0 0 * * *': ['verify-payments'],
+    },
+  },
 })
