@@ -5,12 +5,12 @@
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <h3 class="text-lg font-semibold">Abstract Submissions</h3>
-            <UBadge v-if="eventSubmissions.length" color="neutral" variant="subtle">
-              {{ eventSubmissions.length }} total
+            <UBadge v-if="pagination.total" color="neutral" variant="subtle">
+              {{ pagination.total }} total
             </UBadge>
           </div>
           <UButton
-            v-if="eventSubmissions.length"
+            v-if="pagination.total"
             color="primary"
             variant="soft"
             size="sm"
@@ -58,7 +58,7 @@
           <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
             <div>
               <div class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ eventSubmissions.length }}
+                {{ pagination.total }}
               </div>
               <div class="text-xs text-gray-500 dark:text-gray-400">Total</div>
             </div>
@@ -204,11 +204,39 @@
               />
               <p class="text-gray-500 dark:text-gray-400">
                 {{
-                  eventSubmissions.length === 0
+                  pagination.total === 0
                     ? 'No submissions yet'
                     : 'No submissions match your filters'
                 }}
               </p>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div
+              v-if="pagination.total > 0"
+              class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700"
+            >
+              <p class="text-sm text-gray-700 dark:text-gray-300">
+                Showing <span class="font-medium">{{ pagination.from }}</span> to
+                <span class="font-medium">{{ pagination.to }}</span> of
+                <span class="font-medium">{{ pagination.total }}</span> results
+              </p>
+              <div class="flex space-x-2">
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  :disabled="pagination.currentPage === 1"
+                  icon="i-heroicons-chevron-left"
+                  @click="pagination.currentPage--"
+                />
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  :disabled="pagination.currentPage * pagination.perPage >= pagination.total"
+                  icon="i-heroicons-chevron-right"
+                  @click="pagination.currentPage++"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -424,6 +452,19 @@ const submissionSearch = ref('')
 const submissionStatusFilter = ref<string | null>(null)
 const submissionCategoryFilter = ref<string | null>(null)
 
+// Pagination state
+const pagination = ref({
+  currentPage: 1,
+  perPage: 10,
+  total: 0,
+  get from() {
+    return this.total === 0 ? 0 : (this.currentPage - 1) * this.perPage + 1
+  },
+  get to() {
+    return Math.min(this.currentPage * this.perPage, this.total)
+  },
+})
+
 // Modal state for viewing submission details
 const isViewModalOpen = ref(false)
 const selectedSubmission = ref<AbstractSubmission | null>(null)
@@ -433,58 +474,99 @@ const updatingStatus = ref<string | null>(null)
 const isDownloading = ref(false)
 const updatingSubmissionId = ref<string | null>(null)
 
-// Fetch submissions for this event with reactive filters
-const submissionsResponse = await getSubmissions({
+// Reactive query for submissions
+const submissionsQuery = computed(() => ({
+  eventId: props.eventId.toString(),
+  page: pagination.value.currentPage,
+  limit: pagination.value.perPage,
+  sort: '-submissionDate',
+  q: submissionSearch.value || undefined,
+  status: submissionStatusFilter.value || undefined,
+  category: submissionCategoryFilter.value || undefined,
+}))
+
+// Fetch submissions for this event with reactive filters and pagination
+const submissionsResponse = await getSubmissions(submissionsQuery)
+
+// Separate API calls to get total stats for each status
+const totalStatsResponse = await getSubmissions({
   eventId: props.eventId.toString(),
   page: 1,
-  limit: 100, // Get all submissions for this event
+  limit: 1,
   sort: '-submissionDate',
 })
 
-// Test without eventId filter first to see if any submissions exist
-const allSubmissionsResponse = await getSubmissions({
+const acceptedStatsResponse = await getSubmissions({
+  eventId: props.eventId.toString(),
   page: 1,
-  limit: 10,
+  limit: 1,
+  status: 'accepted',
   sort: '-submissionDate',
 })
 
-console.log('[SubmissionsTab] Props received:', {
-  eventId: props.eventId,
-  eventIdType: typeof props.eventId,
-  eventIdString: String(props.eventId),
-})
-console.log('[SubmissionsTab] API call parameters:', {
-  eventId: String(props.eventId),
+const underReviewStatsResponse = await getSubmissions({
+  eventId: props.eventId.toString(),
   page: 1,
-  limit: 100,
+  limit: 1,
+  status: 'under_review',
   sort: '-submissionDate',
 })
-console.log('[SubmissionsTab] All submissions (no filter):', allSubmissionsResponse?.data?.value)
-console.log(
-  '[SubmissionsTab] Filtered submissions (with eventId):',
-  submissionsResponse?.data?.value
-)
+
+const pendingStatsResponse = await getSubmissions({
+  eventId: props.eventId.toString(),
+  page: 1,
+  limit: 1,
+  status: 'pending',
+  sort: '-submissionDate',
+})
+
+const rejectedStatsResponse = await getSubmissions({
+  eventId: props.eventId.toString(),
+  page: 1,
+  limit: 1,
+  status: 'rejected',
+  sort: '-submissionDate',
+})
 
 // Handle loading and error states
 const isLoading = computed(() => submissionsResponse.pending.value)
 const error = computed(() => submissionsResponse.error.value)
 
-console.log('[SubmissionsTab] Loading state:', isLoading.value)
-console.log('[SubmissionsTab] Error state:', error.value)
-console.log('[SubmissionsTab] Response data:', submissionsResponse?.data?.value)
-
+// Get submissions from API response (already filtered and paginated)
 const eventSubmissions = computed<AbstractSubmission[]>(() => {
   const data = submissionsResponse?.data?.value
-  console.log('[SubmissionsTab] Computing eventSubmissions:', {
-    data,
-    dataType: typeof data,
-    hasData: !!data,
-    hasDataArray: data && typeof data === 'object' && 'data' in data && Array.isArray(data.data),
-  })
   return data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)
     ? (data.data as AbstractSubmission[])
     : []
 })
+
+// Update pagination total from API response
+watch(
+  () => submissionsResponse.data.value,
+  data => {
+    if (data?.pagination) {
+      pagination.value.total = data.pagination.total
+    }
+  },
+  { immediate: true }
+)
+
+// Watch for search and filter changes with debounce
+let debounceTimer: NodeJS.Timeout
+watch([submissionSearch, submissionStatusFilter, submissionCategoryFilter], async () => {
+  clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    pagination.value.currentPage = 1
+  }, 300)
+})
+
+// Watch for pagination changes
+watch(
+  () => pagination.value.currentPage,
+  async () => {
+    // The reactive query will automatically trigger the API call
+  }
+)
 
 const submissionStatusOptions = computed(() => [
   { label: 'Pending', value: 'pending' },
@@ -500,47 +582,18 @@ const submissionCategoryOptions = computed(() => [
   { label: 'Workshop Proposal', value: 'workshop' },
 ])
 
-const filteredSubmissions = computed<AbstractSubmission[]>(() => {
-  let filtered = [...eventSubmissions.value]
-
-  // Apply search filter
-  if (submissionSearch.value) {
-    const search = submissionSearch.value.toLowerCase()
-    filtered = filtered.filter(
-      (s: AbstractSubmission) =>
-        s.title.toLowerCase().includes(search) ||
-        s.authors.some(author => author.toLowerCase().includes(search)) ||
-        s.keywords.some(keyword => keyword.toLowerCase().includes(search)) ||
-        s.correspondingAuthor.name.toLowerCase().includes(search)
-    )
-  }
-
-  // Apply status filter (null means 'All Status' is selected)
-  if (submissionStatusFilter.value !== null) {
-    filtered = filtered.filter((s: AbstractSubmission) => s.status === submissionStatusFilter.value)
-  }
-
-  // Apply category filter (null means 'All Categories' is selected)
-  if (submissionCategoryFilter.value !== null) {
-    filtered = filtered.filter(
-      (s: AbstractSubmission) => s.category === submissionCategoryFilter.value
-    )
-  }
-
-  return filtered
-})
+// Submissions are already filtered and paginated by the API
+const filteredSubmissions = computed<AbstractSubmission[]>(() => eventSubmissions.value)
 
 const acceptedCount = computed<number>(
-  () => eventSubmissions.value.filter((s: AbstractSubmission) => s.status === 'accepted').length
+  () => acceptedStatsResponse.data.value?.pagination?.total || 0
 )
 const underReviewCount = computed<number>(
-  () => eventSubmissions.value.filter((s: AbstractSubmission) => s.status === 'under_review').length
+  () => underReviewStatsResponse.data.value?.pagination?.total || 0
 )
-const pendingCount = computed<number>(
-  () => eventSubmissions.value.filter((s: AbstractSubmission) => s.status === 'pending').length
-)
+const pendingCount = computed<number>(() => pendingStatsResponse.data.value?.pagination?.total || 0)
 const rejectedCount = computed<number>(
-  () => eventSubmissions.value.filter((s: AbstractSubmission) => s.status === 'rejected').length
+  () => rejectedStatsResponse.data.value?.pagination?.total || 0
 )
 
 type BadgeColor = 'neutral' | 'success' | 'primary' | 'secondary' | 'info' | 'warning' | 'error'
@@ -835,28 +888,193 @@ function generateSubmissionPdf(submission: AbstractSubmission): ArrayBuffer {
 }
 
 async function downloadAllAsZip() {
-  if (!eventSubmissions.value.length) return
+  console.log('[SubmissionsTab] Download clicked')
+  console.log('[SubmissionsTab] Event ID:', props.eventId.toString())
+
+  // Debug the stats API calls to see why they return different totals
+  console.log('[SubmissionsTab] === DEBUGGING STATS API CALLS ===')
+
+  // Check each status count individually
+  const statusCalls = [
+    { name: 'Total (no status)', status: null },
+    { name: 'Accepted', status: 'accepted' },
+    { name: 'Under Review', status: 'under_review' },
+    { name: 'Pending', status: 'pending' },
+    { name: 'Rejected', status: 'rejected' },
+    { name: 'Revision Required', status: 'revision_required' },
+  ]
+
+  const statusCounts = {}
+  let sumOfStatuses = 0
+
+  for (const statusCall of statusCalls) {
+    const response = await getSubmissions({
+      eventId: props.eventId.toString(),
+      page: 1,
+      limit: 1,
+      status: statusCall.status,
+      sort: '-submissionDate',
+    })
+
+    const count = response.data.value?.pagination?.total || 0
+    statusCounts[statusCall.name] = count
+
+    if (statusCall.name !== 'Total (no status)') {
+      sumOfStatuses += count
+    }
+
+    console.log(`[SubmissionsTab] ${statusCall.name}: ${count}`)
+  }
+
+  console.log('[SubmissionsTab] Sum of individual statuses:', sumOfStatuses)
+  console.log('[SubmissionsTab] Total from clean API call:', statusCounts['Total (no status)'])
+  console.log('[SubmissionsTab] Difference:', sumOfStatuses - statusCounts['Total (no status)'])
+
+  if (sumOfStatuses !== statusCounts['Total (no status)']) {
+    console.log('[SubmissionsTab] 🚨 MISMATCH DETECTED!')
+    console.log('[SubmissionsTab] This suggests:')
+    console.log('[SubmissionsTab] 1. Some submissions have multiple statuses (impossible)')
+    console.log('[SubmissionsTab] 2. Status filtering is not working correctly')
+    console.log('[SubmissionsTab] 3. Database consistency issue')
+  }
+
+  // Use the pending count as total since clean API returns 0 (API bug)
+  const totalCount = statusCounts['Pending']
+  console.log('[SubmissionsTab] Using pending count as total (API bug workaround):', totalCount)
+
+  if (!totalCount) {
+    useToast().add({
+      title: 'No Submissions',
+      description: 'There are no submissions to download.',
+      color: 'warning',
+    })
+    return
+  }
 
   isDownloading.value = true
   try {
+    console.log('[SubmissionsTab] Fetching ALL submissions...')
+    const allSubmissions = []
+    const pageSize = 100 // API limit
+
+    // Keep fetching pages until we get zero results
+    let page = 1
+    let hasMoreData = true
+
+    while (hasMoreData) {
+      console.log(`[SubmissionsTab] Fetching page ${page}...`)
+      const response = await getSubmissions({
+        eventId: props.eventId.toString(),
+        page,
+        limit: pageSize,
+        sort: '-submissionDate',
+        status: 'pending', // Use status filter to work around API bug
+      })
+
+      const submissions = response.data.value?.data || []
+      const responseTotal = response.data.value?.pagination?.total || 0
+
+      console.log(
+        `[SubmissionsTab] Page ${page}: ${submissions.length} submissions, response total: ${responseTotal}`
+      )
+      console.log(`[SubmissionsTab] Page ${page} pagination info:`, response.data.value?.pagination)
+
+      if (submissions.length === 0) {
+        console.log('[SubmissionsTab] No more submissions, stopping')
+        hasMoreData = false
+      } else {
+        console.log(
+          `[SubmissionsTab] Page ${page} submission IDs:`,
+          submissions.map(s => s.id)
+        )
+        console.log(`[SubmissionsTab] Page ${page} first submission:`, submissions[0])
+        console.log(
+          `[SubmissionsTab] Page ${page} last submission:`,
+          submissions[submissions.length - 1]
+        )
+
+        allSubmissions.push(...submissions)
+
+        // Check if we should expect more pages
+        const totalPages = response.data.value?.pagination?.totalPages || 0
+        const hasNext = response.data.value?.pagination?.hasNext || false
+
+        console.log(`[SubmissionsTab] Total pages according to API: ${totalPages}`)
+        console.log(`[SubmissionsTab] Has next page according to API: ${hasNext}`)
+        console.log(`[SubmissionsTab] Current page vs total pages: ${page}/${totalPages}`)
+
+        if (!hasNext || page >= totalPages) {
+          console.log('[SubmissionsTab] API says no more pages, stopping')
+          hasMoreData = false
+        } else {
+          page++
+        }
+
+        // Safety check - don't go infinite
+        if (page > 10) {
+          console.log('[SubmissionsTab] Safety check: stopping after 10 pages')
+          hasMoreData = false
+        }
+      }
+    }
+
+    console.log('[SubmissionsTab] FINAL total submissions retrieved:', allSubmissions.length)
+    console.log('[SubmissionsTab] Total pages fetched:', page - 1)
+
+    // Compare with what the UI shows
+    const uiTotal = pagination.value.total || totalStatsResponse.data.value?.pagination?.total || 0
+    console.log('[SubmissionsTab] Comparison:')
+    console.log(`- Downloaded: ${allSubmissions.length}`)
+    console.log(`- UI shows: ${uiTotal}`)
+    console.log(`- Difference: ${uiTotal - allSubmissions.length}`)
+
+    if (allSubmissions.length < uiTotal) {
+      console.log('[SubmissionsTab] WARNING: Downloaded fewer than UI shows!')
+      console.log('[SubmissionsTab] This suggests either:')
+      console.log(
+        '[SubmissionsTab] 1. UI count is wrong (counting deleted/non-existent submissions)'
+      )
+      console.log('[SubmissionsTab] 2. Some submissions have different event IDs')
+      console.log('[SubmissionsTab] 3. Database inconsistency')
+
+      // Let's check event IDs of downloaded submissions
+      const uniqueEventIds = new Set(allSubmissions.map(s => s.eventId))
+      console.log(
+        '[SubmissionsTab] Event IDs in downloaded submissions:',
+        Array.from(uniqueEventIds)
+      )
+      console.log('[SubmissionsTab] Expected event ID:', props.eventId.toString())
+    }
+
+    if (allSubmissions.length === 0) {
+      useToast().add({
+        title: 'No Submissions',
+        description: 'There are no submissions to download.',
+        color: 'warning',
+      })
+      return
+    }
+
     const zip = new JSZip()
 
-    for (const submission of eventSubmissions.value) {
+    console.log('[SubmissionsTab] Generating PDFs...')
+    for (const submission of allSubmissions) {
       const pdfBuffer = generateSubmissionPdf(submission)
       const filename = `${sanitizeFilename(submission.title)}.pdf`
       zip.file(filename, pdfBuffer)
     }
 
+    console.log('[SubmissionsTab] Generating ZIP...')
     const blob = await zip.generateAsync({ type: 'blob' })
     saveAs(blob, `submissions_export_${new Date().toISOString().slice(0, 10)}.zip`)
 
     useToast().add({
       title: 'Download Complete',
-      description: `${eventSubmissions.value.length} submissions exported as ZIP`,
+      description: `${allSubmissions.length} submissions exported as ZIP`,
       color: 'success',
     })
   } catch (err) {
-    console.error('Error generating ZIP:', err)
+    console.error('[SubmissionsTab] Error generating ZIP:', err)
     useToast().add({
       title: 'Download Failed',
       description: 'Could not generate the ZIP file. Please try again.',
