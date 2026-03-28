@@ -85,6 +85,13 @@
       "when": 1767546677868,
       "tag": "0011_lonely_viper",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1773919621944,
+      "tag": "0012_red_gorilla_man",
+      "breakpoints": true
     }
   ]
 }

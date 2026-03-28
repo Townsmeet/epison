@@ -442,3 +442,115 @@ export async function sendMembershipApplicationEmail(params: MembershipApplicati
     }
   }
 }
+
+export interface NewEventEmailParams {
+  eventTitle: string
+  eventDate: string
+  eventLocation: string
+  eventDescription: string | null
+  eventUrl: string
+  memberEmails: string[]
+}
+
+export async function sendNewEventNotificationToMembers(params: NewEventEmailParams) {
+  const { eventTitle, eventDate, eventLocation, eventDescription, eventUrl, memberEmails } = params
+
+  const subject = `Upcoming Event: ${eventTitle}`
+  const formattedDate = new Date(eventDate).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Event Announcement</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: #0f766e; padding: 30px; border-radius: 10px; margin-bottom: 30px; text-align: center;">
+        <h1 style="color: #ffffff; margin: 0 0 10px 0; font-size: 28px; font-weight: 700;">EPISON</h1>
+        <p style="color: #ccfbf1; margin: 0; font-size: 18px;">New Event Announcement</p>
+      </div>
+      
+      <h2 style="color: #134e4a; margin-bottom: 20px; font-size: 22px; font-weight: 600;">We're excited to announce a new event!</h2>
+      
+      <p style="margin-bottom: 20px;">Dear Member,</p>
+      
+      <p style="margin-bottom: 20px;">We are pleased to invite you to our upcoming event: <strong>${eventTitle}</strong>.</p>
+      
+      <div style="background: #f0fdfa; border-left: 4px solid #0d9488; padding: 15px; margin: 20px 0; border-radius: 4px;">
+        <p style="margin: 0 0 10px 0; font-weight: 600; color: #134e4a;">Event Details:</p>
+        <p style="margin: 5px 0;"><strong>Date & Time:</strong> ${formattedDate}</p>
+        <p style="margin: 5px 0;"><strong>Location:</strong> ${eventLocation}</p>
+      </div>
+
+      ${
+        eventDescription
+          ? `
+      <div style="margin-bottom: 25px;">
+        <p style="font-weight: 600; color: #134e4a; margin-bottom: 10px;">Description:</p>
+        <div style="color: #374151; white-space: pre-wrap;">${eventDescription}</div>
+      </div>
+      `
+          : ''
+      }
+      
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${eventUrl}" style="background: #0d9488; color: white; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">View Event & Register</a>
+      </div>
+      
+      <p style="margin-bottom: 20px;">
+        Don't miss out on this opportunity to connect with fellow epidemiology professionals and enhance your knowledge.
+      </p>
+      
+      <div style="border-top: 1px solid #e5e7eb; margin-top: 30px; padding-top: 20px;">
+        <p style="margin-bottom: 0;">
+          Best regards,<br>
+          <strong>The EPISON Events Team</strong>
+        </p>
+      </div>
+    </body>
+    </html>
+  `
+
+  console.log(
+    `Starting bulk event notification for "${eventTitle}" to ${memberEmails.length} members.`
+  )
+
+  const results = {
+    total: memberEmails.length,
+    sent: 0,
+    failed: 0,
+  }
+
+  // To avoid hitting rate limits or timing out, we'll send them in small batches
+  const batchSize = 10
+  for (let i = 0; i < memberEmails.length; i += batchSize) {
+    const batch = memberEmails.slice(i, i + batchSize)
+    await Promise.all(
+      batch.map(async email => {
+        try {
+          await sendEmail({
+            to: email,
+            subject,
+            htmlContent,
+          })
+          results.sent++
+        } catch (error) {
+          console.error(`Failed to send event notification to ${email}:`, error)
+          results.failed++
+        }
+      })
+    )
+  }
+
+  console.log(`Bulk notification complete. Sent: ${results.sent}, Failed: ${results.failed}`)
+  return results
+}

@@ -2,11 +2,12 @@ import { eq } from 'drizzle-orm'
 import { createError } from 'h3'
 import { db } from '../../../utils/drizzle'
 import { isH3Error } from '../../../utils/errors'
-import { event } from '../../../db/schema'
+import { event, member } from '../../../db/schema'
 import { requireAuthUser } from '../../../utils/auth-helpers'
 import { createEventSchema } from '../../../validators/event'
 import { validateBody } from '../../../validators'
 import { addActivity } from '../../../utils/activity'
+import { sendNewEventNotificationToMembers } from '../../../utils/event-email'
 
 export default defineEventHandler(async eventHandler => {
   // Auth check
@@ -51,6 +52,7 @@ export default defineEventHandler(async eventHandler => {
       subthemes: body.subthemes ? body.subthemes.join(',') : null,
       submissionGuidelines: body.submissionGuidelines ?? null,
       submissionDatesJson: body.submissionDates ? JSON.stringify(body.submissionDates) : null,
+      notificationSent: body.status === 'published',
       createdAt: new Date(),
       updatedAt: new Date(),
     }
@@ -67,6 +69,39 @@ export default defineEventHandler(async eventHandler => {
       entityId: eventId,
       metadata: { status: eventData.status, location: eventData.location },
     })
+
+    // Trigger notifications for published events
+    if (eventData.status === 'published') {
+      try {
+        const activeMembers = await db
+          .select({ email: member.email })
+          .from(member)
+          .where(eq(member.status, 'active'))
+
+        const filteredEmails = activeMembers
+          .map(m => m.email)
+          .filter(email => !email.toLowerCase().endsWith('@epison.ng'))
+
+        if (filteredEmails.length > 0) {
+          const config = useRuntimeConfig()
+          const eventUrl = `${config.public.siteUrl}/events/${eventData.slug}`
+
+          // Run in background but handle errors
+          sendNewEventNotificationToMembers({
+            eventTitle: eventData.title,
+            eventDate: eventData.startDate,
+            eventLocation: eventData.location,
+            eventDescription: eventData.description ?? null,
+            eventUrl,
+            memberEmails: filteredEmails,
+          }).catch(err => {
+            console.error('[Notification] Background event notification failed:', err)
+          })
+        }
+      } catch (err) {
+        console.error('[Notification] Failed to initiate event notifications:', err)
+      }
+    }
 
     // Return created event
     const createdEvent = await db.select().from(event).where(eq(event.id, eventId)).limit(1)

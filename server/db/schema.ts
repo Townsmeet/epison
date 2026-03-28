@@ -187,6 +187,7 @@ export const event = sqliteTable('event', {
   subthemes: text('subthemes'), // Comma-separated subthemes (CSV string)
   submissionGuidelines: text('submission_guidelines'), // Markdown string
   submissionDatesJson: text('submission_dates_json'), // Dates array as JSON string
+  notificationSent: integer('notification_sent', { mode: 'boolean' }).default(false).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).defaultNow().notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' })
     .defaultNow()
