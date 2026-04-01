@@ -250,6 +250,8 @@ async function onSubmit() {
       {
         attendeeName: form.name,
         attendeeEmail: form.email,
+        attendeePhone: form.phone,
+        attendeeOrg: form.org,
         ticketId: form.ticket || undefined,
         quantity: 1,
       }

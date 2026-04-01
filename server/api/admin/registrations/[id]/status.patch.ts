@@ -1,52 +1,93 @@
+import { eq } from 'drizzle-orm'
 import { getRouterParam, createError } from 'h3'
-import { z } from 'zod'
 import { db } from '../../../../utils/drizzle'
 import { eventRegistration } from '../../../../db/schema'
-import { eq } from 'drizzle-orm'
+import { validateBody } from '../../../../validators'
+import { z } from 'zod'
+import { addActivity } from '../../../../utils/activity'
 import { requireAuthUser } from '../../../../utils/auth-helpers'
 
-const bodySchema = z.object({
+const updateRegistrationStatusSchema = z.object({
   paymentStatus: z.enum(['Pending', 'Paid', 'Cancelled', 'Refunded']),
+  notes: z.string().max(1000).optional(),
 })
 
 export default defineEventHandler(async eventHandler => {
-  // Auth
+  // Auth check
   requireAuthUser(eventHandler)
 
   const id = getRouterParam(eventHandler, 'id')
-  if (!id) throw createError({ statusCode: 400, statusMessage: 'Registration ID is required' })
+  if (!id) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Registration ID is required',
+    })
+  }
 
-  const body = await readValidatedBody(eventHandler, input => bodySchema.parse(input))
+  const body = await validateBody(
+    eventHandler,
+    updateRegistrationStatusSchema,
+    'Invalid status update data'
+  )
 
   try {
-    // ensure exists
-    const existing = await db
+    // Check if registration exists
+    const existingRegistration = await db
       .select()
       .from(eventRegistration)
       .where(eq(eventRegistration.id, id))
       .limit(1)
-    if (!existing.length) {
-      throw createError({ statusCode: 404, statusMessage: 'Registration not found' })
+
+    if (!existingRegistration.length) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: 'Registration not found',
+      })
     }
 
-    const now = new Date()
-    const set: Partial<typeof eventRegistration.$inferInsert> = {
+    // Prepare update data with proper typing
+    const updateData: Partial<typeof eventRegistration.$inferInsert> = {
       paymentStatus: body.paymentStatus,
+      notes: body.notes,
     }
-    if (body.paymentStatus === 'Paid') set.paidAt = now
-    if (body.paymentStatus === 'Refunded') set.refundedAt = now
 
-    await db.update(eventRegistration).set(set).where(eq(eventRegistration.id, id))
+    // Set timestamp based on status change
+    if (body.paymentStatus === 'Paid' && existingRegistration[0].paymentStatus !== 'Paid') {
+      updateData.paidAt = new Date()
+    }
+    if (body.paymentStatus === 'Refunded' && existingRegistration[0].paymentStatus !== 'Refunded') {
+      updateData.refundedAt = new Date()
+    }
 
-    const [updated] = await db
+    // Update registration
+    await db.update(eventRegistration).set(updateData).where(eq(eventRegistration.id, id))
+
+    // Activity log
+    await addActivity({
+      type: 'Payment',
+      title: 'Registration payment status updated',
+      description: `${existingRegistration[0].attendeeName} → ${body.paymentStatus}`,
+      entityType: 'registration',
+      entityId: id,
+      metadata: { previous: existingRegistration[0].paymentStatus, next: body.paymentStatus },
+    })
+
+    // Return updated registration
+    const updatedRegistration = await db
       .select()
       .from(eventRegistration)
       .where(eq(eventRegistration.id, id))
       .limit(1)
 
-    return { success: true, data: updated }
-  } catch (err) {
-    if (typeof err === 'object' && err && 'statusCode' in err) throw err
-    throw createError({ statusCode: 500, statusMessage: 'Failed to update registration status' })
+    return updatedRegistration[0]
+  } catch (error: unknown) {
+    if (typeof error === 'object' && error && 'statusCode' in error) {
+      throw error
+    }
+    console.error('Error updating registration status:', error)
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Failed to update registration status',
+    })
   }
 })

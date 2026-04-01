@@ -288,6 +288,8 @@ export const eventRegistration = sqliteTable('event_registration', {
     .references(() => event.id, { onDelete: 'cascade' }),
   attendeeName: text('attendee_name').notNull(),
   attendeeEmail: text('attendee_email').notNull(),
+  attendeePhone: text('attendee_phone'),
+  attendeeOrg: text('attendee_org'),
 
   // Attendee category independent from ticket
   category: text('category'), // Member | Non-Member | Student | Speaker | Sponsor

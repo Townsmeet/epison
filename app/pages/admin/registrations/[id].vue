@@ -51,6 +51,23 @@
             >
               Edit
             </UButton>
+            <UButton
+              color="neutral"
+              variant="outline"
+              icon="i-heroicons-envelope"
+              :loading="isSendingConfirmation"
+              @click="handleSendConfirmation"
+            >
+              Send Confirmation
+            </UButton>
+            <UButton
+              color="error"
+              variant="outline"
+              icon="i-heroicons-trash"
+              @click="isDeleteModalOpen = true"
+            >
+              Delete
+            </UButton>
           </div>
         </div>
       </div>
@@ -198,6 +215,40 @@
         <div class="space-y-6" />
       </div>
     </main>
+
+    <!-- Delete Confirmation Modal -->
+    <UModal v-model:open="isDeleteModalOpen">
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold">Delete Registration</h3>
+              <UButton
+                color="neutral"
+                variant="ghost"
+                icon="i-heroicons-x-mark"
+                @click="isDeleteModalOpen = false"
+              />
+            </div>
+          </template>
+
+          <p class="text-gray-600 dark:text-gray-300">
+            Are you sure you want to delete this registration for
+            <span class="font-semibold">{{ reg?.attendeeName }}</span
+            >? This action cannot be undone.
+          </p>
+
+          <template #footer>
+            <div class="flex justify-end space-x-3">
+              <UButton color="neutral" variant="ghost" @click="isDeleteModalOpen = false">
+                Cancel
+              </UButton>
+              <UButton color="error" :loading="isDeleting" @click="handleDelete"> Delete </UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -213,6 +264,12 @@ const registrationId = route.params.id as string
 
 // Loading states
 const isUpdatingPayment = ref(false)
+const isDeleting = ref(false)
+const isDeleteModalOpen = ref(false)
+const isSendingConfirmation = ref(false)
+
+const { deleteRegistration, sendRegistrationConfirmation } = useEvents()
+const router = useRouter()
 
 // Options (removed unused statusOptions)
 
@@ -361,6 +418,63 @@ async function markAsPaid() {
 
 function printRegistration() {
   window.print()
+}
+
+async function handleSendConfirmation() {
+  if (!reg.value) return
+
+  isSendingConfirmation.value = true
+  try {
+    const res = await sendRegistrationConfirmation(registrationId)
+    if (res.success) {
+      useToast().add({
+        title: 'Success',
+        description: 'Confirmation email sent successfully',
+        icon: 'i-heroicons-check-circle',
+        color: 'success',
+      })
+    }
+  } catch (error: unknown) {
+    const fetchError = error as { data?: { message?: string } }
+    console.error('Error sending confirmation:', error)
+    useToast().add({
+      title: 'Error',
+      description: fetchError.data?.message || 'Failed to send confirmation email',
+      icon: 'i-heroicons-exclamation-circle',
+      color: 'error',
+    })
+  } finally {
+    isSendingConfirmation.value = false
+  }
+}
+
+async function handleDelete() {
+  if (!reg.value) return
+
+  isDeleting.value = true
+  try {
+    const res = await deleteRegistration(registrationId)
+    if (res.success) {
+      useToast().add({
+        title: 'Success',
+        description: 'Registration deleted successfully',
+        icon: 'i-heroicons-check-circle',
+        color: 'success',
+      })
+      isDeleteModalOpen.value = false
+      router.push('/admin/registrations')
+    }
+  } catch (error) {
+    console.error('Error deleting registration:', error)
+    useToast().add({
+      title: 'Error',
+      description: 'Failed to delete registration',
+      icon: 'i-heroicons-exclamation-circle',
+      color: 'error',
+    })
+  } finally {
+    isDeleting.value = false
+  }
 }
 
 // Fetch registration data on component mount

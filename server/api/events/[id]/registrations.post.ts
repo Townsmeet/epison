@@ -99,6 +99,8 @@ export default defineEventHandler(async eventHandler => {
       eventId,
       attendeeName: body.attendeeName,
       attendeeEmail: body.attendeeEmail,
+      attendeePhone: body.attendeePhone,
+      attendeeOrg: body.attendeeOrg,
       category: body.category,
       ticketId: body.ticketId,
       ticketName: ticketData?.name,

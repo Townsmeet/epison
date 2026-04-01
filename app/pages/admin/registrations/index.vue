@@ -364,7 +364,7 @@ const bulkActions = [
 ]
 
 // API composable
-const { getRegistrations, getRegistrationStats, getEvents } = useEvents()
+const { getRegistrations, getRegistrationStats, getEvents, batchDeleteRegistrations } = useEvents()
 
 // Fetch events for filter dropdown
 const { data: eventsResponse } = getEvents({ limit: 100, sort: '-startDate' })
@@ -594,29 +594,32 @@ function confirmDeleteMultiple() {
 }
 
 async function deleteRegistrations() {
+  if (selectedRegistrations.value.length === 0) return
+
   isDeleting.value = true
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const res = await batchDeleteRegistrations(selectedRegistrations.value)
 
-    // In a real app, this would delete the registrations from the server
+    if (res.success) {
+      // Clear selection
+      selectedRegistrations.value = []
 
-    // Clear selection
-    selectedRegistrations.value = []
+      // Close modal
+      isDeleteModalOpen.value = false
 
-    // Close modal
-    isDeleteModalOpen.value = false
-    if (refreshData) {
-      await refreshData()
+      // Refresh data
+      if (refreshData) {
+        await refreshData()
+      }
+
+      // Show success message
+      useToast().add({
+        title: 'Success',
+        description: res.message || 'Selected registrations have been deleted',
+        icon: 'i-heroicons-check-circle',
+        color: 'success',
+      })
     }
-
-    // Show success message
-    useToast().add({
-      title: 'Success',
-      description: 'Selected registrations have been deleted',
-      icon: 'i-heroicons-check-circle',
-      color: 'success',
-    })
   } catch (error) {
     console.error('Error deleting registrations:', error)
     useToast().add({

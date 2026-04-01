@@ -104,6 +104,8 @@ export const paymentStatusSchema = z.enum(['Pending', 'Paid', 'Cancelled', 'Refu
 export const createEventRegistrationSchema = z.object({
   attendeeName: z.string().min(1).max(150),
   attendeeEmail: z.string().email(),
+  attendeePhone: z.string().max(50).optional(),
+  attendeeOrg: z.string().max(200).optional(),
   category: registrationCategorySchema.optional(),
   ticketId: z.string().optional(),
   quantity: z.number().int().positive().default(1),

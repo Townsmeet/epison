@@ -66,7 +66,7 @@ export async function sendEventRegistrationEmail(params: EventRegistrationEmailP
       
       <p style="margin-bottom: 20px;">
         We look forward to seeing you at the event. If you have any questions or need to make changes to your registration, 
-        please contact us at <a href="mailto:events@epison.ng" style="color: #0d9488; text-decoration: none; font-weight: 500;">events@epison.ng</a>.
+        please contact us at <a href="mailto:episonnigeria@gmail.com" style="color: #0d9488; text-decoration: none; font-weight: 500;">episonnigeria@gmail.com</a>.
       </p>
       
       <div style="border-top: 1px solid #e5e7eb; margin-top: 30px; padding-top: 20px;">

@@ -9,9 +9,10 @@
             color="neutral"
             variant="soft"
             icon="i-heroicons-arrow-down-tray"
-            @click="exportCsv"
+            :loading="isExporting"
+            @click="exportToExcel"
           >
-            Export CSV
+            Export Excel
           </UButton>
         </div>
       </div>
@@ -140,6 +141,40 @@
         </div>
       </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <UModal v-model:open="isDeleteModalOpen">
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold">Delete Registration</h3>
+              <UButton
+                color="neutral"
+                variant="ghost"
+                icon="i-heroicons-x-mark"
+                @click="isDeleteModalOpen = false"
+              />
+            </div>
+          </template>
+
+          <p class="text-gray-600 dark:text-gray-300">
+            Are you sure you want to delete the registration for
+            <span class="font-semibold">{{ selectedReg?.name }}</span
+            >? This action cannot be undone.
+          </p>
+
+          <template #footer>
+            <div class="flex justify-end space-x-3">
+              <UButton color="neutral" variant="ghost" @click="isDeleteModalOpen = false">
+                Cancel
+              </UButton>
+              <UButton color="error" :loading="isDeleting" @click="handleDelete"> Delete </UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
+    </UModal>
   </UCard>
 </template>
 
@@ -163,7 +198,13 @@ const props = defineProps<{
 }>()
 
 // Use the events API composable
-const { getEventRegistrations, refreshEventRegistrations } = useEvents()
+const {
+  getEventRegistrations,
+  refreshEventRegistrations,
+  deleteRegistration,
+  sendRegistrationConfirmation,
+  getRegistrationsExport,
+} = useEvents()
 
 // Define search and pagination BEFORE using them in computed/fetch
 const search = ref('')
@@ -178,6 +219,11 @@ const pagination = ref({
     return Math.min(this.currentPage * this.perPage, this.total)
   },
 })
+
+const isDeleting = ref(false)
+const isDeleteModalOpen = ref(false)
+const isExporting = ref(false)
+const selectedReg = ref<RegistrationRow | null>(null)
 
 // Reactive query for registrations
 const registrationsQuery = computed(() => ({
@@ -232,13 +278,77 @@ const _getRegActionItems = (reg: RegistrationRow) => {
       {
         label: 'Send Confirmation',
         icon: 'i-heroicons-envelope',
-        click: () => useToast().add({ title: 'Confirmation Sent', color: 'success' }),
+        click: () => sendConfirmation(reg),
+      },
+    ],
+    [
+      {
+        label: 'Delete',
+        icon: 'i-heroicons-trash',
+        color: 'error' as const,
+        click: () => confirmDelete(reg),
       },
     ],
   ]
 }
 
-// (moved earlier)
+function confirmDelete(reg: RegistrationRow) {
+  selectedReg.value = reg
+  isDeleteModalOpen.value = true
+}
+
+async function handleDelete() {
+  if (!selectedReg.value) return
+
+  isDeleting.value = true
+  try {
+    const res = await deleteRegistration(selectedReg.value.id)
+    if (res.success) {
+      useToast().add({
+        title: 'Success',
+        description: 'Registration deleted successfully',
+        icon: 'i-heroicons-check-circle',
+        color: 'success',
+      })
+      isDeleteModalOpen.value = false
+      await refreshEventRegistrations(props.eventId, registrationsQuery.value)
+    }
+  } catch (error) {
+    console.error('Error deleting registration:', error)
+    useToast().add({
+      title: 'Error',
+      description: 'Failed to delete registration',
+      icon: 'i-heroicons-exclamation-circle',
+      color: 'error',
+    })
+  } finally {
+    isDeleting.value = false
+    selectedReg.value = null
+  }
+}
+
+async function sendConfirmation(reg: RegistrationRow) {
+  try {
+    const res = await sendRegistrationConfirmation(reg.id)
+    if (res.success) {
+      useToast().add({
+        title: 'Success',
+        description: 'Confirmation email sent successfully',
+        icon: 'i-heroicons-check-circle',
+        color: 'success',
+      })
+    }
+  } catch (error: unknown) {
+    const fetchError = error as { data?: { message?: string } }
+    console.error('Error sending confirmation:', error)
+    useToast().add({
+      title: 'Error',
+      description: fetchError.data?.message || 'Failed to send confirmation email',
+      icon: 'i-heroicons-exclamation-circle',
+      color: 'error',
+    })
+  }
+}
 
 // Registrations are already filtered by the API
 const filteredRows = computed(() => registrations.value)
@@ -274,27 +384,75 @@ watch(
   }
 )
 
-// Functions are now provided via props with underscore-prefixed versions as fallbacks
+// Export functionality
+async function exportToExcel() {
+  isExporting.value = true
+  try {
+    const res = await getRegistrationsExport(props.eventId)
+    if (!res.success || !res.data) throw new Error('Failed to fetch export data')
 
-function exportCsv() {
-  const header = ['Name', 'Email', 'Date', 'Amount', 'Status', 'Reference']
-  const rows = filteredRows.value.map(r => [
-    r.name,
-    r.email,
-    r.date,
-    r.amount,
-    r.status,
-    r.reference,
-  ])
-  const csv = [header, ...rows]
-    .map(r => r.map(v => `"${String(v).replaceAll('"', '""')}"`).join(','))
-    .join('\n')
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `registrations-${props.eventTitle.replaceAll(' ', '-').toLowerCase()}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
+    const data = res.data
+
+    // Define headers
+    const headers = [
+      'Name',
+      'Phone',
+      'Email',
+      'Organization',
+      'Ticket',
+      'Amount (NGN)',
+      'Status',
+      'Date',
+    ]
+
+    const cleanExportValue = (val: unknown, fieldName: string) => {
+      if (!val || val === 'null' || val === 'undefined' || val === fieldName) return ''
+      return `"${String(val).replace(/"/g, '""')}"`
+    }
+
+    // Map data to rows
+    const rows = (data as Record<string, unknown>[]).map(reg => [
+      cleanExportValue(reg.attendeeName, 'attendee_name'),
+      cleanExportValue(reg.attendeePhone, 'attendee_phone'),
+      cleanExportValue(reg.attendeeEmail, 'attendee_email'),
+      cleanExportValue(reg.attendeeOrg, 'attendee_org'),
+      cleanExportValue(reg.ticketName, 'ticket_name'),
+      (Number(reg.totalAmount || 0) / 100).toFixed(2),
+      String(reg.paymentStatus || ''),
+      new Date(String(reg.registeredAt || '')).toLocaleDateString(),
+    ])
+
+    // Construct CSV content
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
+
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute(
+      'download',
+      `Registrations_${props.eventTitle.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`
+    )
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    useToast().add({
+      title: 'Success',
+      description: 'Registrations exported successfully',
+      color: 'success',
+    })
+  } catch (error) {
+    console.error('Error exporting registrations:', error)
+    useToast().add({
+      title: 'Error',
+      description: 'Failed to export registrations',
+      color: 'error',
+    })
+  } finally {
+    isExporting.value = false
+  }
 }
 </script>

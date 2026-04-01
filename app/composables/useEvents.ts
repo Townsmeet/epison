@@ -247,6 +247,35 @@ export const useEvents = () => {
     })
   }
 
+  const deleteRegistration = async (id: string) => {
+    return await $fetch<ApiResponse>(`/api/admin/registrations/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+  }
+
+  const batchDeleteRegistrations = async (ids: string[]) => {
+    return await $fetch<ApiResponse>('/api/admin/registrations/batch', {
+      method: 'DELETE',
+      credentials: 'include',
+      body: { ids },
+    })
+  }
+
+  const sendRegistrationConfirmation = async (id: string) => {
+    return await $fetch<ApiResponse>(`/api/admin/registrations/${id}/confirmation`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+  }
+
+  const getRegistrationsExport = (eventId: string) => {
+    return $fetch<ApiResponse>(`/api/admin/registrations/records`, {
+      params: { eventId },
+      credentials: 'include',
+    })
+  }
+
   // Registration stats (admin-level)
   const getRegistrationStats = () => {
     return useFetch<
@@ -472,6 +501,10 @@ export const useEvents = () => {
     return refreshCookie(`admin-registrations-${JSON.stringify(query)}`)
   }
 
+  const refreshRegistration = (id: string) => {
+    return refreshCookie(`admin-registration-${id}`)
+  }
+
   const refreshEventSponsors = (eventId: string) => {
     return refreshCookie(`event-sponsors-${eventId}`)
   }
@@ -562,6 +595,7 @@ export const useEvents = () => {
     getEvent,
     getEventRegistrations,
     getRegistrations,
+    getRegistrationsExport,
     getRegistrationStats,
     getEventSponsors,
     getEventTickets,
@@ -573,6 +607,9 @@ export const useEvents = () => {
     createEvent,
     updateEvent,
     deleteEvent,
+    deleteRegistration,
+    batchDeleteRegistrations,
+    sendRegistrationConfirmation,
     createEventSponsor,
     deleteEventSponsor,
     createEventTicket,
@@ -588,6 +625,7 @@ export const useEvents = () => {
     // Utilities
     refreshEvents,
     refreshEvent,
+    refreshRegistration,
     refreshEventRegistrations,
     refreshRegistrations,
     refreshEventSponsors,
