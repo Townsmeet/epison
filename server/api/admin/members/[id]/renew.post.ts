@@ -59,7 +59,7 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
       memberId,
       action: `Membership renewed by admin. Previous expiry: ${oldExpiryDate}. New expiry: ${newExpiryDate}`,
       type: 'renewal',
-      notes: body.notes || 'Renewed via admin panel (no payment required)',
+      notes: body.notes || 'Renewed via admin panel (Direct Bank Payment)',
     })
 
     // Fetch updated member

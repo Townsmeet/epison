@@ -609,7 +609,11 @@
               <UButton color="neutral" variant="ghost" @click="confirmationModal.isOpen = false">
                 Cancel
               </UButton>
-              <UButton :color="confirmationModal.confirmColor" @click="confirmationModal.onConfirm">
+              <UButton
+                :color="confirmationModal.confirmColor"
+                :loading="confirmationModal.isConfirming"
+                @click="confirmationModal.onConfirm"
+              >
                 {{ confirmationModal.confirmText }}
               </UButton>
             </div>
@@ -646,7 +650,7 @@ const {
   deleteMember: deleteMemberAPI,
   activateMember,
   suspendMember: suspendMemberAPI,
-  renewMember,
+  adminRenewMember,
   remindMember,
 } = useMembers()
 
@@ -656,6 +660,7 @@ const confirmationModal = ref({
   message: '',
   confirmText: 'Confirm',
   confirmColor: 'primary' as 'primary' | 'warning' | 'error',
+  isConfirming: false,
   onConfirm: () => {},
 })
 
@@ -723,6 +728,7 @@ function sendReminder() {
     message: `Send a renewal reminder email to ${getFullName(member.value)} (\n${member.value.email}\n)?`,
     confirmText: 'Send Reminder',
     confirmColor: 'primary',
+    isConfirming: false,
     onConfirm: () => doSendReminder(),
   }
 }
@@ -902,6 +908,7 @@ function confirmRenewMembership() {
     message: `Are you sure you want to renew the membership for ${getFullName(member.value)}? This will extend their membership period.`,
     confirmText: 'Renew',
     confirmColor: 'primary',
+    isConfirming: false,
     onConfirm: () => renewMembership(),
   }
 }
@@ -915,6 +922,7 @@ function confirmSuspendMember() {
     message: `Are you sure you want to suspend ${getFullName(member.value)}? They will lose access to member benefits.`,
     confirmText: 'Suspend',
     confirmColor: 'warning',
+    isConfirming: false,
     onConfirm: () => suspendMember(),
   }
 }
@@ -928,6 +936,7 @@ function confirmDeleteMember() {
     message: `Are you sure you want to permanently delete ${getFullName(member.value)}? This action cannot be undone.`,
     confirmText: 'Delete',
     confirmColor: 'error',
+    isConfirming: false,
     onConfirm: () => deleteMember(),
   }
 }
@@ -936,7 +945,8 @@ async function renewMembership() {
   if (!member.value) return
 
   try {
-    await renewMember(memberId, { reason: 'Renewed via admin panel', period: '1 year' })
+    confirmationModal.value.isConfirming = true
+    await adminRenewMember(memberId, { notes: 'Renewed via admin panel (Direct Bank Payment)' })
     confirmationModal.value.isOpen = false
     await refreshCookie(`member-${memberId}`)
     useToast().add({
@@ -950,6 +960,8 @@ async function renewMembership() {
       description: extractApiMessage(error, 'Failed to renew membership'),
       color: 'error',
     })
+  } finally {
+    confirmationModal.value.isConfirming = false
   }
 }
 
@@ -1038,6 +1050,7 @@ function _confirmActivateMember() {
     message: `Are you sure you want to activate ${getFullName(member.value)}? They will regain access to member benefits.`,
     confirmText: 'Activate',
     confirmColor: 'primary',
+    isConfirming: false,
     onConfirm: () => activateMemberAction(),
   }
 }

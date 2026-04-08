@@ -1,5 +1,5 @@
 import type { H3Event } from 'h3'
-import { count, eq, gte } from 'drizzle-orm'
+import { count, eq, gte, and, lt } from 'drizzle-orm'
 import { db } from '../../utils/drizzle'
 import { member } from '../../db/schema'
 import type { ApiResponse } from '../../../types/api'
@@ -10,6 +10,15 @@ import { memberStatsQuerySchema } from '../../validators/member'
 export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<MemberStats>> => {
   try {
     const _query = validateQuery(event, memberStatsQuerySchema, 'Invalid stats query parameters')
+
+    // Dynamic Expiration: Mark active members whose expiryDate is before the end of the current year cycle as expired
+    const currentYear = new Date().getFullYear()
+    const endOfYear = `${currentYear}-12-31`
+    await db
+      .update(member)
+      .set({ status: 'expired' })
+      .where(and(eq(member.status, 'active'), lt(member.expiryDate, endOfYear)))
+
     // Get total count
     const totalResult = await db.select({ count: count() }).from(member)
 

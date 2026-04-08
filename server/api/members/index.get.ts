@@ -1,6 +1,5 @@
 import type { H3Event } from 'h3'
-// removed unused getQuery import
-import { eq, like, or, and, asc, desc, count, isNull, isNotNull } from 'drizzle-orm'
+import { eq, like, or, and, asc, desc, count, isNull, isNotNull, lt, gt } from 'drizzle-orm'
 import { db } from '../../utils/drizzle'
 import { member } from '../../db/schema'
 import type { PaginatedResponse } from '../../../types/api'
@@ -15,7 +14,20 @@ export default defineEventHandler(
         event,
         memberListQuerySchema,
         'Invalid member list query'
-      ) as MemberListQuery
+      ) as MemberListQuery & {
+        expiryBefore?: string
+        expiryAfter?: string
+        membershipType?: string
+        geopoliticalZone?: string
+      }
+
+      // Dynamic Expiration: Mark active members whose expiryDate is before the end of the current year cycle as expired
+      const currentYear = new Date().getFullYear()
+      const endOfYear = `${currentYear}-12-31`
+      await db
+        .update(member)
+        .set({ status: 'expired' })
+        .where(and(eq(member.status, 'active'), lt(member.expiryDate, endOfYear)))
 
       // Parse query parameters with defaults
       const page = query.page ?? 1
@@ -66,7 +78,7 @@ export default defineEventHandler(
       }
 
       if (geoPoliticalZone) {
-        conditions.push(eq(member.geopoliticalZone, geoPoliticalZone))
+        conditions.push(eq(member.geopoliticalZone, geoPoliticalZone as 'North Central'))
       }
 
       if (paymentStatus) {
@@ -75,6 +87,14 @@ export default defineEventHandler(
         } else if (paymentStatus === 'unpaid') {
           conditions.push(isNull(member.paymentReference))
         }
+      }
+
+      if (query.expiryBefore) {
+        conditions.push(lt(member.expiryDate, query.expiryBefore))
+      }
+
+      if (query.expiryAfter) {
+        conditions.push(gt(member.expiryDate, query.expiryAfter))
       }
 
       // Build order by clause

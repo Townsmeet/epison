@@ -69,7 +69,9 @@ export const memberListQuerySchema = z.object({
   paymentStatus: z.string().optional(),
   sortBy: z.string().optional(),
   sortOrder: z.enum(['asc', 'desc']).default('asc').optional(),
-  geopoliticalZone: z.string().optional(), // <-- added
+  geopoliticalZone: z.string().optional(),
+  expiryBefore: z.string().optional(), // expect YYYY-MM-DD
+  expiryAfter: z.string().optional(), // expect YYYY-MM-DD
 })
 
 export const memberStatsQuerySchema = z.object({

@@ -375,7 +375,11 @@
               <UButton color="neutral" variant="ghost" @click="confirmationModal.isOpen = false">
                 Cancel
               </UButton>
-              <UButton :color="confirmationModal.confirmColor" @click="confirmationModal.onConfirm">
+              <UButton
+                :color="confirmationModal.confirmColor"
+                :loading="confirmationModal.isConfirming"
+                @click="confirmationModal.onConfirm"
+              >
                 {{ confirmationModal.confirmText }}
               </UButton>
             </div>
@@ -644,6 +648,7 @@ const confirmationModal = ref({
   message: '',
   confirmText: 'Confirm',
   confirmColor: 'primary' as const,
+  isConfirming: false,
   onConfirm: () => {},
 })
 // Composable for API calls
@@ -771,6 +776,7 @@ function confirmSendReminder(member: MemberListItem) {
     message: `Send a renewal reminder email to ${getFullName(member)} (\n${member.email}\n)?`,
     confirmText: 'Send Reminder',
     confirmColor: 'primary',
+    isConfirming: false,
     onConfirm: () => sendReminderAction(member.id),
   }
 }
@@ -803,6 +809,11 @@ watch(isCreateMembershipOpen, open => {
 // Watch for filter changes to reset page
 watch([searchQuery, selectedTypeItem, selectedStatusItem, selectedPaymentItem], () => {
   currentPage.value = 1 // Reset to first page when filters change
+})
+
+// Synchronize stats with members list (ensures expired counts update after dynamic checks)
+watch(membersData, () => {
+  refreshStatsData()
 })
 
 function typeValueFromLabel(label: string): string {
@@ -1053,6 +1064,7 @@ function confirmActivateMember(member: MemberListItem) {
     message: `Are you sure you want to activate ${getFullName(member)}? They will gain access to member benefits.`,
     confirmText: 'Activate',
     confirmColor: 'primary',
+    isConfirming: false,
     onConfirm: () => activateMemberAction(member.id),
   }
 }
@@ -1065,6 +1077,7 @@ function confirmRenewMembership(member: MemberListItem) {
     message: `Are you sure you want to renew the membership for ${getFullName(member)}? Their membership will be extended until December 31, ${currentYear}.`,
     confirmText: 'Renew',
     confirmColor: 'primary',
+    isConfirming: false,
     onConfirm: () => renewMembershipAction(member.id),
   }
 }
@@ -1076,6 +1089,7 @@ function confirmSuspendMember(member: MemberListItem) {
     message: `Are you sure you want to suspend ${getFullName(member)}? They will lose access to member benefits.`,
     confirmText: 'Suspend',
     confirmColor: 'primary',
+    isConfirming: false,
     onConfirm: () => suspendMemberAction(member.id),
   }
 }
@@ -1087,6 +1101,7 @@ function confirmDeleteMember(member: MemberListItem) {
     message: `Are you sure you want to permanently delete ${getFullName(member)}? This action cannot be undone.`,
     confirmText: 'Delete',
     confirmColor: 'primary',
+    isConfirming: false,
     onConfirm: () => deleteMemberAction(member.id),
   }
 }
@@ -1116,8 +1131,9 @@ async function activateMemberAction(id: string) {
 
 async function renewMembershipAction(id: string) {
   try {
+    confirmationModal.value.isConfirming = true
     const currentYear = new Date().getFullYear()
-    await adminRenewMember(id, { notes: 'Renewed via admin panel' })
+    await adminRenewMember(id, { notes: 'Renewed via admin panel (Direct Bank Payment)' })
     confirmationModal.value.isOpen = false
     await refreshMembers()
     await refreshStats()
@@ -1134,6 +1150,8 @@ async function renewMembershipAction(id: string) {
       description,
       color: 'error',
     })
+  } finally {
+    confirmationModal.value.isConfirming = false
   }
 }
 

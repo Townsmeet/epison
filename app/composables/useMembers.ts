@@ -77,8 +77,7 @@ export const useMembers = () => {
   const getMemberStats = () => {
     return useFetch<ApiResponse<MemberStats>>('/api/members/stats', {
       key: 'member-stats',
-      // Fetch client-side so calling refresh() updates immediately after actions
-      server: false,
+      server: true,
       default: () => ({
         success: false,
         data: {
