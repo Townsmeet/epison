@@ -34,11 +34,11 @@
                   class="w-full"
                 />
               </UFormField>
-              <UFormField label="Phone" name="phone">
+              <UFormField label="Phone" name="phone" required>
                 <UInput
                   v-model="form.phone"
                   type="tel"
-                  placeholder="Phone (optional)"
+                  placeholder="Your phone number"
                   class="w-full"
                 />
               </UFormField>
@@ -210,7 +210,7 @@ const schema = z.object({
   name: z.string().min(2, 'Name is required'),
   email: z.string().email('Valid email required'),
   org: z.string().optional(),
-  phone: z.string().optional(),
+  phone: z.string().min(1, 'Phone number is required'),
   ticket: z.string().min(1, 'Select a ticket'),
 })
 

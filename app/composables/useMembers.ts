@@ -92,14 +92,65 @@ export const useMembers = () => {
     })
   }
 
-  // Mutations using $fetch
+  // Helper for retrying fetch requests with exponential backoff
+  // Retries on network errors AND when API returns { success: false }
+  const fetchWithRetry = async <T extends { success: boolean; error?: string }>(
+    url: string,
+    options: Parameters<typeof $fetch>[1],
+    maxRetries = 3,
+    baseDelay = 1000
+  ): Promise<T> => {
+    let lastError: Error | null = null
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      console.log(`[fetchWithRetry] Attempt ${attempt}/${maxRetries} for ${url}`)
+      try {
+        const result = await $fetch<T>(url, options)
+
+        // Check if API returned success: false (should retry)
+        if (result && result.success === false) {
+          const errorMsg = result.error || 'API returned success: false'
+          console.error(
+            `[fetchWithRetry] Attempt ${attempt}/${maxRetries} API error for ${url}:`,
+            errorMsg
+          )
+          lastError = new Error(errorMsg)
+
+          if (attempt < maxRetries) {
+            const delay = baseDelay * Math.pow(2, attempt - 1)
+            console.log(`[fetchWithRetry] Waiting ${delay}ms before retry...`)
+            await new Promise(resolve => setTimeout(resolve, delay))
+            continue
+          }
+        } else {
+          console.log(`[fetchWithRetry] Success on attempt ${attempt}`)
+          return result
+        }
+      } catch (error) {
+        lastError = error as Error
+        console.error(`[fetchWithRetry] Attempt ${attempt}/${maxRetries} FAILED for ${url}:`, error)
+
+        if (attempt < maxRetries) {
+          // Exponential backoff: 1s, 2s, 4s
+          const delay = baseDelay * Math.pow(2, attempt - 1)
+          console.log(`[fetchWithRetry] Waiting ${delay}ms before retry...`)
+          await new Promise(resolve => setTimeout(resolve, delay))
+        }
+      }
+    }
+
+    console.error(`[fetchWithRetry] All ${maxRetries} attempts failed for ${url}`)
+    throw lastError
+  }
+
+  // Mutations using $fetch with explicit retry
   const createMember = async (data: CreateMemberRequest) => {
-    return await $fetch<ApiResponse<MemberDetail>>('/api/members', {
-      retry: 3,
-      retryDelay: 1000,
-      method: 'POST',
-      body: data,
-    })
+    return await fetchWithRetry<ApiResponse<MemberDetail>>(
+      '/api/members',
+      { method: 'POST', body: data },
+      3,
+      1000
+    )
   }
 
   const updateMember = async (id: string, data: UpdateMemberRequest) => {
@@ -116,10 +167,12 @@ export const useMembers = () => {
   }
 
   const updateMemberPayment = async (id: string, paymentReference: string) => {
-    return await $fetch<ApiResponse<{ success: boolean }>>(`/api/members/${id}/payment`, {
-      method: 'POST',
-      body: { paymentReference },
-    })
+    return await fetchWithRetry<ApiResponse<{ success: boolean }>>(
+      `/api/members/${id}/payment`,
+      { method: 'POST', body: { paymentReference } },
+      3,
+      1000
+    )
   }
 
   const activateMember = async (id: string, data: MemberActionRequest = {}) => {
@@ -140,11 +193,12 @@ export const useMembers = () => {
     id: string,
     data: { email?: string; fees: number; paymentReference: string }
   ) => {
-    return await $fetch<ApiResponse<MemberDetail>>(`/api/members/${id}/renew`, {
-      method: 'POST',
-      body: data,
-      retry: 3,
-    })
+    return await fetchWithRetry<ApiResponse<MemberDetail>>(
+      `/api/members/${id}/renew`,
+      { method: 'POST', body: data },
+      3,
+      1000
+    )
   }
 
   // Admin renewal (no payment required)

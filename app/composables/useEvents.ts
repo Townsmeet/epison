@@ -87,6 +87,57 @@ export type EventItem = Event & {
 }
 
 export const useEvents = () => {
+  // Helper for retrying fetch requests with exponential backoff
+  // Retries on network errors AND when API returns { success: false }
+  const fetchWithRetry = async <T extends { success?: boolean; error?: string }>(
+    url: string,
+    options: Parameters<typeof $fetch>[1],
+    maxRetries = 3,
+    baseDelay = 1000
+  ): Promise<T> => {
+    let lastError: Error | null = null
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      console.log(`[fetchWithRetry] Attempt ${attempt}/${maxRetries} for ${url}`)
+      try {
+        const result = await $fetch<T>(url, options)
+
+        // Check if API returned success: false (should retry)
+        if (result && 'success' in result && result.success === false) {
+          const errorMsg = result.error || 'API returned success: false'
+          console.error(
+            `[fetchWithRetry] Attempt ${attempt}/${maxRetries} API error for ${url}:`,
+            errorMsg
+          )
+          lastError = new Error(errorMsg)
+
+          if (attempt < maxRetries) {
+            const delay = baseDelay * Math.pow(2, attempt - 1)
+            console.log(`[fetchWithRetry] Waiting ${delay}ms before retry...`)
+            await new Promise(resolve => setTimeout(resolve, delay))
+            continue
+          }
+        } else {
+          console.log(`[fetchWithRetry] Success on attempt ${attempt}`)
+          return result
+        }
+      } catch (error) {
+        lastError = error as Error
+        console.error(`[fetchWithRetry] Attempt ${attempt}/${maxRetries} FAILED for ${url}:`, error)
+
+        if (attempt < maxRetries) {
+          // Exponential backoff: 1s, 2s, 4s
+          const delay = baseDelay * Math.pow(2, attempt - 1)
+          console.log(`[fetchWithRetry] Waiting ${delay}ms before retry...`)
+          await new Promise(resolve => setTimeout(resolve, delay))
+        }
+      }
+    }
+
+    console.error(`[fetchWithRetry] All ${maxRetries} attempts failed for ${url}`)
+    throw lastError
+  }
+
   // GET requests using useFetch/useAsyncData
   const getEvents = (query: EventListQuery | Ref<EventListQuery> = {}) => {
     const q = unref(query)
@@ -457,17 +508,20 @@ export const useEvents = () => {
   }
 
   // Public: Create an event registration (generates payment reference)
+  // Uses retry logic for resilience against network failures
   const createPublicEventRegistration = async (
     eventId: string,
     data: {
       attendeeName: string
       attendeeEmail: string
+      attendeePhone?: string
+      attendeeOrg?: string
       category?: string
       ticketId?: string
       quantity?: number
     }
   ) => {
-    return await $fetch<{
+    return await fetchWithRetry<{
       id: string
       eventId: string
       attendeeName: string
@@ -477,10 +531,7 @@ export const useEvents = () => {
       paymentStatus: 'Pending' | 'Paid' | 'Cancelled' | 'Refunded'
       paymentReference?: string | null
       paymentData?: { reference: string; amount: number; email: string; currency: string }
-    }>(`/api/events/${eventId}/registrations`, {
-      method: 'POST',
-      body: data,
-    })
+    }>(`/api/events/${eventId}/registrations`, { method: 'POST', body: data }, 3, 1000)
   }
 
   // Utility functions for reactive data management

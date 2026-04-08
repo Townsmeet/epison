@@ -23,7 +23,7 @@
           :loading="isSubmitting"
           :disabled="isSubmitting"
         >
-          {{ isEditMode ? 'Save Changes' : 'Pay & Submit' }}
+          {{ submitButtonLabel }}
         </UButton>
       </div>
     </div>
@@ -37,13 +37,21 @@ interface Props {
   isCurrentStepValid: boolean
   isEditMode: boolean
   isSubmitting: boolean
+  hasPendingApplication?: boolean
 }
+
+const props = defineProps<Props>()
+
+const submitButtonLabel = computed(() => {
+  if (props.isEditMode) return 'Save Changes'
+  if (props.hasPendingApplication) return 'Retry Payment'
+  return 'Pay & Submit'
+})
 
 interface Emits {
   (e: 'goToStep' | 'nextStep' | 'prevStep', step?: number): void
 }
 
-defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 function nextStep() {

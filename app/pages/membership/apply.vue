@@ -61,6 +61,7 @@
               :is-current-step-valid="isCurrentStepValid"
               :is-edit-mode="isEditMode"
               :is-submitting="isSubmitting"
+              :has-pending-application="!!pendingApplicationId"
               @go-to-step="goToStep"
               @next-step="nextStep"
               @prev-step="prevStep"
@@ -99,6 +100,12 @@ const toast = useToast()
 const router = useRouter()
 const isSubmitting = ref(false)
 const { createMember, updateMember, updateMemberPayment, getMember } = useMembers()
+
+// Retry state for handling failed submissions
+const pendingApplicationId = ref<string | null>(null)
+const retryCount = ref(0)
+const MAX_RETRIES = 3
+const lastError = ref<string | null>(null)
 
 // Form state with Zod schema
 const state = reactive<MembershipFormData>({
@@ -518,25 +525,49 @@ const onSubmit = async (_event: FormSubmitEvent<MembershipFormData>) => {
     }
 
     // Apply mode: Create application first, then process payment
+    // Clear any previous error state on new submission attempt
+    lastError.value = null
 
-    // Upload publications if any
+    // Upload publications if any (with retry logic)
     let publicationUrls: string[] = []
     if (state.publications.length > 0) {
+      const uploadWithRetry = async (file: File, maxRetries = 3): Promise<string | null> => {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            const uploadForm = new FormData()
+            uploadForm.append('file', file, file.name)
+            uploadForm.append('folder', 'publications')
+
+            const response = (await $fetch('/api/uploads', {
+              method: 'POST',
+              body: uploadForm,
+            })) as { url: string }
+            return response.url
+          } catch (error) {
+            console.warn(`Upload attempt ${attempt}/${maxRetries} failed for ${file.name}:`, error)
+            if (attempt < maxRetries) {
+              // Exponential backoff: 1s, 2s, 4s
+              await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt - 1)))
+            }
+          }
+        }
+        return null // All retries failed
+      }
+
       try {
-        const uploadPromises = state.publications.map(async (file: File) => {
-          const uploadForm = new FormData()
-          // Include filename explicitly so multipart part has a filename
-          uploadForm.append('file', file, file.name)
-          uploadForm.append('folder', 'publications')
+        const uploadResults = await Promise.all(
+          state.publications.map((file: File) => uploadWithRetry(file))
+        )
+        publicationUrls = uploadResults.filter((url): url is string => url !== null)
 
-          const response = (await $fetch('/api/uploads', {
-            method: 'POST',
-            body: uploadForm,
-          })) as { url: string }
-          return response.url
-        })
-
-        publicationUrls = await Promise.all(uploadPromises)
+        const failedCount = state.publications.length - publicationUrls.length
+        if (failedCount > 0) {
+          toast.add({
+            title: 'Upload Warning',
+            description: `${failedCount} file(s) could not be uploaded but your application will still be submitted.`,
+            color: 'warning',
+          })
+        }
       } catch (uploadError) {
         console.error('Failed to upload publications:', uploadError)
         toast.add({
@@ -593,24 +624,77 @@ const onSubmit = async (_event: FormSubmitEvent<MembershipFormData>) => {
       publications: publicationUrls,
     }
 
-    const createResponse = await createMember(createData)
-    if (!createResponse.success) {
-      throw new Error(createResponse.error || 'Failed to create application')
-    }
+    // Check if we have a pending application from a previous failed attempt
+    let applicationId = pendingApplicationId.value
 
-    if (!createResponse.data) {
-      throw new Error('No data returned from server')
+    if (!applicationId) {
+      // Step 1: Create application with pending status (no payment reference yet)
+      const createResponse = await createMember(createData)
+      if (!createResponse.success) {
+        lastError.value = 'CREATE_FAILED'
+        throw new Error(createResponse.error || 'Failed to create application')
+      }
+
+      if (!createResponse.data) {
+        lastError.value = 'CREATE_FAILED'
+        throw new Error('No data returned from server')
+      }
+
+      applicationId = createResponse.data.id
+      // Store the application ID in case payment fails
+      pendingApplicationId.value = applicationId
     }
 
     // Step 2: Process payment with application ID
-    const { reference } = await startPaystackPayment(createResponse.data.id)
+    const { reference } = await startPaystackPayment(applicationId)
 
-    // Step 3: Update application with payment reference
-    const paymentUpdateResponse = await updateMemberPayment(createResponse.data.id, reference)
-    if (!paymentUpdateResponse.success) {
-      console.warn('Failed to update payment reference:', paymentUpdateResponse.error)
-      // Don't throw error here - payment was successful, just log the issue
+    // Step 3: Update application with payment reference (with retries)
+    let paymentUpdateSuccess = false
+    let paymentUpdateAttempts = 0
+    const maxPaymentUpdateAttempts = 3
+
+    while (!paymentUpdateSuccess && paymentUpdateAttempts < maxPaymentUpdateAttempts) {
+      paymentUpdateAttempts++
+      try {
+        const paymentUpdateResponse = await updateMemberPayment(applicationId, reference)
+        if (paymentUpdateResponse.success) {
+          paymentUpdateSuccess = true
+        } else {
+          console.warn(
+            `Payment update attempt ${paymentUpdateAttempts} failed:`,
+            paymentUpdateResponse.error
+          )
+          if (paymentUpdateAttempts < maxPaymentUpdateAttempts) {
+            // Wait before retrying (exponential backoff)
+            await new Promise(resolve => setTimeout(resolve, 1000 * paymentUpdateAttempts))
+          }
+        }
+      } catch (updateError) {
+        console.warn(`Payment update attempt ${paymentUpdateAttempts} error:`, updateError)
+        if (paymentUpdateAttempts < maxPaymentUpdateAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * paymentUpdateAttempts))
+        }
+      }
     }
+
+    if (!paymentUpdateSuccess) {
+      // Payment was successful but we couldn't update the record
+      // Store reference in localStorage as backup
+      try {
+        localStorage.setItem(
+          `epison_payment_${applicationId}`,
+          JSON.stringify({ reference, timestamp: Date.now() })
+        )
+      } catch {
+        // localStorage might not be available
+      }
+      console.warn('Failed to update payment reference after all retries')
+    }
+
+    // Clear pending application state on success
+    pendingApplicationId.value = null
+    retryCount.value = 0
+    lastError.value = null
 
     toast.add({
       title: 'Application Submitted',
@@ -644,7 +728,9 @@ const onSubmit = async (_event: FormSubmitEvent<MembershipFormData>) => {
         errorColor = 'error'
       } else if (e.message === 'CLOSED') {
         errorTitle = 'Payment Cancelled'
-        errorDescription = 'You cancelled the payment process.'
+        errorDescription = pendingApplicationId.value
+          ? 'You cancelled the payment. Your application has been saved. Click "Pay & Submit" to retry payment.'
+          : 'You cancelled the payment process.'
         errorColor = 'warning'
       } else if (e.message === 'PAYMENT_ERROR') {
         errorTitle = 'Payment Error'
@@ -659,7 +745,15 @@ const onSubmit = async (_event: FormSubmitEvent<MembershipFormData>) => {
         errorDescription =
           'Unable to submit your application. If payment was successful, please contact support with your payment reference.'
         errorColor = 'error'
+        lastError.value = 'APPLICATION_FAILED'
+        retryCount.value++
       }
+    }
+
+    // Show retry information if applicable
+    const canRetryNow = retryCount.value < MAX_RETRIES && lastError.value !== null
+    if (canRetryNow && !pendingApplicationId.value) {
+      errorDescription += ` (Attempt ${retryCount.value}/${MAX_RETRIES})`
     }
 
     toast.add({
