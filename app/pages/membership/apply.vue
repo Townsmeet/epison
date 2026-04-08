@@ -1,5 +1,16 @@
 <template>
   <div class="py-12 bg-white dark:bg-gray-900">
+    <!-- Retry Modal -->
+    <CommonRetryModal
+      v-model:open="showRetryModal"
+      title="Application Failed"
+      :message="retryModalMessage"
+      :attempt-info="`Attempt ${retryCount}/${MAX_RETRIES}`"
+      :is-retrying="isRetrying"
+      @retry="handleRetry"
+      @cancel="handleRetryCancel"
+    />
+
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
@@ -106,6 +117,11 @@ const pendingApplicationId = ref<string | null>(null)
 const retryCount = ref(0)
 const MAX_RETRIES = 3
 const lastError = ref<string | null>(null)
+
+// Retry modal state
+const showRetryModal = ref(false)
+const retryModalMessage = ref('')
+const isRetrying = ref(false)
 
 // Form state with Zod schema
 const state = reactive<MembershipFormData>({
@@ -709,61 +725,93 @@ const onSubmit = async (_event: FormSubmitEvent<MembershipFormData>) => {
     console.error(e)
 
     // Handle specific error types
-    let errorTitle = 'Error'
-    let errorDescription = 'An unexpected error occurred'
-    let errorColor: 'error' | 'warning' = 'error'
-
     if (e instanceof Error) {
       if (e.message === 'EMAIL_REQUIRED') {
-        errorTitle = 'Email Required'
-        errorDescription = 'Please enter your email address to proceed with payment.'
-        errorColor = 'warning'
+        toast.add({
+          title: 'Email Required',
+          description: 'Please enter your email address to proceed with payment.',
+          color: 'warning',
+        })
       } else if (e.message === 'AMOUNT_INVALID') {
-        errorTitle = 'Invalid Amount'
-        errorDescription = 'Please select a membership type to determine the fee amount.'
-        errorColor = 'warning'
+        toast.add({
+          title: 'Invalid Amount',
+          description: 'Please select a membership type to determine the fee amount.',
+          color: 'warning',
+        })
       } else if (e.message === 'MISSING_KEY') {
-        errorTitle = 'Payment Configuration Error'
-        errorDescription = 'Payment system is not properly configured. Please contact support.'
-        errorColor = 'error'
+        toast.add({
+          title: 'Payment Configuration Error',
+          description: 'Payment system is not properly configured. Please contact support.',
+          color: 'error',
+        })
       } else if (e.message === 'CLOSED') {
-        errorTitle = 'Payment Cancelled'
-        errorDescription = pendingApplicationId.value
-          ? 'You cancelled the payment. Your application has been saved. Click "Pay & Submit" to retry payment.'
-          : 'You cancelled the payment process.'
-        errorColor = 'warning'
+        toast.add({
+          title: 'Payment Cancelled',
+          description: pendingApplicationId.value
+            ? 'You cancelled the payment. Your application has been saved. Click "Pay & Submit" to retry payment.'
+            : 'You cancelled the payment process.',
+          color: 'warning',
+        })
       } else if (e.message === 'PAYMENT_ERROR') {
-        errorTitle = 'Payment Error'
-        errorDescription = 'Unable to process payment. Please try again or contact support.'
-        errorColor = 'error'
+        toast.add({
+          title: 'Payment Error',
+          description: 'Unable to process payment. Please try again or contact support.',
+          color: 'error',
+        })
       } else if (isEditMode.value) {
-        errorTitle = 'Save Failed'
-        errorDescription = 'Unable to save your changes. Please try again.'
-        errorColor = 'error'
+        toast.add({
+          title: 'Save Failed',
+          description: 'Unable to save your changes. Please try again.',
+          color: 'error',
+        })
       } else {
-        errorTitle = 'Application Failed'
-        errorDescription =
-          'Unable to submit your application. If payment was successful, please contact support with your payment reference.'
-        errorColor = 'error'
-        lastError.value = 'APPLICATION_FAILED'
+        // Application creation failed - show retry modal
         retryCount.value++
+        lastError.value = e.message || 'APPLICATION_FAILED'
+        retryModalMessage.value =
+          'We encountered an error while submitting your application. Please check your connection and try again.'
+        showRetryModal.value = true
       }
+    } else {
+      // Unknown error - show retry modal
+      retryCount.value++
+      lastError.value = 'UNKNOWN_ERROR'
+      retryModalMessage.value =
+        'An unexpected error occurred. Please check your connection and try again.'
+      showRetryModal.value = true
     }
-
-    // Show retry information if applicable
-    const canRetryNow = retryCount.value < MAX_RETRIES && lastError.value !== null
-    if (canRetryNow && !pendingApplicationId.value) {
-      errorDescription += ` (Attempt ${retryCount.value}/${MAX_RETRIES})`
-    }
-
-    toast.add({
-      title: errorTitle,
-      description: errorDescription,
-      color: errorColor,
-    })
   } finally {
     isSubmitting.value = false
   }
+}
+
+// Retry modal handlers
+async function handleRetry() {
+  if (retryCount.value >= MAX_RETRIES) {
+    showRetryModal.value = false
+    toast.add({
+      title: 'Maximum Retries Reached',
+      description: 'Please try again later or contact support if the problem persists.',
+      color: 'error',
+    })
+    return
+  }
+
+  isRetrying.value = true
+  showRetryModal.value = false
+
+  // Re-trigger the form submission
+  try {
+    await onSubmit({ data: state } as import('#ui/types').FormSubmitEvent<MembershipFormData>)
+  } finally {
+    isRetrying.value = false
+  }
+}
+
+function handleRetryCancel() {
+  showRetryModal.value = false
+  // Reset retry state if user cancels
+  lastError.value = null
 }
 
 // Edit mode: Prefill the form

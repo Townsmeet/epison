@@ -1,5 +1,16 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
+    <!-- Retry Modal -->
+    <CommonRetryModal
+      v-model:open="showRetryModal"
+      title="Registration Failed"
+      :message="retryModalMessage"
+      :attempt-info="`Attempt ${retryCount}/${MAX_RETRIES}`"
+      :is-retrying="isRetrying"
+      @retry="handleRetry"
+      @cancel="handleRetryCancel"
+    />
+
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="mb-8">
         <NuxtLink :to="`/events/${slug}`" class="text-sm text-primary-600 hover:underline"
@@ -198,6 +209,13 @@ const ticketStructure = computed<TicketDisplayStructure>(
 
 const submitting = ref(false)
 
+// Retry state
+const showRetryModal = ref(false)
+const retryModalMessage = ref('')
+const isRetrying = ref(false)
+const retryCount = ref(0)
+const MAX_RETRIES = 3
+
 const form = reactive({
   name: '',
   email: '',
@@ -304,8 +322,37 @@ async function onSubmit() {
     }
   } catch (err) {
     console.error('Registration error:', err)
+    // Show retry modal for registration failures
+    retryCount.value++
+    retryModalMessage.value =
+      'We encountered an error while processing your registration. Please check your connection and try again.'
+    showRetryModal.value = true
   } finally {
     submitting.value = false
   }
+}
+
+// Retry modal handlers
+async function handleRetry() {
+  if (retryCount.value >= MAX_RETRIES) {
+    showRetryModal.value = false
+    // Could show a toast here if needed
+    return
+  }
+
+  isRetrying.value = true
+  showRetryModal.value = false
+
+  // Re-trigger the form submission
+  try {
+    await onSubmit()
+  } finally {
+    isRetrying.value = false
+  }
+}
+
+function handleRetryCancel() {
+  showRetryModal.value = false
+  retryCount.value = 0
 }
 </script>
