@@ -561,6 +561,16 @@
             </UButton>
 
             <UButton
+              color="neutral"
+              variant="outline"
+              icon="i-heroicons-user-group"
+              block
+              @click="openTypeChangeModal"
+            >
+              Change Membership Type
+            </UButton>
+
+            <UButton
               color="warning"
               variant="outline"
               icon="i-heroicons-no-symbol"
@@ -621,6 +631,66 @@
         </UCard>
       </template>
     </UModal>
+    <!-- Type Change Modal -->
+    <UModal v-model:open="typeChangeModal.isOpen">
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold">Change Membership Type</h3>
+              <UButton
+                color="neutral"
+                variant="ghost"
+                icon="i-heroicons-x-mark"
+                @click="typeChangeModal.isOpen = false"
+              />
+            </div>
+          </template>
+
+          <div class="py-4 space-y-4">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Select a new membership type. The annual fee will be updated accordingly.
+            </p>
+
+            <USelect
+              v-model="typeChangeModal.selectedType"
+              :items="membershipTypes"
+              label="Select Membership Type"
+              placeholder="Select Type"
+              class="w-full"
+            />
+
+            <div v-if="selectedTypeFee > 0" class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-gray-500">New Annual Fee:</span>
+                <span class="font-bold text-gray-900 dark:text-white"
+                  >₦{{ selectedTypeFee.toLocaleString() }}</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <template #footer>
+            <div class="flex justify-end space-x-3">
+              <UButton color="neutral" variant="ghost" @click="typeChangeModal.isOpen = false">
+                Cancel
+              </UButton>
+              <UButton
+                color="primary"
+                :loading="typeChangeModal.isSaving"
+                :disabled="
+                  !typeChangeModal.selectedType ||
+                  typeChangeModal.selectedType === member?.membershipType
+                "
+                @click="doChangeMembershipType"
+              >
+                Save Changes
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -652,6 +722,7 @@ const {
   suspendMember: suspendMemberAPI,
   adminRenewMember,
   remindMember,
+  refreshMember,
 } = useMembers()
 
 const confirmationModal = ref({
@@ -663,6 +734,71 @@ const confirmationModal = ref({
   isConfirming: false,
   onConfirm: () => {},
 })
+
+const membershipTypes = [
+  { label: 'Regular', value: 'regular' },
+  { label: 'Regular IEA', value: 'regular iea' },
+  { label: 'Early Career', value: 'early-career' },
+  { label: 'Early Career IEA', value: 'early-career iea' },
+]
+
+const feeMap: Record<string, number> = {
+  regular: 30000,
+  'regular iea': 50000,
+  'early-career': 15000,
+  'early-career iea': 20000,
+}
+
+const typeChangeModal = ref({
+  isOpen: false,
+  selectedType: '',
+  isSaving: false,
+})
+
+const selectedTypeFee = computed(() => {
+  return feeMap[typeChangeModal.value.selectedType] || 0
+})
+
+function openTypeChangeModal() {
+  if (!member.value) return
+  typeChangeModal.value = {
+    isOpen: true,
+    selectedType: member.value.membershipType,
+    isSaving: false,
+  }
+}
+
+async function doChangeMembershipType() {
+  if (!member.value) return
+  try {
+    typeChangeModal.value.isSaving = true
+    const newType = typeChangeModal.value.selectedType
+    const newFee = feeMap[newType]
+
+    await updateMember(memberId, {
+      membershipType: newType,
+      fees: newFee,
+    })
+
+    typeChangeModal.value.isOpen = false
+    useToast().add({
+      title: 'Membership Type Updated',
+      description: `Type successfully changed to ${newType}.`,
+      color: 'success',
+    })
+
+    // Refresh member data
+    await refreshMember(memberId)
+  } catch (err: unknown) {
+    useToast().add({
+      title: 'Update failed',
+      description: extractApiMessage(err, 'Could not change membership type'),
+      color: 'error',
+    })
+  } finally {
+    typeChangeModal.value.isSaving = false
+  }
+}
 
 // Fetch member data using the composable
 const { data: memberResponse, pending, error } = getMember(memberId)
