@@ -80,9 +80,13 @@ export const createEventSponsorSchema = z.object({
 export const createEventCommitteeMemberSchema = z.object({
   name: z.string().min(1).max(150),
   role: z.string().max(100).optional().nullable(),
-  email: z.string().email().optional().nullable(),
+  email: z
+    .preprocess(val => (val === '' ? undefined : val), z.string().email().optional().nullable())
+    .optional(),
   phone: z.string().max(50).optional().nullable(),
-  photoUrl: z.string().url().optional().nullable(),
+  photoUrl: z
+    .preprocess(val => (val === '' ? undefined : val), z.string().url().optional().nullable())
+    .optional(),
 })
 
 // ===== Event Media =====
