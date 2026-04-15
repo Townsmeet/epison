@@ -436,7 +436,7 @@ async function applyEdit() {
       role: editMember.role?.trim() || undefined,
       email: editMember.email?.trim() || undefined,
       phone: editMember.phone?.trim() || undefined,
-      photoUrl,
+      photoUrl: photoUrl || undefined,
     }
 
     await updateEventCommitteeMember(editMember.id, updateData)

@@ -22,27 +22,28 @@ export const createEventSchema = z.object({
   type: eventTypeSchema,
   status: eventStatusSchema.default('draft'),
   startDate: z.string().datetime(),
-  endDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional().nullable(),
   location: z.string().min(1).max(300),
-  capacity: z.number().int().positive().optional(),
-  description: z.string().max(5000).optional(),
-  bannerUrl: z.string().url().optional(),
+  capacity: z.number().int().positive().optional().nullable(),
+  description: z.string().max(5000).optional().nullable(),
+  bannerUrl: z.string().url().optional().nullable(),
   membersOnly: z.boolean().default(false),
   collectsSubmissions: z.boolean().default(false),
   theme: z.string().min(2).max(200),
-  subthemes: z.array(z.string().min(1).max(200)).min(0).max(10).optional(),
-  submissionGuidelines: z.string().max(5000).optional(),
+  subthemes: z.array(z.string().min(1).max(200)).min(0).max(10).optional().nullable(),
+  submissionGuidelines: z.string().max(5000).optional().nullable(),
   submissionDates: z
     .array(
       z.object({
         label: z.string().min(2).max(100),
-        date: z.string().optional(),
-        startDate: z.string().optional(),
-        endDate: z.string().optional(),
+        date: z.string().optional().nullable(),
+        startDate: z.string().optional().nullable(),
+        endDate: z.string().optional().nullable(),
       })
     )
     .max(10)
-    .optional(),
+    .optional()
+    .nullable(),
 })
 
 export const updateEventSchema = createEventSchema.partial().omit({ slug: true })
@@ -51,44 +52,44 @@ export const updateEventSchema = createEventSchema.partial().omit({ slug: true }
 // ===== Ticket Categories =====
 export const createTicketCategorySchema = z.object({
   name: z.string().min(1).max(100),
-  description: z.string().max(500).optional(),
+  description: z.string().max(500).optional().nullable(),
   displayOrder: z.number().int().min(0).default(0),
 })
 
 export const createEventTicketSchema = z.object({
-  categoryId: z.string().optional(),
+  categoryId: z.string().optional().nullable(),
   name: z.string().min(1).max(100),
   price: z.number().int().min(0), // kobo
   quantity: z.number().int().min(0),
   displayOrder: z.number().int().min(0).default(0),
-  salesStart: z.string().datetime().optional(),
-  salesEnd: z.string().datetime().optional(),
-  description: z.string().max(1000).optional(),
+  salesStart: z.string().datetime().optional().nullable(),
+  salesEnd: z.string().datetime().optional().nullable(),
+  description: z.string().max(1000).optional().nullable(),
   isPublic: z.boolean().default(true),
 })
 
 // ===== Event Sponsors =====
 export const createEventSponsorSchema = z.object({
   name: z.string().min(1).max(150),
-  tier: z.string().optional(),
+  tier: z.string().optional().nullable(),
   logoUrl: z.string().url().min(1),
-  website: z.string().url().optional(),
+  website: z.string().url().optional().nullable(),
 })
 
 // ===== Event Committee =====
 export const createEventCommitteeMemberSchema = z.object({
   name: z.string().min(1).max(150),
-  role: z.string().max(100).optional(),
-  email: z.string().email().optional(),
-  phone: z.string().max(50).optional(),
-  photoUrl: z.string().url().optional(),
+  role: z.string().max(100).optional().nullable(),
+  email: z.string().email().optional().nullable(),
+  phone: z.string().max(50).optional().nullable(),
+  photoUrl: z.string().url().optional().nullable(),
 })
 
 // ===== Event Media =====
 export const createEventMediaSchema = z.object({
   url: z.string().url().min(1),
-  caption: z.string().max(500).optional(),
-  type: z.enum(['image', 'video']).optional(),
+  caption: z.string().max(500).optional().nullable(),
+  type: z.enum(['image', 'video']).optional().nullable(),
 })
 
 // ===== Event Registrations =====
@@ -104,10 +105,10 @@ export const paymentStatusSchema = z.enum(['Pending', 'Paid', 'Cancelled', 'Refu
 export const createEventRegistrationSchema = z.object({
   attendeeName: z.string().min(1).max(150),
   attendeeEmail: z.string().email(),
-  attendeePhone: z.string().max(50).optional(),
-  attendeeOrg: z.string().max(200).optional(),
-  category: registrationCategorySchema.optional(),
-  ticketId: z.string().optional(),
+  attendeePhone: z.string().max(50).optional().nullable(),
+  attendeeOrg: z.string().max(200).optional().nullable(),
+  category: registrationCategorySchema.optional().nullable(),
+  ticketId: z.string().optional().nullable(),
   quantity: z.number().int().positive().default(1),
 })
 
@@ -129,12 +130,12 @@ export const createAbstractSubmissionSchema = z.object({
     name: z.string().min(1),
     email: z.string().email(),
     affiliation: z.string().min(1),
-    phone: z.string().optional(),
+    phone: z.string().optional().nullable(),
   }),
   keywords: z.array(z.string()).min(3).max(5),
   category: submissionCategorySchema,
-  subtheme: z.string().max(200).optional(),
-  notes: z.string().max(1000).optional(),
+  subtheme: z.string().max(200).optional().nullable(),
+  notes: z.string().max(1000).optional().nullable(),
 })
 
 export const updateSubmissionSchema = z.object({
@@ -143,18 +144,19 @@ export const updateSubmissionSchema = z.object({
   authors: z.array(z.string().min(1)).min(1).optional(),
   correspondingAuthor: z
     .object({
-      name: z.string().min(1).optional(),
-      email: z.string().email().optional(),
-      affiliation: z.string().min(1).optional(),
-      phone: z.string().optional(),
+      name: z.string().min(1).optional().nullable(),
+      email: z.string().email().optional().nullable(),
+      affiliation: z.string().min(1).optional().nullable(),
+      phone: z.string().optional().nullable(),
     })
-    .optional(),
-  keywords: z.array(z.string()).min(3).max(5).optional(),
-  category: submissionCategorySchema.optional(),
-  subtheme: z.string().max(200).optional(),
-  notes: z.string().max(1000).optional(),
-  status: submissionStatusSchema.optional(),
-  reviewerComments: z.string().optional(),
+    .optional()
+    .nullable(),
+  keywords: z.array(z.string()).min(3).max(5).optional().nullable(),
+  category: submissionCategorySchema.optional().nullable(),
+  subtheme: z.string().max(200).optional().nullable(),
+  notes: z.string().max(1000).optional().nullable(),
+  status: submissionStatusSchema.optional().nullable(),
+  reviewerComments: z.string().optional().nullable(),
 })
 export const eventListQuerySchema = z.object({
   q: z.string().optional(),

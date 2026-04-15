@@ -9,55 +9,55 @@ export const createMemberSchema = z.object({
   email: z.string().email('Invalid email address').max(255),
 
   // Optional personal details
-  title: z.string().max(100).optional(),
-  nameMiddle: z.string().max(100).optional(),
-  sex: z.string().max(50).optional(),
-  dob: z.string().optional(), // expect YYYY-MM-DD if provided
-  address: z.string().max(500).optional(),
-  state: z.string().max(100).optional(),
-  telephone: z.string().max(50).optional(),
-  fax: z.string().max(50).optional(),
-  avatar: z.string().url('Invalid URL').optional(),
+  title: z.string().max(100).optional().nullable(),
+  nameMiddle: z.string().max(100).optional().nullable(),
+  sex: z.string().max(50).optional().nullable(),
+  dob: z.string().optional().nullable(), // expect YYYY-MM-DD if provided
+  address: z.string().max(500).optional().nullable(),
+  state: z.string().max(100).optional().nullable(),
+  telephone: z.string().max(50).optional().nullable(),
+  fax: z.string().max(50).optional().nullable(),
+  avatar: z.string().url('Invalid URL').optional().nullable(),
 
   // Employment & Education
-  position: z.string().max(100).optional(),
-  employer: z.string().max(150).optional(),
-  department: z.string().max(150).optional(),
-  qualifications: z.string().max(1000).optional(),
-  experience: z.string().max(2000).optional(),
+  position: z.string().max(100).optional().nullable(),
+  employer: z.string().max(150).optional().nullable(),
+  department: z.string().max(150).optional().nullable(),
+  qualifications: z.string().max(1000).optional().nullable(),
+  experience: z.string().max(2000).optional().nullable(),
 
   // Languages
-  motherTongue: z.string().max(100).optional(),
-  otherLanguages: z.array(z.string()).optional(),
-  otherLanguageText: z.string().max(500).optional(),
+  motherTongue: z.string().max(100).optional().nullable(),
+  otherLanguages: z.array(z.string()).optional().nullable(),
+  otherLanguageText: z.string().max(500).optional().nullable(),
 
   // Areas of Expertise
-  expertiseDescription: z.string().max(2000).optional(),
-  expertise: z.array(z.string()).optional(),
-  expertiseOther: z.string().max(500).optional(),
+  expertiseDescription: z.string().max(2000).optional().nullable(),
+  expertise: z.array(z.string()).optional().nullable(),
+  expertiseOther: z.string().max(500).optional().nullable(),
 
   // Employment Classification
-  agency: z.string().max(200).optional(),
-  typeOfWork: z.string().max(200).optional(),
-  typeOfWorkOther: z.string().max(200).optional(),
-  retiredSince: z.string().optional(),
+  agency: z.string().max(200).optional().nullable(),
+  typeOfWork: z.string().max(200).optional().nullable(),
+  typeOfWorkOther: z.string().max(200).optional().nullable(),
+  retiredSince: z.string().optional().nullable(),
 
   // Membership Details
-  membershipType: z.string().max(100).optional(),
-  status: z.string().max(50).optional(),
-  fees: z.number().min(0).optional(),
-  paymentReference: z.string().max(100).optional(),
+  membershipType: z.string().max(100).optional().nullable(),
+  status: z.string().max(50).optional().nullable(),
+  fees: z.number().min(0).optional().nullable(),
+  paymentReference: z.string().max(100).optional().nullable(),
 
   // Related data
-  publications: z.array(z.string().url('Invalid publication URL')).optional(),
+  publications: z.array(z.string().url('Invalid publication URL')).optional().nullable(),
 })
 
 export const updateMemberSchema = createMemberSchema.partial()
 
 export const memberActionSchema = z.object({
-  reason: z.string().max(1000).optional(),
-  notes: z.string().max(2000).optional(),
-  period: z.enum(['6 months', '1 year', '2 years']).optional(),
+  reason: z.string().max(1000).optional().nullable(),
+  notes: z.string().max(2000).optional().nullable(),
+  period: z.enum(['6 months', '1 year', '2 years']).optional().nullable(),
 })
 
 export const memberListQuerySchema = z.object({
@@ -75,8 +75,8 @@ export const memberListQuerySchema = z.object({
 })
 
 export const memberStatsQuerySchema = z.object({
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
+  startDate: z.string().optional().nullable(),
+  endDate: z.string().optional().nullable(),
 })
 
 // Member ID parameter validation
