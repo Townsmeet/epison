@@ -122,6 +122,9 @@ importers:
       lint-staged:
         specifier: ^16.1.5
         version: 16.1.5
+      nuxt-gtag:
+        specifier: ^4.1.0
+        version: 4.1.0(magicast@0.3.5)
       postcss:
         specifier: ^8.5.6
         version: 8.5.6
@@ -9647,6 +9650,12 @@ packages:
     resolution:
       {
         integrity: sha512-CCSK8mhbLcmsEt+nzBMiH/JAQ/L+e0Cmg87lOwLehjlJ23rMyBcajF2Fn9fqwx6nQv2PT1MFDlTVHoAsAMYnWA==,
+      }
+
+  nuxt-gtag@4.1.0:
+    resolution:
+      {
+        integrity: sha512-2TL7RUA8N8NYGbY4UZ9IqKyMZMgO9cCGu6yqadUU8RF+Y81PXI+k+1giIA11XXStaJoGXaXeNsBUIJXn1tUy3A==,
       }
 
   nuxt-link-checker@4.3.6:
@@ -19422,6 +19431,15 @@ snapshots:
       - magicast
       - supports-color
       - vue
+
+  nuxt-gtag@4.1.0(magicast@0.3.5):
+    dependencies:
+      '@nuxt/kit': 4.2.1(magicast@0.3.5)
+      defu: 6.1.4
+      pathe: 2.0.3
+      ufo: 1.6.1
+    transitivePeerDependencies:
+      - magicast
 
   nuxt-link-checker@4.3.6(@netlify/blobs@9.1.2)(db0@0.3.2(@libsql/client@0.15.15)(drizzle-orm@0.44.5(@libsql/client@0.15.15)(kysely@0.28.7)))(h3@1.15.4)(ioredis@5.7.0)(magicast@0.3.5)(vite@7.1.2(@types/node@20.19.17)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vue@3.5.18(typescript@5.9.2)):
     dependencies:

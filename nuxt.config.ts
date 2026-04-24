@@ -14,7 +14,14 @@ export default defineNuxtConfig({
     'nuxt-charts',
     '@nuxtjs/seo',
     'nuxt-og-image',
+    'nuxt-gtag',
   ],
+
+  // Google Analytics configuration
+  gtag: {
+    enabled: process.env.NODE_ENV === 'production',
+    id: process.env.NUXT_PUBLIC_GTAG_ID || 'G-XXXXXXXXXX',
+  },
 
   colorMode: {
     preference: 'system',
