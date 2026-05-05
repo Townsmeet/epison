@@ -15,6 +15,7 @@ export default defineNuxtConfig({
     '@nuxtjs/seo',
     'nuxt-og-image',
     'nuxt-gtag',
+    '@sentry/nuxt/module',
   ],
 
   // Google Analytics configuration
@@ -26,6 +27,26 @@ export default defineNuxtConfig({
   colorMode: {
     preference: 'system',
     fallback: 'light',
+  },
+
+  sentry: {
+    sourceMapsUploadOptions: {
+      org: process.env.NUXT_SENTRY_ORG,
+      project: process.env.NUXT_SENTRY_PROJECT,
+      authToken: process.env.NUXT_SENTRY_AUTH_TOKEN,
+    },
+  },
+
+  sourcemap: {
+    client: 'hidden',
+  },
+
+  vite: {
+    define: {
+      'process.env.NUXT_PUBLIC_SENTRY_DSN': JSON.stringify(
+        process.env.NUXT_PUBLIC_SENTRY_DSN || process.env.NUXT_SENTRY_DSN
+      ),
+    },
   },
 
   runtimeConfig: {
@@ -57,6 +78,10 @@ export default defineNuxtConfig({
       // expose public base URL if needed by client to render image URLs
       s3PublicBaseUrl: process.env.NUXT_S3_PUBLIC_BASE_URL,
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
+      sentry: {
+        dsn: process.env.NUXT_PUBLIC_SENTRY_DSN || process.env.NUXT_SENTRY_DSN,
+        environment: process.env.NODE_ENV || 'development',
+      },
     },
   },
 

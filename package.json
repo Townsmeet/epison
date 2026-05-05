@@ -24,6 +24,7 @@
     "@nuxt/ui": "3.3.2",
     "@nuxtjs/seo": "3.2.2",
     "@pinia/nuxt": "^0.11.2",
+    "@sentry/nuxt": "^10.51.0",
     "@unhead/vue": "^2.0.14",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
