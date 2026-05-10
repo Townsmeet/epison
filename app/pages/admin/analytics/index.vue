@@ -397,7 +397,7 @@ const memberGrowthCategories = {
   },
 }
 
-const xFormatter = (i: number) => memberGrowthData.value[i]!.month
+const xFormatter = (i: number) => memberGrowthData.value[i]?.month ?? ''
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-US', {
