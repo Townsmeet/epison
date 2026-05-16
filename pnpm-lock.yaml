@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@nuxtjs/color-mode':
+    hash: 811d0a7b141a58e7ce1ddafe058fea071e5b6251bff308cab64394357d337df4
+    path: patches/@nuxtjs__color-mode.patch
+
 importers:
   .:
     dependencies:
@@ -15518,7 +15523,7 @@ snapshots:
       '@nuxt/icon': 1.15.0(magicast@0.3.5)(vite@7.1.2(@types/node@20.19.17)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vue@3.5.18(typescript@5.9.2))
       '@nuxt/kit': 4.0.3(magicast@0.3.5)
       '@nuxt/schema': 4.0.3
-      '@nuxtjs/color-mode': 3.5.2(magicast@0.3.5)
+      '@nuxtjs/color-mode': 3.5.2(patch_hash=811d0a7b141a58e7ce1ddafe058fea071e5b6251bff308cab64394357d337df4)(magicast@0.3.5)
       '@standard-schema/spec': 1.0.0
       '@tailwindcss/postcss': 4.1.12
       '@tailwindcss/vite': 4.1.12(vite@7.1.2(@types/node@20.19.17)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))
@@ -15654,7 +15659,7 @@ snapshots:
       - vue-tsc
       - yaml
 
-  '@nuxtjs/color-mode@3.5.2(magicast@0.3.5)':
+  '@nuxtjs/color-mode@3.5.2(patch_hash=811d0a7b141a58e7ce1ddafe058fea071e5b6251bff308cab64394357d337df4)(magicast@0.3.5)':
     dependencies:
       '@nuxt/kit': 3.18.1(magicast@0.3.5)
       pathe: 1.1.2

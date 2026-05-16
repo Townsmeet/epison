@@ -1,0 +1,99 @@
+diff --git a/dist/runtime/plugin.client.js b/dist/runtime/plugin.client.js
+index 9106f1b35e7813574276b11eaf40a7c85c6704bd..e3dfd287f568403ab4f9c59a9b6973e0adcf520c 100644
+--- a/dist/runtime/plugin.client.js
++++ b/dist/runtime/plugin.client.js
+@@ -1,12 +1,12 @@
+ import { computed, reactive, watch } from "vue";
+ import { defineNuxtPlugin, isVue2, isVue3, useRouter, useHead, useState } from "#imports";
+ import { globalName, storageKey, dataValue, disableTransition, storage } from "#color-mode-options";
+-const helper = window[globalName] || {};
++const getHelper = () => window[globalName] || {};
+ export default defineNuxtPlugin((nuxtApp) => {
+   const colorMode = useState("color-mode", () => reactive({
+     // For SPA mode or fallback
+-    preference: helper.preference,
+-    value: helper.value,
++    preference: getHelper().preference,
++    value: getHelper().value,
+     unknown: false,
+     forced: false
+   })).value;
+@@ -36,7 +36,8 @@ export default defineNuxtPlugin((nuxtApp) => {
+         console.warn("You cannot force the colorMode to system at the page level.");
+       }
+       colorMode.forced = false;
+-      colorMode.value = colorMode.preference === "system" ? helper.getColorScheme() : colorMode.preference;
++      const helper = getHelper();
++      colorMode.value = (colorMode.preference === "system" && helper.getColorScheme) ? helper.getColorScheme() : (colorMode.preference === "system" ? 'light' : colorMode.preference);
+     }
+   });
+   let darkWatcher;
+@@ -46,7 +47,8 @@ export default defineNuxtPlugin((nuxtApp) => {
+     }
+     darkWatcher = window.matchMedia("(prefers-color-scheme: dark)");
+     darkWatcher.addEventListener("change", () => {
+-      if (!colorMode.forced && colorMode.preference === "system") {
++      const helper = getHelper();
++      if (!colorMode.forced && colorMode.preference === "system" && helper.getColorScheme) {
+         colorMode.value = helper.getColorScheme();
+       }
+     });
+@@ -57,11 +59,15 @@ export default defineNuxtPlugin((nuxtApp) => {
+         window.document.cookie = storageKey + "=" + preference;
+         break;
+       case "sessionStorage":
+-        window.sessionStorage?.setItem(storageKey, preference);
++        if (window.sessionStorage) {
++          window.sessionStorage.setItem(storageKey, preference);
++        }
+         break;
+       case "localStorage":
+       default:
+-        window.localStorage?.setItem(storageKey, preference);
++        if (window.localStorage) {
++          window.localStorage.setItem(storageKey, preference);
++        }
+     }
+   }
+   watch(() => colorMode.preference, (preference) => {
+@@ -69,7 +75,8 @@ export default defineNuxtPlugin((nuxtApp) => {
+       return;
+     }
+     if (preference === "system") {
+-      colorMode.value = helper.getColorScheme();
++      const helper = getHelper();
++      colorMode.value = helper.getColorScheme ? helper.getColorScheme() : 'light';
+       watchMedia();
+     } else {
+       colorMode.value = preference;
+@@ -83,8 +90,13 @@ export default defineNuxtPlugin((nuxtApp) => {
+       style.appendChild(document.createTextNode("*{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}"));
+       window.document.head.appendChild(style);
+     }
+-    helper.removeColorScheme(oldValue);
+-    helper.addColorScheme(newValue);
++    const helper = getHelper();
++    if (helper.removeColorScheme) {
++      helper.removeColorScheme(oldValue);
++    }
++    if (helper.addColorScheme) {
++      helper.addColorScheme(newValue);
++    }
+     if (disableTransition) {
+       const _ = window.getComputedStyle(style).opacity;
+       document.head.removeChild(style);
+@@ -95,6 +107,7 @@ export default defineNuxtPlugin((nuxtApp) => {
+   }
+   nuxtApp.hook("app:mounted", () => {
+     if (colorMode.unknown) {
++      const helper = getHelper();
+       colorMode.preference = helper.preference;
+       colorMode.value = helper.value;
+       colorMode.unknown = false;
+diff --git a/dist/script.min.js b/dist/script.min.js
+index 01725ae283d5936cdc7576eb6efda8c4a184fa62..3ec53565a0a090cce9d6062c23e573ed95a468be 100644
+--- a/dist/script.min.js
++++ b/dist/script.min.js
+@@ -1 +1 @@
+-"use strict";(()=>{const t=window,e=document.documentElement,c=["dark","light"],n=getStorageValue("<%= options.storage %>","<%= options.storageKey %>")||"<%= options.preference %>";let i=n==="system"?u():n;const r=e.getAttribute("data-color-mode-forced");r&&(i=r),l(i),t["<%= options.globalName %>"]={preference:n,value:i,getColorScheme:u,addColorScheme:l,removeColorScheme:d};function l(o){const s="<%= options.classPrefix %>"+o+"<%= options.classSuffix %>",a="<%= options.dataValue %>";e.classList?e.classList.add(s):e.className+=" "+s,a&&e.setAttribute("data-"+a,o)}function d(o){const s="<%= options.classPrefix %>"+o+"<%= options.classSuffix %>",a="<%= options.dataValue %>";e.classList?e.classList.remove(s):e.className=e.className.replace(new RegExp(s,"g"),""),a&&e.removeAttribute("data-"+a)}function f(o){return t.matchMedia("(prefers-color-scheme"+o+")")}function u(){if(t.matchMedia&&f("").media!=="not all"){for(const o of c)if(f(":"+o).matches)return o}return"<%= options.fallback %>"}})();function getStorageValue(t,e){switch(t){case"localStorage":return window.localStorage.getItem(e);case"sessionStorage":return window.sessionStorage.getItem(e);case"cookie":return getCookie(e);default:return null}}function getCookie(t){const c=("; "+window.document.cookie).split("; "+t+"=");if(c.length===2)return c.pop()?.split(";").shift()}
++"use strict";(()=>{const t=window,e=document.documentElement,c=["dark","light"],n=getStorageValue("<%= options.storage %>","<%= options.storageKey %>")||"<%= options.preference %>";let i=n==="system"?u():n;const r=e.getAttribute("data-color-mode-forced");r&&(i=r),l(i),t["<%= options.globalName %>"]={preference:n,value:i,getColorScheme:u,addColorScheme:l,removeColorScheme:d};function l(o){const s="<%= options.classPrefix %>"+o+"<%= options.classSuffix %>",a="<%= options.dataValue %>";e.classList?e.classList.add(s):e.className+=" "+s,a&&e.setAttribute("data-"+a,o)}function d(o){const s="<%= options.classPrefix %>"+o+"<%= options.classSuffix %>",a="<%= options.dataValue %>";e.classList?e.classList.remove(s):e.className=e.className.replace(new RegExp(s,"g"),""),a&&e.removeAttribute("data-"+a)}function f(o){return t.matchMedia("(prefers-color-scheme"+o+")")}function u(){if(t.matchMedia&&f("").media!=="not all"){for(const o of c)if(f(":"+o).matches)return o}return"<%= options.fallback %>"}})();function getStorageValue(t,e){switch(t){case"localStorage":return window.localStorage.getItem(e);case"sessionStorage":return window.sessionStorage.getItem(e);case"cookie":return getCookie(e);default:return null}}function getCookie(t){const c=("; "+window.document.cookie).split("; "+t+"=");if(c.length===2)return c.pop().split(";").shift()}
