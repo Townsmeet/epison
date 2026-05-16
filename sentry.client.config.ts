@@ -12,6 +12,10 @@ if (dsn) {
     replaysOnErrorSampleRate: 1.0,
     sendDefaultPii: true,
     environment: process.env.NODE_ENV || 'development',
+    ignoreErrors: [
+      'Failed to fetch dynamically imported module',
+      'TypeError: Failed to fetch dynamically imported module',
+    ],
   })
 } else {
   console.log('Sentry DSN not found on client, skipping initialization')

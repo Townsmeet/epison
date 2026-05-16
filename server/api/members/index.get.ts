@@ -115,7 +115,7 @@ export default defineEventHandler(
         .from(member)
         .where(conditions.length > 0 ? and(...conditions) : undefined)
 
-      const total = totalResult[0]?.count || 0
+      const total = Number(totalResult[0]?.count || 0)
       const totalPages = Math.ceil(total / limit)
       const offset = (page - 1) * limit
 

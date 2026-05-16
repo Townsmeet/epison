@@ -80,7 +80,7 @@ export default defineEventHandler(async event => {
       .from(member)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
 
-    const total = countResult?.count || 0
+    const total = Number(countResult?.count || 0)
 
     // Get members with pagination - only essential public information
     const members = await db

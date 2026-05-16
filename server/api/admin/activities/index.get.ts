@@ -69,9 +69,9 @@ export default defineEventHandler(async event => {
       pagination: {
         page,
         limit,
-        total: count,
-        totalPages: Math.ceil(count / limit),
-        hasNext: offset + rows.length < count,
+        total: Number(count),
+        totalPages: Math.ceil(Number(count) / limit),
+        hasNext: offset + rows.length < Number(count),
         hasPrev: page > 1,
       },
     }

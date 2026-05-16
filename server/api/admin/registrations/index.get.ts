@@ -56,7 +56,7 @@ export default defineEventHandler(async eventHandler => {
       .from(eventRegistration)
       .where(whereExpr)
 
-    const total = totalResult[0]?.count || 0
+    const total = Number(totalResult[0]?.count || 0)
     const totalPages = Math.ceil(total / query.limit)
 
     // Pagination
