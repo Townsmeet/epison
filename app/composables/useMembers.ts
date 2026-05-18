@@ -224,15 +224,15 @@ export const useMembers = () => {
 
   // Utility functions for reactive data management
   const refreshMembers = (query: MemberListQuery = {}) => {
-    return refreshCookie(`members-${JSON.stringify(query)}`)
+    return refreshNuxtData(`members-${JSON.stringify(query)}`)
   }
 
   const refreshMember = (id: string) => {
-    return refreshCookie(`member-${id}`)
+    return refreshNuxtData(`member-${id}`)
   }
 
   const refreshStats = () => {
-    return refreshCookie('member-stats')
+    return refreshNuxtData('member-stats')
   }
 
   return {

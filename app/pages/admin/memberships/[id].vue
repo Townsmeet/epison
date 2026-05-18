@@ -908,7 +908,7 @@ async function removePublication(url: string) {
 async function savePublications() {
   if (!member.value) return
   await updateMember(memberId, { publications: publicationsLocal.value })
-  await refreshCookie(`member-${memberId}`)
+  await refreshNuxtData(`member-${memberId}`)
 }
 
 // Helper function to get full name
@@ -1084,7 +1084,7 @@ async function renewMembership() {
     confirmationModal.value.isConfirming = true
     await adminRenewMember(memberId, { notes: 'Renewed via admin panel (Direct Bank Payment)' })
     confirmationModal.value.isOpen = false
-    await refreshCookie(`member-${memberId}`)
+    await refreshNuxtData(`member-${memberId}`)
     useToast().add({
       title: 'Membership renewed',
       description: 'Membership has been renewed successfully',
@@ -1107,7 +1107,7 @@ async function suspendMember() {
   try {
     await suspendMemberAPI(memberId, { reason: 'Suspended via admin panel' })
     confirmationModal.value.isOpen = false
-    await refreshCookie(`member-${memberId}`)
+    await refreshNuxtData(`member-${memberId}`)
     useToast().add({
       title: 'Member suspended',
       description: 'Member has been suspended',
@@ -1150,7 +1150,7 @@ async function activateMemberAction() {
   try {
     await activateMember(memberId, { reason: 'Activated via admin panel' })
     confirmationModal.value.isOpen = false
-    await refreshCookie(`member-${memberId}`)
+    await refreshNuxtData(`member-${memberId}`)
     useToast().add({
       title: 'Member activated',
       description: 'Member has been activated successfully',

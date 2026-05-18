@@ -99,11 +99,11 @@ export const useSubmissions = () => {
 
   // Utility functions for reactive data management
   const refreshSubmissions = (query: SubmissionListQuery = {}) => {
-    return refreshCookie(`submissions-${JSON.stringify(query)}`)
+    return refreshNuxtData(`submissions-${JSON.stringify(query)}`)
   }
 
   const refreshSubmission = (id: string) => {
-    return refreshCookie(`submission-${id}`)
+    return refreshNuxtData(`submission-${id}`)
   }
 
   return {

@@ -88,6 +88,7 @@ export interface EventSpeaker {
   org?: string
   photoUrl?: string
   bio?: string
+  displayOrder?: number
   createdAt: string
 }
 

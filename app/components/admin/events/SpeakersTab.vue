@@ -24,7 +24,7 @@
 
       <div v-else-if="speakers.length" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div
-          v-for="s in speakers"
+          v-for="(s, index) in speakers"
           :key="s.id"
           class="flex items-start gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700"
         >
@@ -44,6 +44,22 @@
             <div class="flex items-center justify-between">
               <p class="font-medium truncate" :title="s.name">{{ s.name }}</p>
               <div class="flex items-center gap-1">
+                <UButton
+                  size="xs"
+                  color="gray"
+                  variant="ghost"
+                  icon="i-heroicons-chevron-left"
+                  :disabled="index === 0"
+                  @click="moveSpeaker(index, -1)"
+                />
+                <UButton
+                  size="xs"
+                  color="gray"
+                  variant="ghost"
+                  icon="i-heroicons-chevron-right"
+                  :disabled="index === speakers.length - 1"
+                  @click="moveSpeaker(index, 1)"
+                />
                 <UButton
                   size="xs"
                   color="neutral"
@@ -200,6 +216,7 @@ const {
   createEventSpeaker,
   updateEventSpeaker,
   deleteEventSpeaker,
+  reorderEventSpeakers,
   refreshEventSpeakers,
 } = useEvents()
 
@@ -463,6 +480,41 @@ async function updateSpeaker() {
     useToast().add({ title: 'Error updating speaker', color: 'error' })
   } finally {
     isUpdating.value = false
+  }
+}
+
+const isReordering = ref(false)
+
+async function moveSpeaker(index: number, direction: -1 | 1) {
+  if (isReordering.value) return
+  if (!speakersResponse.value || !Array.isArray(speakersResponse.value.data)) return
+
+  const currentList = [...speakersResponse.value.data]
+  const newIndex = index + direction
+
+  if (newIndex < 0 || newIndex >= currentList.length) return
+
+  // Swap elements
+  const temp = currentList[index]
+  currentList[index] = currentList[newIndex]
+  currentList[newIndex] = temp
+
+  // Optimistically update
+  speakersResponse.value.data = currentList
+
+  isReordering.value = true
+  try {
+    const speakerIds = currentList.map(s => String(s.id))
+    await reorderEventSpeakers(props.event.id, speakerIds)
+    // Always refresh from server to ensure state consistency
+    await refreshEventSpeakers(props.event.id)
+  } catch (err) {
+    console.error('Failed to reorder speakers:', err)
+    useToast().add({ title: 'Error reordering speakers', color: 'error' })
+    // Revert visually by refreshing
+    await refreshEventSpeakers(props.event.id)
+  } finally {
+    isReordering.value = false
   }
 }
 </script>

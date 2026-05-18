@@ -20,7 +20,7 @@ export default defineEventHandler(async eventHandler => {
       .select()
       .from(eventSpeaker)
       .where(eq(eventSpeaker.eventId, eventId))
-      .orderBy(eventSpeaker.createdAt)
+      .orderBy(eventSpeaker.displayOrder, eventSpeaker.createdAt)
 
     return {
       data: speakers,

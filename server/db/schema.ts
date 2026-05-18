@@ -254,6 +254,7 @@ export const eventSpeaker = sqliteTable('event_speaker', {
   org: text('org'),
   photoUrl: text('photo_url'),
   bio: text('bio'),
+  displayOrder: integer('display_order').default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).defaultNow().notNull(),
 })
 

@@ -428,6 +428,14 @@ export const useEvents = () => {
     })
   }
 
+  const reorderEventSpeakers = async (eventId: string, speakerIds: string[]) => {
+    return await $fetch<ApiResponse>(`/api/admin/events/${eventId}/speakers/reorder`, {
+      method: 'PUT',
+      credentials: 'include',
+      body: { speakerIds },
+    })
+  }
+
   // Event Tickets
   const getEventTickets = (eventId: string) => {
     return useFetch<{ data: EventTicket[] }>(`/api/admin/events/${eventId}/tickets`, {
@@ -585,47 +593,47 @@ export const useEvents = () => {
   // Utility functions for reactive data management
   const refreshEvents = (query: EventListQuery | Ref<EventListQuery> = {}) => {
     const q = unref(query)
-    return refreshCookie(`admin-events-${JSON.stringify(q)}`)
+    return refreshNuxtData(`admin-events-${JSON.stringify(q)}`)
   }
 
   const refreshEvent = (id: string) => {
-    return refreshCookie(`admin-event-${id}`)
+    return refreshNuxtData(`admin-event-${id}`)
   }
 
   const refreshEventRegistrations = (eventId: string, query: RegistrationListQuery = {}) => {
-    return refreshCookie(`event-registrations-${eventId}-${JSON.stringify(query)}`)
+    return refreshNuxtData(`event-registrations-${eventId}-${JSON.stringify(query)}`)
   }
 
   const refreshRegistrations = (query: RegistrationListQuery = {}) => {
-    return refreshCookie(`admin-registrations-${JSON.stringify(query)}`)
+    return refreshNuxtData(`admin-registrations-${JSON.stringify(query)}`)
   }
 
   const refreshRegistration = (id: string) => {
-    return refreshCookie(`admin-registration-${id}`)
+    return refreshNuxtData(`admin-registration-${id}`)
   }
 
   const refreshEventSponsors = (eventId: string) => {
-    return refreshCookie(`event-sponsors-${eventId}`)
+    return refreshNuxtData(`event-sponsors-${eventId}`)
   }
 
   const refreshEventSpeakers = (eventId: string) => {
-    return refreshCookie(`event-speakers-${eventId}`)
+    return refreshNuxtData(`event-speakers-${eventId}`)
   }
 
   const refreshEventTickets = (eventId: string) => {
-    return refreshCookie(`event-tickets-${eventId}`)
+    return refreshNuxtData(`event-tickets-${eventId}`)
   }
 
   const refreshEventCommittee = (eventId: string) => {
-    return refreshCookie(`event-committee-${eventId}`)
+    return refreshNuxtData(`event-committee-${eventId}`)
   }
 
   const refreshEventSubmissions = (eventId: string, query: SubmissionListQuery = {}) => {
-    return refreshCookie(`event-submissions-${eventId}-${JSON.stringify(query)}`)
+    return refreshNuxtData(`event-submissions-${eventId}-${JSON.stringify(query)}`)
   }
 
   const refreshEventMedia = (eventId: string) => {
-    return refreshCookie(`event-media-${eventId}`)
+    return refreshNuxtData(`event-media-${eventId}`)
   }
 
   // ===== Ticket Categories =====
@@ -683,11 +691,11 @@ export const useEvents = () => {
   }
 
   const refreshTicketCategories = (eventId: string) => {
-    return refreshCookie(`event-categories-${eventId}`)
+    return refreshNuxtData(`event-categories-${eventId}`)
   }
 
   const refreshTicketsWithCategories = (eventId: string) => {
-    return refreshCookie(`event-tickets-categories-${eventId}`)
+    return refreshNuxtData(`event-tickets-categories-${eventId}`)
   }
 
   return {
@@ -719,6 +727,7 @@ export const useEvents = () => {
     createEventSpeaker,
     updateEventSpeaker,
     deleteEventSpeaker,
+    reorderEventSpeakers,
     createEventTicket,
     updateEventTicket,
     deleteEventTicket,

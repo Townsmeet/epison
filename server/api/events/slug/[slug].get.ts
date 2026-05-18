@@ -72,7 +72,11 @@ export default defineEventHandler(async eventHandler => {
         .from(eventTicket)
         .where(and(eq(eventTicket.eventId, eventData.id), eq(eventTicket.isPublic, true))),
       db.select().from(eventSponsor).where(eq(eventSponsor.eventId, eventData.id)),
-      db.select().from(eventSpeaker).where(eq(eventSpeaker.eventId, eventData.id)),
+      db
+        .select()
+        .from(eventSpeaker)
+        .where(eq(eventSpeaker.eventId, eventData.id))
+        .orderBy(eventSpeaker.displayOrder, eventSpeaker.createdAt),
       db.select().from(eventMedia).where(eq(eventMedia.eventId, eventData.id)),
       db.select().from(eventCommitteeMember).where(eq(eventCommitteeMember.eventId, eventData.id)),
     ])
