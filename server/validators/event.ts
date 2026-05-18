@@ -76,6 +76,17 @@ export const createEventSponsorSchema = z.object({
   website: z.string().url().optional().nullable(),
 })
 
+// ===== Event Speakers =====
+export const createEventSpeakerSchema = z.object({
+  name: z.string().min(1).max(150),
+  title: z.string().max(100).optional().nullable(),
+  org: z.string().max(150).optional().nullable(),
+  photoUrl: z.string().url().optional().nullable(),
+  bio: z.string().max(2000).optional().nullable(),
+})
+
+export const updateEventSpeakerSchema = createEventSpeakerSchema.partial()
+
 // ===== Event Committee =====
 export const createEventCommitteeMemberSchema = z.object({
   name: z.string().min(1).max(150),
@@ -214,3 +225,5 @@ export type CreateEventTicketRequest = z.infer<typeof createEventTicketSchema>
 export type CreateEventRegistrationRequest = z.infer<typeof createEventRegistrationSchema>
 export type CreateAbstractSubmissionRequest = z.infer<typeof createAbstractSubmissionSchema>
 export type UpdateSubmissionRequest = z.infer<typeof updateSubmissionSchema>
+export type CreateEventSpeakerRequest = z.infer<typeof createEventSpeakerSchema>
+export type UpdateEventSpeakerRequest = z.infer<typeof updateEventSpeakerSchema>

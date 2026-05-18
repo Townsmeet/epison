@@ -273,25 +273,27 @@
                     class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-500/10 to-secondary-500/10 rounded-full -translate-y-16 translate-x-16"
                   />
                   <div class="relative p-6">
-                    <div class="flex items-start gap-4">
-                      <div class="relative">
+                    <div
+                      class="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left"
+                    >
+                      <div class="relative shrink-0">
                         <img
                           :src="
                             normalizeUrl(sp.photoUrl) ||
-                            `https://picsum.photos/seed/speaker-${sp.id}/160/160`
+                            `https://picsum.photos/seed/speaker-${sp.id}/256/256`
                           "
                           :alt="sp.name"
-                          class="h-20 w-20 rounded-2xl object-cover ring-4 ring-white dark:ring-gray-700 shadow-lg"
+                          class="h-32 w-32 rounded-2xl object-cover ring-4 ring-white dark:ring-gray-700 shadow-lg"
                           @error="onSpeakerImgError"
                         />
                         <div
-                          class="absolute -bottom-2 -right-2 w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center"
+                          class="absolute -bottom-2 -right-2 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center shadow-sm"
                         >
-                          <UIcon name="i-heroicons-microphone" class="w-3 h-3 text-white" />
+                          <UIcon name="i-heroicons-microphone" class="w-4 h-4 text-white" />
                         </div>
                       </div>
-                      <div class="flex-1">
-                        <h4 class="font-bold text-gray-900 dark:text-white text-lg">
+                      <div class="flex-1 mt-2 sm:mt-0">
+                        <h4 class="font-bold text-gray-900 dark:text-white text-xl">
                           {{ sp.name }}
                         </h4>
                         <p
@@ -302,7 +304,7 @@
                         </p>
                         <p
                           v-if="sp.bio"
-                          class="mt-3 text-sm text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed"
+                          class="mt-3 text-sm text-gray-600 dark:text-gray-300 line-clamp-4 leading-relaxed"
                         >
                           {{ sp.bio }}
                         </p>

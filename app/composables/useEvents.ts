@@ -5,6 +5,7 @@ import type {
   EventRegistration,
   EventTicket,
   EventSponsor,
+  EventSpeaker,
   EventCommitteeMember,
   AbstractSubmission,
   EventMedia,
@@ -89,7 +90,7 @@ export type EventItem = Event & {
 export const useEvents = () => {
   // Helper for retrying fetch requests with exponential backoff
   // Retries on network errors AND when API returns { success: false }
-  const fetchWithRetry = async <T extends { success?: boolean; error?: string }>(
+  const fetchWithRetry = async <T>(
     url: string,
     options: Parameters<typeof $fetch>[1],
     maxRetries = 3,
@@ -102,9 +103,17 @@ export const useEvents = () => {
       try {
         const result = await $fetch<T>(url, options)
 
+        const resObj = result as Record<string, unknown> | null
         // Check if API returned success: false (should retry)
-        if (result && 'success' in result && result.success === false) {
-          const errorMsg = result.error || 'API returned success: false'
+        if (
+          resObj &&
+          typeof resObj === 'object' &&
+          'success' in resObj &&
+          resObj.success === false
+        ) {
+          const errorMsg =
+            (typeof resObj.error === 'string' ? resObj.error : null) ||
+            'API returned success: false'
           console.error(
             `[fetchWithRetry] Attempt ${attempt}/${maxRetries} API error for ${url}:`,
             errorMsg
@@ -119,7 +128,7 @@ export const useEvents = () => {
           }
         } else {
           console.log(`[fetchWithRetry] Success on attempt ${attempt}`)
-          return result
+          return result as T
         }
       } catch (error) {
         lastError = error as Error
@@ -380,6 +389,45 @@ export const useEvents = () => {
     })
   }
 
+  // Event Speakers
+  const getEventSpeakers = (eventId: string) => {
+    return useFetch<{ data: EventSpeaker[] }>(`/api/admin/events/${eventId}/speakers`, {
+      key: `event-speakers-${eventId}`,
+      server: true,
+      default: () => ({ data: [] }),
+    })
+  }
+
+  const createEventSpeaker = async (
+    eventId: string,
+    data: Omit<EventSpeaker, 'id' | 'eventId' | 'createdAt'>
+  ) => {
+    return await $fetch<EventSpeaker>(`/api/admin/events/${eventId}/speakers`, {
+      method: 'POST',
+      credentials: 'include',
+      body: data,
+    })
+  }
+
+  const updateEventSpeaker = async (
+    eventId: string,
+    speakerId: string,
+    data: Partial<Omit<EventSpeaker, 'id' | 'eventId' | 'createdAt'>>
+  ) => {
+    return await $fetch<EventSpeaker>(`/api/admin/events/${eventId}/speakers/${speakerId}`, {
+      method: 'PUT',
+      credentials: 'include',
+      body: data,
+    })
+  }
+
+  const deleteEventSpeaker = async (eventId: string, speakerId: string) => {
+    return await $fetch<ApiResponse>(`/api/admin/events/${eventId}/speakers/${speakerId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+  }
+
   // Event Tickets
   const getEventTickets = (eventId: string) => {
     return useFetch<{ data: EventTicket[] }>(`/api/admin/events/${eventId}/tickets`, {
@@ -560,6 +608,10 @@ export const useEvents = () => {
     return refreshCookie(`event-sponsors-${eventId}`)
   }
 
+  const refreshEventSpeakers = (eventId: string) => {
+    return refreshCookie(`event-speakers-${eventId}`)
+  }
+
   const refreshEventTickets = (eventId: string) => {
     return refreshCookie(`event-tickets-${eventId}`)
   }
@@ -649,6 +701,7 @@ export const useEvents = () => {
     getRegistrationsExport,
     getRegistrationStats,
     getEventSponsors,
+    getEventSpeakers,
     getEventTickets,
     getEventCommittee,
     getEventSubmissions,
@@ -663,6 +716,9 @@ export const useEvents = () => {
     sendRegistrationConfirmation,
     createEventSponsor,
     deleteEventSponsor,
+    createEventSpeaker,
+    updateEventSpeaker,
+    deleteEventSpeaker,
     createEventTicket,
     updateEventTicket,
     deleteEventTicket,
@@ -680,6 +736,7 @@ export const useEvents = () => {
     refreshEventRegistrations,
     refreshRegistrations,
     refreshEventSponsors,
+    refreshEventSpeakers,
     refreshEventTickets,
     refreshEventCommittee,
     refreshEventSubmissions,

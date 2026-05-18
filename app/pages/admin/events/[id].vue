@@ -87,6 +87,9 @@
         <!-- Sponsors Tab -->
         <AdminEventsSponsorsTab v-if="event" v-show="currentTab === 'Sponsors'" :event="event" />
 
+        <!-- Speakers Tab -->
+        <AdminEventsSpeakersTab v-if="event" v-show="currentTab === 'Speakers'" :event="event" />
+
         <!-- Gallery Tab -->
         <AdminEventsGalleryTab v-if="event" v-show="currentTab === 'Gallery'" :event="event" />
 
@@ -392,10 +395,10 @@ const event = computed(() => {
 const modalTitle = computed(() => 'Edit Event')
 const modalDescription = computed(() => `Update details for "${event.value?.title ?? ''}"`)
 
-// Tabs
 const tabs = [
   'Details',
   'Tickets',
+  'Speakers',
   'Sponsors',
   'Registrations',
   'Submissions',
@@ -406,6 +409,7 @@ const tabs = [
 const currentTab = ref<
   | 'Details'
   | 'Tickets'
+  | 'Speakers'
   | 'Registrations'
   | 'Sponsors'
   | 'Submissions'
