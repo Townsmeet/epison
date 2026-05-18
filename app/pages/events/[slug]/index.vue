@@ -172,10 +172,10 @@
         <div class="lg:grid lg:grid-cols-3 lg:gap-8">
           <div class="lg:col-span-2">
             <!-- About -->
-            <div v-if="event" class="prose dark:prose-invert max-w-none">
+            <!-- <div v-if="event" class="prose dark:prose-invert max-w-none">
               <h2>About this {{ typeLabel.toLowerCase() }}</h2>
               <p>{{ event.description }}</p>
-            </div>
+            </div> -->
 
             <!-- Featured Gallery Section (for past events) -->
             <div v-if="isPast && event?.gallery?.length" class="mt-12">
@@ -1545,7 +1545,7 @@ function onImgError(e: Event) {
     'https://placehold.co/1600x900/png',
   ] as const
   if (idx >= fallbacks.length) return
-  const fb = idx < fallbacks.length ? fallbacks[idx] : fallbacks[0]
+  const fb = (idx < fallbacks.length ? fallbacks[idx] : fallbacks[0]) as string
   try {
     el.src = fb
   } catch {
@@ -1566,7 +1566,7 @@ const onSpeakerImgError = (e: Event) => {
     'https://placehold.co/160x160/png',
   ] as const
   if (idx >= fallbacks.length) return
-  const fb = idx < fallbacks.length ? fallbacks[idx] : fallbacks[0]
+  const fb = (idx < fallbacks.length ? fallbacks[idx] : fallbacks[0]) as string
   try {
     el.src = fb
   } catch {
@@ -1587,7 +1587,7 @@ function onSponsorImgError(e: Event) {
     'https://picsum.photos/seed/sponsor2/160/80',
   ] as const
   if (idx >= fallbacks.length) return
-  const fb = idx < fallbacks.length ? fallbacks[idx] : fallbacks[0]
+  const fb = (idx < fallbacks.length ? fallbacks[idx] : fallbacks[0]) as string
   try {
     el.src = fb
   } catch {
