@@ -117,7 +117,9 @@
         <!-- Add New Ticket -->
         <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
           <div class="flex items-center justify-between mb-4">
-            <h4 class="text-sm font-semibold">Create New Ticket</h4>
+            <h4 class="text-sm font-semibold">
+              {{ isEditingTicket ? 'Edit Ticket' : 'Create New Ticket' }}
+            </h4>
             <UButton
               v-if="showTicketForm"
               size="xs"
@@ -139,7 +141,7 @@
             Add New Ticket
           </UButton>
 
-          <div v-else class="space-y-4">
+          <div v-else id="ticket-form" class="space-y-4">
             <div class="grid md:grid-cols-2 gap-3">
               <div class="space-y-2">
                 <div class="relative w-full">
@@ -407,6 +409,21 @@ function editTicket(ticket: EventTicket) {
     isPublic: ticket.isPublic,
   })
 
+  // Set the selected category in the select menu
+  if (ticket.categoryId) {
+    const category = categories.value.find(cat => cat.id === ticket.categoryId)
+    if (category) {
+      selectedCategory.value = {
+        label: category.name,
+        value: String(category.id),
+      }
+    } else {
+      selectedCategory.value = undefined
+    }
+  } else {
+    selectedCategory.value = undefined
+  }
+
   showTicketForm.value = true
 
   // Scroll to form if needed
@@ -476,6 +493,7 @@ function resetTicketForm() {
     description: '',
     isPublic: true,
   }
+  selectedCategory.value = undefined
   isEditingTicket.value = false
   currentTicketId.value = null
 }
