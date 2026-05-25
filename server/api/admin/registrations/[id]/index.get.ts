@@ -39,6 +39,8 @@ export default defineEventHandler(async eventHandler => {
         eventTitle,
         attendeeName: reg.attendeeName,
         attendeeEmail: reg.attendeeEmail,
+        attendeePhone: reg.attendeePhone ?? undefined,
+        attendeeOrg: reg.attendeeOrg ?? undefined,
         category: reg.category,
         ticketId: reg.ticketId ?? undefined,
         ticketName: reg.ticketName ?? undefined,

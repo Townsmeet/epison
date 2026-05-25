@@ -314,6 +314,28 @@ export const useEvents = () => {
     })
   }
 
+  const updateRegistration = async (
+    id: string,
+    data: {
+      attendeeName?: string
+      attendeeEmail?: string
+      attendeePhone?: string | null
+      attendeeOrg?: string | null
+      category?: string | null
+      paymentStatus?: 'Pending' | 'Paid' | 'Cancelled' | 'Refunded'
+      paymentProvider?: string | null
+      reference?: string | null
+      notes?: string | null
+      unitPrice?: number
+    }
+  ) => {
+    return await $fetch<ApiResponse>(`/api/admin/registrations/${id}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      body: data,
+    })
+  }
+
   const batchDeleteRegistrations = async (ids: string[]) => {
     return await $fetch<ApiResponse>('/api/admin/registrations/batch', {
       method: 'DELETE',
@@ -720,6 +742,7 @@ export const useEvents = () => {
     updateEvent,
     deleteEvent,
     deleteRegistration,
+    updateRegistration,
     batchDeleteRegistrations,
     sendRegistrationConfirmation,
     createEventSponsor,
