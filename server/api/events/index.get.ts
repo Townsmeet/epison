@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, like, desc, asc, sql, or, isNull, isNotNull } from 'drizzle-orm'
+import { eq, and, gte, lte, like, desc, asc, sql, or, isNull, isNotNull, lt } from 'drizzle-orm'
 import { db } from '../../utils/drizzle'
 import { event } from '../../db/schema'
 import { eventListQuerySchema } from '../../validators/event'
@@ -55,14 +55,19 @@ export default defineEventHandler(async eventHandler => {
     if (query.upcoming !== undefined) {
       const now = new Date().toISOString()
       if (query.upcoming) {
-        // Show upcoming events (startDate >= now)
-        conditions.push(gte(event.startDate, now))
+        // Show upcoming events (endDate >= now OR startDate >= now if no endDate)
+        conditions.push(
+          or(
+            and(isNotNull(event.endDate), gte(event.endDate, now)),
+            and(isNull(event.endDate), gte(event.startDate, now))
+          )
+        )
       } else {
         // Show past events (endDate < now OR startDate < now if no endDate)
         conditions.push(
           or(
-            and(isNotNull(event.endDate), lte(event.endDate, now)),
-            and(isNull(event.endDate), lte(event.startDate, now))
+            and(isNotNull(event.endDate), lt(event.endDate, now)),
+            and(isNull(event.endDate), lt(event.startDate, now))
           )
         )
       }

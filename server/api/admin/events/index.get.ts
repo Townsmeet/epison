@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, like, desc, asc, sql, or } from 'drizzle-orm'
+import { eq, and, gte, lte, like, desc, asc, sql, or, isNull, isNotNull } from 'drizzle-orm'
 import { createError } from 'h3'
 import { db } from '../../../utils/drizzle'
 import { isH3Error } from '../../../utils/errors'
@@ -46,10 +46,15 @@ export default defineEventHandler(async eventHandler => {
       conditions.push(lte(event.startDate, query.to))
     }
 
-    // Upcoming filter (only events starting from now)
+    // Upcoming filter (events that haven't ended yet)
     if (query.upcoming) {
       const now = new Date().toISOString()
-      conditions.push(gte(event.startDate, now))
+      conditions.push(
+        or(
+          and(isNotNull(event.endDate), gte(event.endDate, now)),
+          and(isNull(event.endDate), gte(event.startDate, now))
+        )
+      )
     }
 
     // Build order by
