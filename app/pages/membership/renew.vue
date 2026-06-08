@@ -365,11 +365,11 @@ function getStatusColor(status: string): 'success' | 'warning' | 'error' | 'neut
 // Fee mapping
 const feeMap: Record<string, number> = {
   regular: 30000,
-  'regular iea': 50000,
-  'regular+iea': 50000,
+  'regular iea': 70000,
+  'regular+iea': 70000,
   'early-career': 15000,
-  'early-career iea': 20000,
-  'early-career+iea': 20000,
+  'early-career iea': 40000,
+  'early-career+iea': 40000,
 }
 
 // Computed renewal fee based on membership type

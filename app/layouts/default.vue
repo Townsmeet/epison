@@ -6,11 +6,11 @@
     >
       <div class="relative">
         <!-- Announcement Bar -->
-        <div
+        <!-- <div
           class="bg-gradient-to-r from-info-600 to-info-700 text-white text-sm text-center py-1.5 px-4"
         >
           <p class="animate-pulse">🎉 Join us at our upcoming conference on June 4-6, 2026</p>
-        </div>
+        </div> -->
 
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex h-20 items-center justify-between">

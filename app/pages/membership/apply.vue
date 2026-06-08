@@ -268,9 +268,9 @@ const isCurrentStepValid = computed(() => {
 // Payment: compute amount based on membership type from query
 const feeMap: Record<string, number> = {
   regular: 30000,
-  'regular iea': 50000,
+  'regular iea': 70000,
   'early-career': 15000,
-  'early-career iea': 20000,
+  'early-career iea': 40000,
 }
 const membershipType = computed(() => String((route.query.type as string) || '').toLowerCase())
 const amountNaira = computed(() => feeMap[membershipType.value] ?? 0)

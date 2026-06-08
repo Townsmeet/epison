@@ -100,7 +100,7 @@
 
             <div class="p-3 bg-gray-50 dark:bg-gray-700 mt-auto">
               <div class="mb-3">
-                <span class="text-3xl font-bold text-gray-900 dark:text-white">₦20,000</span>
+                <span class="text-3xl font-bold text-gray-900 dark:text-white">₦40,000</span>
                 <span class="text-gray-500 dark:text-gray-400">/year</span>
               </div>
               <UButton to="/membership/apply?type=early-career+iea" block color="primary" size="md">
@@ -151,7 +151,7 @@
 
             <div class="p-3 bg-gray-50 dark:bg-gray-700 mt-auto">
               <div class="mb-3">
-                <span class="text-3xl font-bold text-gray-900 dark:text-white">₦50,000</span>
+                <span class="text-3xl font-bold text-gray-900 dark:text-white">₦70,000</span>
                 <span class="text-gray-500 dark:text-gray-400">/year</span>
               </div>
               <UButton to="/membership/apply?type=regular+iea" block color="primary" size="md">

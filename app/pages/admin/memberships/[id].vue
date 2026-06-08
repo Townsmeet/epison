@@ -744,9 +744,9 @@ const membershipTypes = [
 
 const feeMap: Record<string, number> = {
   regular: 30000,
-  'regular iea': 50000,
+  'regular iea': 70000,
   'early-career': 15000,
-  'early-career iea': 20000,
+  'early-career iea': 40000,
 }
 
 const typeChangeModal = ref({
