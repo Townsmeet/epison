@@ -1,4 +1,5 @@
-import { and, asc, desc, like, or, sql, eq } from 'drizzle-orm'
+import type { or } from 'drizzle-orm'
+import { and, asc, desc, like, sql, eq } from 'drizzle-orm'
 import { defineEventHandler, createError } from 'h3'
 import { db } from '../../../utils/drizzle'
 import { isH3Error } from '../../../utils/errors'
@@ -6,6 +7,8 @@ import { eventRegistration, event } from '../../../db/schema'
 import { requireAuthUser } from '../../../utils/auth-helpers'
 import { registrationListQuerySchema } from '../../../validators/event'
 import { validateQuery } from '../../../validators'
+
+import { buildSearchCondition } from '../../../utils/search'
 
 export default defineEventHandler(async eventHandler => {
   // Auth check
@@ -19,18 +22,18 @@ export default defineEventHandler(async eventHandler => {
 
   try {
     // Build where conditions
-    const conditions: ReturnType<typeof like | typeof or>[] = []
+    const conditions: ReturnType<typeof like | typeof or | typeof and>[] = []
 
     // Search across attendee name, email and reference
     if (query.q) {
-      const search = `%${query.q}%`
-      conditions.push(
-        or(
-          like(eventRegistration.attendeeName, search),
-          like(eventRegistration.attendeeEmail, search),
-          like(eventRegistration.reference, search)
-        )
-      )
+      const searchCondition = buildSearchCondition(query.q, [
+        eventRegistration.attendeeName,
+        eventRegistration.attendeeEmail,
+        eventRegistration.reference,
+      ])
+      if (searchCondition) {
+        conditions.push(searchCondition)
+      }
     }
 
     // Event ID filter

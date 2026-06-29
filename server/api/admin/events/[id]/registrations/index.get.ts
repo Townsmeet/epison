@@ -1,4 +1,4 @@
-import { eq, and, like, desc, asc, sql, or } from 'drizzle-orm'
+import { eq, and, desc, asc, sql } from 'drizzle-orm'
 import { getRouterParam, createError } from 'h3'
 import { db } from '../../../../../utils/drizzle'
 import { isH3Error } from '../../../../../utils/errors'
@@ -6,6 +6,8 @@ import { eventRegistration } from '../../../../../db/schema'
 import { requireAuthUser } from '../../../../../utils/auth-helpers'
 import { registrationListQuerySchema } from '../../../../../validators/event'
 import { validateQuery } from '../../../../../validators'
+
+import { buildSearchCondition } from '../../../../../utils/search'
 
 export default defineEventHandler(async eventHandler => {
   // Auth check
@@ -31,13 +33,14 @@ export default defineEventHandler(async eventHandler => {
 
     // Search query
     if (query.q) {
-      const search = `%${query.q}%`
-      const searchExpr = or(
-        like(eventRegistration.attendeeName, search),
-        like(eventRegistration.attendeeEmail, search),
-        like(eventRegistration.reference, search)
-      )!
-      conditions.push(searchExpr)
+      const searchCondition = buildSearchCondition(query.q, [
+        eventRegistration.attendeeName,
+        eventRegistration.attendeeEmail,
+        eventRegistration.reference,
+      ])
+      if (searchCondition) {
+        conditions.push(searchCondition)
+      }
     }
 
     // Category filter

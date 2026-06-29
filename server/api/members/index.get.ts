@@ -1,11 +1,13 @@
 import type { H3Event } from 'h3'
-import { eq, like, or, and, asc, desc, count, isNull, isNotNull, lt, gt } from 'drizzle-orm'
+import { eq, and, asc, desc, count, isNull, isNotNull, lt, gt } from 'drizzle-orm'
 import { db } from '../../utils/drizzle'
 import { member } from '../../db/schema'
 import type { PaginatedResponse } from '../../../types/api'
 import type { MemberListItem, MemberListQuery } from '../../../types/members'
 import { validateQuery } from '../../validators'
 import { memberListQuerySchema } from '../../validators/member'
+
+import { buildSearchCondition } from '../../utils/search'
 
 export default defineEventHandler(
   async (event: H3Event): Promise<PaginatedResponse<MemberListItem>> => {
@@ -57,16 +59,17 @@ export default defineEventHandler(
       const conditions = []
 
       if (search) {
-        conditions.push(
-          or(
-            like(member.nameFirst, `%${search}%`),
-            like(member.nameMiddle, `%${search}%`),
-            like(member.nameFamily, `%${search}%`),
-            like(member.email, `%${search}%`),
-            like(member.geopoliticalZone, `%${search}%`),
-            like(member.membershipType, `%${search}%`)
-          )
-        )
+        const searchCondition = buildSearchCondition(search, [
+          member.nameFirst,
+          member.nameMiddle,
+          member.nameFamily,
+          member.email,
+          member.geopoliticalZone,
+          member.membershipType,
+        ])
+        if (searchCondition) {
+          conditions.push(searchCondition)
+        }
       }
 
       if (status) {

@@ -1,7 +1,9 @@
-import { and, like, desc, asc, sql, or, type SQLWrapper } from 'drizzle-orm'
+import { and, desc, asc, sql, type SQLWrapper } from 'drizzle-orm'
 import { createError } from 'h3'
 import { db } from '../../../utils/drizzle'
 import { activityLog } from '../../../db/schema'
+
+import { buildSearchCondition } from '../../../utils/search'
 
 export default defineEventHandler(async event => {
   try {
@@ -20,15 +22,15 @@ export default defineEventHandler(async event => {
     }
 
     if (q) {
-      const likeQ = `%${q}%`
-      whereClauses.push(
-        or(
-          like(activityLog.title, likeQ),
-          like(activityLog.description, likeQ),
-          like(activityLog.entityType, likeQ),
-          like(activityLog.entityId, likeQ)
-        )
-      )
+      const searchCondition = buildSearchCondition(q, [
+        activityLog.title,
+        activityLog.description,
+        activityLog.entityType,
+        activityLog.entityId,
+      ])
+      if (searchCondition) {
+        whereClauses.push(searchCondition)
+      }
     }
 
     const where = whereClauses.length ? and(...whereClauses) : undefined

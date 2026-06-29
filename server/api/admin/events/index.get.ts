@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, like, desc, asc, sql, or, isNull, isNotNull } from 'drizzle-orm'
+import { eq, and, gte, lte, desc, asc, sql, or, isNull, isNotNull } from 'drizzle-orm'
 import { createError } from 'h3'
 import { db } from '../../../utils/drizzle'
 import { isH3Error } from '../../../utils/errors'
@@ -6,6 +6,8 @@ import { event, eventRegistration } from '../../../db/schema'
 import { requireAuthUser } from '../../../utils/auth-helpers'
 import { eventListQuerySchema } from '../../../validators/event'
 import { validateQuery } from '../../../validators'
+
+import { buildSearchCondition } from '../../../utils/search'
 
 export default defineEventHandler(async eventHandler => {
   // Auth check
@@ -19,13 +21,14 @@ export default defineEventHandler(async eventHandler => {
 
     // Search query
     if (query.q) {
-      conditions.push(
-        or(
-          like(event.title, `%${query.q}%`),
-          like(event.description, `%${query.q}%`),
-          like(event.location, `%${query.q}%`)
-        )
-      )
+      const searchCondition = buildSearchCondition(query.q, [
+        event.title,
+        event.description,
+        event.location,
+      ])
+      if (searchCondition) {
+        conditions.push(searchCondition)
+      }
     }
 
     // Type filter

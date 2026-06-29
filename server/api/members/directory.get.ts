@@ -1,7 +1,8 @@
-import { like, or, eq, desc, asc, sql, and } from 'drizzle-orm'
+import { eq, desc, asc, sql, and } from 'drizzle-orm'
 import { db } from '../../utils/drizzle'
 import { member } from '../../db/schema'
 import { z } from 'zod'
+import { buildSearchCondition } from '../../utils/search'
 
 // Query schema for directory
 const directoryQuerySchema = z.object({
@@ -32,21 +33,23 @@ export default defineEventHandler(async event => {
     const { page, limit, search, geopoliticalZone, membershipType, sortBy, sortOrder } = query
     const offset = (page - 1) * limit
 
-    // Build where conditions - only show active members
-    const conditions = [eq(member.status, 'active')]
+    // Build where conditions - show all members regardless of status
+    const conditions = []
 
     if (search) {
-      conditions.push(
-        or(
-          like(member.nameFirst, `%${search}%`),
-          like(member.nameFamily, `%${search}%`),
-          like(member.email, `%${search}%`),
-          like(member.position, `%${search}%`),
-          like(member.employer, `%${search}%`),
-          like(member.geopoliticalZone, `%${search}%`),
-          like(member.membershipType, `%${search}%`)
-        )!
-      )
+      const searchCondition = buildSearchCondition(search, [
+        member.nameFirst,
+        member.nameMiddle,
+        member.nameFamily,
+        member.email,
+        member.position,
+        member.employer,
+        member.geopoliticalZone,
+        member.membershipType,
+      ])
+      if (searchCondition) {
+        conditions.push(searchCondition)
+      }
     }
 
     if (geopoliticalZone) {
