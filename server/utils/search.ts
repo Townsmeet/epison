@@ -1,4 +1,5 @@
-import type { AnyColumn, and, or, like, type SQL } from 'drizzle-orm'
+import { and, or, like } from 'drizzle-orm'
+import type { AnyColumn, SQL } from 'drizzle-orm'
 
 /**
  * Builds a bulletproof search condition for a multi-term query.

@@ -1,5 +1,4 @@
-import type { or } from 'drizzle-orm'
-import { and, asc, desc, like, sql, eq } from 'drizzle-orm'
+import { and, asc, desc, sql, eq, like } from 'drizzle-orm'
 import { defineEventHandler, createError } from 'h3'
 import { db } from '../../../utils/drizzle'
 import { isH3Error } from '../../../utils/errors'
@@ -22,7 +21,7 @@ export default defineEventHandler(async eventHandler => {
 
   try {
     // Build where conditions
-    const conditions: ReturnType<typeof like | typeof or | typeof and>[] = []
+    const conditions = []
 
     // Search across attendee name, email and reference
     if (query.q) {
