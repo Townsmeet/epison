@@ -100,7 +100,7 @@
                   {{ member.geopoliticalZone }}
                 </UBadge>
 
-                <UBadge v-if="member.membershipType" color="success" variant="subtle" size="xs">
+                <UBadge v-if="member.membershipType" color="success" variant="subtle" size="md">
                   {{ formatMembershipType(member.membershipType) }}
                 </UBadge>
               </div>
@@ -227,11 +227,11 @@ const geopoliticalZones = [
   'Not Applicable',
 ]
 
-const membershipTypeOptions = ['All Types', 'Regular', 'Early Career']
+const membershipTypeOptions = ['All Types', 'Regular', 'ECE']
 
 // Build query params
 const directoryQuery = computed(() => {
-  const params = {
+  const params: Record<string, string | number> = {
     page: currentPage.value,
     limit: 12,
   }
@@ -275,6 +275,7 @@ function getInitials(member: DirectoryMember): string {
 
 function formatMembershipType(type: string | null): string {
   if (!type) return ''
+  if (type.toLowerCase() === 'ece') return 'ECE'
   return type
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))

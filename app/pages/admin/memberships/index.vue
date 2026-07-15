@@ -241,7 +241,7 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <UBadge :color="getTypeColor(member.membershipType)" size="sm">{{
-                  member.membershipType
+                  member.membershipType === 'ece' ? 'ECE' : member.membershipType
                 }}</UBadge>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
@@ -685,6 +685,7 @@ const membershipTypeOptions = [
   { label: 'Regular Membership (EPiSON only)', value: 'regular' },
   { label: 'Early Career Membership (Joint IEA - EPiSON)', value: 'early-career iea' },
   { label: 'Early Career Membership (EPiSON only)', value: 'early-career' },
+  { label: 'ECE', value: 'ece' },
 ]
 
 const statusOptions = [
