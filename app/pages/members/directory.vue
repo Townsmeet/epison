@@ -117,14 +117,34 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="pagination.totalPages > 1" class="mt-8 flex justify-center">
-        <UPagination
-          v-model="currentPage"
-          :total="pagination.total"
-          :page-count="pagination.limit"
-          show-first
-          show-last
-        />
+      <div v-if="pagination.totalPages > 1" class="mt-8 flex flex-col items-center space-y-4">
+        <div class="w-full flex justify-between items-center px-4">
+          <UButton
+            v-if="currentPage > 1"
+            color="neutral"
+            variant="outline"
+            icon="i-heroicons-chevron-left"
+            @click="currentPage = Math.max(1, currentPage - 1)"
+          >
+            Previous
+          </UButton>
+          <div v-else />
+
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            Page {{ currentPage }} of {{ pagination.totalPages }}
+          </div>
+
+          <UButton
+            v-if="currentPage < pagination.totalPages"
+            color="neutral"
+            variant="outline"
+            trailing-icon="i-heroicons-chevron-right"
+            @click="currentPage = Math.min(pagination.totalPages, currentPage + 1)"
+          >
+            Next
+          </UButton>
+          <div v-else />
+        </div>
       </div>
     </div>
   </div>
@@ -134,6 +154,8 @@
 definePageMeta({
   layout: 'default',
 })
+
+const { getDirectoryMembers } = useMembers()
 
 useSeoMeta({
   title: 'Member Directory - EPISON',
@@ -208,8 +230,8 @@ const geopoliticalZones = [
 const membershipTypeOptions = ['All Types', 'Regular', 'Early Career']
 
 // Build query params
-const queryParams = computed(() => {
-  const params: Record<string, string | number> = {
+const directoryQuery = computed(() => {
+  const params = {
     page: currentPage.value,
     limit: 12,
   }
@@ -229,35 +251,17 @@ const queryParams = computed(() => {
   return params
 })
 
-// Define the API response type
-interface DirectoryResponse {
-  data: DirectoryMember[]
-  pagination: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
-}
+// Use the composable for fetching
+const { data: directoryData, pending } = getDirectoryMembers(directoryQuery)
 
-// Fetch members with proper typing
-const { data, pending, execute } = useFetch<DirectoryResponse>('/api/members/directory', {
-  query: queryParams,
-  server: false,
-  immediate: true,
-  // No need for 'watch' here, manual watcher below handles refetch
+// Extract members and pagination from response
+const members = computed<DirectoryMember[]>(() => {
+  return directoryData.value?.data || []
 })
 
-// Manual watcher for bullet-proof SSR/CSR reactivity
-watch([currentPage, debouncedSearch, selectedGeopoliticalZone, selectedMembershipType], () => {
-  console.log('Fetching directory data for page', currentPage.value)
-  execute()
+const pagination = computed(() => {
+  return directoryData.value?.pagination || { page: 1, limit: 12, total: 0, totalPages: 0 }
 })
-
-const members = computed<DirectoryMember[]>(() => data.value?.data || [])
-const pagination = computed(
-  () => data.value?.pagination || { page: 1, limit: 12, total: 0, totalPages: 0 }
-)
 
 // Helper functions
 function getFullName(member: DirectoryMember): string {

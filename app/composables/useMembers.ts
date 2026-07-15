@@ -20,6 +20,39 @@ export interface MemberListQuery {
   sortOrder?: 'asc' | 'desc'
 }
 
+export interface DirectoryQuery {
+  page?: number
+  limit?: number
+  search?: string
+  geopoliticalZone?: string
+  membershipType?: string
+}
+
+export interface DirectoryMember {
+  id: string
+  title?: string
+  nameFirst: string
+  nameMiddle: string | null
+  nameFamily: string
+  avatar: string | null
+  position: string | null
+  employer: string | null
+  geopoliticalZone: string | null
+  membershipType: string | null
+  joinedDate: string | null
+}
+
+export interface DirectoryResponse {
+  success: boolean
+  data: DirectoryMember[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
+
 export const useMembers = () => {
   // GET requests using useFetch/useAsyncData
   const getMembers = (
@@ -39,6 +72,26 @@ export const useMembers = () => {
           totalPages: 0,
           hasNext: false,
           hasPrev: false,
+        },
+      }),
+    })
+  }
+
+  const getDirectoryMembers = (
+    query: DirectoryQuery | Ref<DirectoryQuery> | ComputedRef<DirectoryQuery> = {}
+  ) => {
+    return useFetch<DirectoryResponse>('/api/members/directory', {
+      query,
+      watch: [query],
+      server: true,
+      default: () => ({
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 12,
+          total: 0,
+          totalPages: 0,
         },
       }),
     })
@@ -238,6 +291,7 @@ export const useMembers = () => {
   return {
     // GET requests
     getMembers,
+    getDirectoryMembers,
     getMember,
     getMemberHistory,
     getMemberStats,
