@@ -230,18 +230,30 @@ async function fetchReviews() {
   }
 }
 
+interface RequestReviewsResponse {
+  success: boolean
+  message: string
+  emailsSent?: number
+  emailsFailed?: number
+  totalRegistrations?: number
+}
+
 async function requestReviews() {
   try {
     isRequestingReviews.value = true
-    const response = await $fetch(`/api/admin/events/${props.event.id}/request-reviews`, {
-      method: 'POST',
-    })
+    const response = await $fetch<RequestReviewsResponse>(
+      `/api/admin/events/${props.event.id}/request-reviews`,
+      {
+        method: 'POST',
+      }
+    )
 
+    const hasFailures = (response.emailsFailed || 0) > 0
     useToast().add({
-      title: 'Success',
+      title: hasFailures ? 'Broadcast Completed with Warnings' : 'Success',
       description: response.message || 'Review requests sent successfully',
-      icon: 'i-heroicons-check-circle',
-      color: 'success',
+      icon: hasFailures ? 'i-heroicons-exclamation-triangle' : 'i-heroicons-check-circle',
+      color: hasFailures ? 'warning' : 'success',
     })
 
     // Refresh reviews

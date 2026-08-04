@@ -14,7 +14,7 @@ export default defineEventHandler(async eventHandler => {
   }
 
   try {
-    // Get all reviews for this event (only submitted ones)
+    // Get all reviews for this event
     const reviews = await db
       .select()
       .from(eventReview)
@@ -25,6 +25,7 @@ export default defineEventHandler(async eventHandler => {
     const submittedReviews = reviews.filter(r => r.tokenUsed)
     const totalReviews = submittedReviews.length
     const totalRequests = reviews.length
+    const failedDeliveries = reviews.filter(r => Boolean(r.lastError)).length
 
     let averageRating = 0
     if (totalReviews > 0) {
@@ -44,6 +45,13 @@ export default defineEventHandler(async eventHandler => {
       1: submittedReviews.filter(r => r.rating === 1).length,
     }
 
+    // Find latest request date
+    const requestedDates = reviews
+      .map(r => r.requestedAt)
+      .filter((d): d is Date => d instanceof Date)
+    const lastRequestedAt =
+      requestedDates.length > 0 ? new Date(Math.max(...requestedDates.map(d => d.getTime()))) : null
+
     return {
       success: true,
       data: {
@@ -54,6 +62,8 @@ export default defineEventHandler(async eventHandler => {
           rating: r.rating,
           reviewText: r.reviewText,
           submittedAt: r.submittedAt,
+          requestedAt: r.requestedAt,
+          requestCount: r.requestCount,
         })),
         summary: {
           totalReviews,
@@ -61,6 +71,8 @@ export default defineEventHandler(async eventHandler => {
           averageRating,
           responseRate,
           ratingDistribution,
+          failedDeliveries,
+          lastRequestedAt,
         },
       },
     }

@@ -353,6 +353,9 @@ export const eventReview = sqliteTable('event_review', {
   reviewText: text('review_text'),
   reviewToken: text('review_token').notNull().unique(),
   tokenUsed: integer('token_used', { mode: 'boolean' }).default(false).notNull(),
+  requestedAt: integer('requested_at', { mode: 'timestamp' }),
+  requestCount: integer('request_count').default(0),
+  lastError: text('last_error'),
   submittedAt: integer('submitted_at', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).defaultNow().notNull(),
 })
