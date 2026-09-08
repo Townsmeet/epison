@@ -55,10 +55,11 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
       sex: body.sex,
       dob: body.dob,
       address: body.address,
+      geopoliticalZone: body.geopoliticalZone,
       telephone: body.telephone,
       fax: body.fax,
       email: body.email,
-      avatar: body.avatar,
+      avatar: body.avatar || null,
 
       // Employment & Education
       position: body.position,
@@ -152,6 +153,8 @@ export default defineEventHandler(async (event: H3Event): Promise<ApiResponse<Me
       sex: memberData.sex ?? undefined,
       dob: memberData.dob ?? undefined,
       address: memberData.address ?? undefined,
+      geopoliticalZone:
+        (memberData.geopoliticalZone as MemberDetail['geopoliticalZone']) ?? undefined,
       telephone: memberData.telephone ?? undefined,
       fax: memberData.fax ?? undefined,
       email: memberData.email,

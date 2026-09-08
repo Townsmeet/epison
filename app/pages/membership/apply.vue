@@ -30,7 +30,13 @@
         </div>
 
         <div class="px-6 py-6">
-          <UForm :schema="membershipFormSchema" :state="state" class="space-y-8" @submit="onSubmit">
+          <UForm
+            :schema="membershipFormSchema"
+            :state="state"
+            class="space-y-8"
+            @submit="onSubmit"
+            @error="onFormError"
+          >
             <!-- Step Indicator -->
             <MembershipStepIndicator
               :steps="steps"
@@ -60,9 +66,8 @@
             <!-- Step 6: Payment -->
             <MembershipStep6Payment
               v-show="currentStep === 6"
+              v-model:form="state"
               :is-edit-mode="isEditMode"
-              :membership-type="membershipType"
-              :amount-naira="amountNaira"
             />
 
             <!-- Step Navigation Buttons -->
@@ -133,7 +138,7 @@ const state = reactive<MembershipFormData>({
   sex: '',
   dob: '',
   address: '',
-  state: 'Abia',
+  geopoliticalZone: 'Not Applicable',
   telephone: '',
   fax: '',
   email: '',
@@ -211,6 +216,7 @@ const currentStep = ref(1)
 
 // Step validation functions
 function isStep1Valid() {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return !!(
     state.nameFamily.trim() &&
     state.nameFirst.trim() &&
@@ -219,6 +225,7 @@ function isStep1Valid() {
     state.dob &&
     state.telephone.trim() &&
     state.email.trim() &&
+    emailRegex.test(state.email.trim()) &&
     state.address.trim()
   )
 }
@@ -240,7 +247,7 @@ function isStep5Valid() {
 }
 
 function isStep6Valid() {
-  return !!state.fees && state.fees > 0 // Need valid amount for payment
+  return !!state.membershipType && !!state.fees && state.fees > 0
 }
 
 // Computed property to check if current step is valid
@@ -272,8 +279,12 @@ const feeMap: Record<string, number> = {
   'early-career': 15000,
   'early-career iea': 40000,
 }
-const membershipType = computed(() => String((route.query.type as string) || '').toLowerCase())
-const amountNaira = computed(() => feeMap[membershipType.value] ?? 0)
+const queryMembershipType = computed(() =>
+  String((route.query.type as string) || '')
+    .toLowerCase()
+    .replace(/\+/g, ' ')
+    .trim()
+)
 
 // formatNaira handled in Step6Payment component
 
@@ -293,7 +304,7 @@ async function loadPaystackScript() {
 function startPaystackPayment(applicationId?: string): Promise<{ reference: string }> {
   return new Promise((resolve, reject) => {
     ;(async () => {
-      const amount = amountNaira.value
+      const amount = state.fees
       if (!state.email) {
         toast.add({
           title: 'Email required',
@@ -605,9 +616,11 @@ const onSubmit = async (_event: FormSubmitEvent<MembershipFormData>) => {
       sex: state.sex,
       dob: state.dob,
       address: state.address,
+      geopoliticalZone: state.geopoliticalZone,
       telephone: state.telephone,
       fax: state.fax,
       email: state.email,
+      avatar: state.avatar ? state.avatar : undefined,
 
       // Employment & Education
       position: state.position,
@@ -847,7 +860,7 @@ async function loadMemberForEdit() {
     state.sex = memberData.sex || ''
     state.dob = memberData.dob || ''
     state.address = memberData.address || ''
-    state.state = memberData.state || ''
+    state.geopoliticalZone = memberData.geopoliticalZone || 'Not Applicable'
     state.telephone = memberData.telephone || ''
     state.fax = memberData.fax || ''
     state.email = memberData.email
@@ -888,15 +901,84 @@ async function loadMemberForEdit() {
   }
 }
 
-// Watch for membership type changes and update state
+// Watch for membership type changes in URL query and update state
 watch(
-  [membershipType, amountNaira],
-  ([newType, newAmount]) => {
-    state.membershipType = newType
-    state.fees = newAmount
+  queryMembershipType,
+  newType => {
+    if (newType && feeMap[newType]) {
+      state.membershipType = newType
+      state.fees = feeMap[newType]
+    }
   },
   { immediate: true }
 )
+
+interface FormErrorItem {
+  name?: string
+  id?: string
+  message: string
+}
+
+interface FormErrorPayload {
+  errors?: FormErrorItem[]
+}
+
+// Handle form validation errors from Nuxt UI UForm
+function onFormError(event: FormErrorPayload) {
+  const errors = event?.errors || []
+  const firstError = errors[0]
+  if (!firstError) return
+
+  toast.add({
+    title: 'Validation Error',
+    description:
+      firstError.message || 'Please check your information and complete all required fields.',
+    color: 'error',
+    icon: 'i-heroicons-exclamation-circle',
+  })
+
+  const step1Fields = [
+    'title',
+    'nameFamily',
+    'nameMiddle',
+    'nameFirst',
+    'sex',
+    'dob',
+    'address',
+    'geopoliticalZone',
+    'telephone',
+    'fax',
+    'email',
+    'avatar',
+  ]
+  const step2Fields = [
+    'position',
+    'employer',
+    'department',
+    'qualifications',
+    'experience',
+    'publications',
+  ]
+  const step3Fields = ['motherTongue', 'otherLanguages', 'otherLanguageText']
+  const step4Fields = ['expertiseDescription', 'expertise', 'expertiseOther']
+  const step5Fields = ['agency', 'typeOfWork', 'typeOfWorkOther', 'retiredSince']
+  const step6Fields = ['membershipType', 'fees']
+
+  const fieldName = String(firstError.name || firstError.id || '')
+  if (step1Fields.includes(fieldName)) {
+    currentStep.value = 1
+  } else if (step2Fields.includes(fieldName)) {
+    currentStep.value = 2
+  } else if (step3Fields.includes(fieldName)) {
+    currentStep.value = 3
+  } else if (step4Fields.includes(fieldName)) {
+    currentStep.value = 4
+  } else if (step5Fields.includes(fieldName)) {
+    currentStep.value = 5
+  } else if (step6Fields.includes(fieldName)) {
+    currentStep.value = 6
+  }
+}
 
 onMounted(() => {
   if (isEditMode.value) loadMemberForEdit()

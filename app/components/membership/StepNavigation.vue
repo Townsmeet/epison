@@ -21,7 +21,7 @@
           type="submit"
           color="primary"
           :loading="isSubmitting"
-          :disabled="isSubmitting"
+          :disabled="!isCurrentStepValid || isSubmitting"
         >
           {{ submitButtonLabel }}
         </UButton>

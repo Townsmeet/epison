@@ -23,7 +23,7 @@ export const personalInfoSchema = z.object({
   telephone: z.string().min(1, 'Telephone is required').max(50),
   fax: z.string().max(50).optional(),
   email: z.string().email('Invalid email address').max(255),
-  avatar: z.string().url('Invalid URL').optional(),
+  avatar: z.union([z.string().url('Invalid URL'), z.literal('')]).optional(),
 })
 
 // Step 2: Employment Schema
@@ -60,7 +60,7 @@ export const classificationSchema = z.object({
 // Step 6: Payment Schema
 export const paymentSchema = z.object({
   membershipType: z.string().min(1, 'Membership type is required'),
-  fees: z.number().min(0, 'Fee amount must be positive'),
+  fees: z.number().min(1, 'Please select a valid membership category'),
 })
 
 // Combined schema for the entire form

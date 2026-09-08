@@ -15,9 +15,13 @@ export const createMemberSchema = z.object({
   dob: z.string().optional().nullable(), // expect YYYY-MM-DD if provided
   address: z.string().max(500).optional().nullable(),
   state: z.string().max(100).optional().nullable(),
+  geopoliticalZone: z.string().max(100).optional().nullable(),
   telephone: z.string().max(50).optional().nullable(),
   fax: z.string().max(50).optional().nullable(),
-  avatar: z.string().url('Invalid URL').optional().nullable(),
+  avatar: z
+    .union([z.string().url('Invalid URL'), z.literal('')])
+    .optional()
+    .nullable(),
 
   // Employment & Education
   position: z.string().max(100).optional().nullable(),
