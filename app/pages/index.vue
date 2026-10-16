@@ -148,28 +148,26 @@
             class="inline-flex items-center space-x-2 px-4 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-full border border-gray-200/50 dark:border-gray-700/50 shadow-sm mb-6"
           >
             <div class="w-2 h-2 bg-blue-500 rounded-full" />
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
-              >Upcoming Events</span
-            >
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Latest Events</span>
           </div>
           <h2
             class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight"
           >
-            Join Our Next
+            Our Latest
             <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              >Event</span
+              >Events</span
             >
           </h2>
           <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-            Participate in our upcoming conferences, workshops, and seminars to stay ahead in the
-            field of epidemiology.
+            Participate in our conferences, workshops, and seminars to stay ahead in the field of
+            epidemiology.
           </p>
         </div>
 
         <!-- Events Grid -->
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <div
-            v-for="event in upcomingEvents"
+            v-for="event in latestEvents"
             :key="event.id"
             class="group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300"
           >
@@ -180,10 +178,21 @@
                 :class="{
                   'bg-blue-500/90 text-white': event.type === 'Conference',
                   'bg-green-500/90 text-white': event.type === 'Workshop',
+                  'bg-indigo-500/90 text-white': event.type === 'Seminar',
                   'bg-purple-500/90 text-white': event.type === 'Symposium',
+                  'bg-pink-500/90 text-white': event.type === 'Webinar',
                 }"
               >
                 {{ event.type }}
+              </div>
+            </div>
+
+            <!-- Past Event Badge -->
+            <div v-if="isPast(event)" class="absolute top-4 left-4 z-10">
+              <div
+                class="px-2.5 py-1 text-[10px] font-semibold rounded-full bg-gray-800/90 text-white dark:bg-gray-200/90 dark:text-gray-900 uppercase tracking-wide"
+              >
+                Ended
               </div>
             </div>
 
@@ -192,7 +201,11 @@
               <img
                 :src="event.image"
                 :alt="event.title"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                :class="[
+                  'w-full h-full object-cover transition-transform duration-500',
+                  isPast(event) ? 'opacity-70' : 'group-hover:scale-105',
+                ]"
+                @error="onImgError"
               />
             </div>
 
@@ -204,13 +217,18 @@
               >
                 <div class="flex items-center">
                   <UIcon name="i-heroicons-calendar" class="h-4 w-4 mr-1.5" />
-                  <span>{{ formatDate(event.date) }}</span>
+                  <span>{{ formatDateRange(event.startDate, event.endDate) }}</span>
                 </div>
                 <div class="flex items-center">
                   <UIcon name="i-heroicons-map-pin" class="h-4 w-4 mr-1.5" />
                   <span>{{ event.location }}</span>
                 </div>
               </div>
+
+              <!-- Ended on subtitle for past events -->
+              <p v-if="isPast(event)" class="-mt-2 mb-2 text-xs text-gray-500 dark:text-gray-400">
+                Ended on {{ formatEndDate(event.startDate, event.endDate) }}
+              </p>
 
               <!-- Title -->
               <h3
@@ -230,7 +248,11 @@
               class="absolute inset-0 bg-gradient-to-t from-primary-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
             />
 
-            <NuxtLink to="/events" class="absolute inset-0 z-0" aria-label="View event" />
+            <NuxtLink
+              :to="`/events/${event.slug}`"
+              class="absolute inset-0 z-0"
+              aria-label="View event"
+            />
           </div>
         </div>
 
@@ -393,11 +415,10 @@ defineOgImage({
 
 const { getPublicEvents } = useEvents()
 
-// Fetch up to 3 upcoming public events
+// Fetch up to 3 latest public events
 const { data: eventsResponse } = await getPublicEvents({
   limit: 3,
-  upcoming: true,
-  sort: 'startDate',
+  sort: '-startDate',
 })
 
 function slugify(s: string) {
@@ -412,17 +433,73 @@ function toTitleCase(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-const upcomingEvents = computed(() => {
+function isPast(e: { startDate: string; endDate?: string }) {
+  const now = new Date()
+  const end = e.endDate ? new Date(e.endDate) : new Date(e.startDate)
+  return end.getTime() < now.getTime()
+}
+
+function formatDateRange(start?: string, end?: string) {
+  if (!start) return ''
+  const startDate = new Date(start)
+  if (!end)
+    return startDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  const endDate = new Date(end)
+  const sameMonth =
+    startDate.getMonth() === endDate.getMonth() && startDate.getFullYear() === endDate.getFullYear()
+  if (sameMonth) {
+    return `${startDate.toLocaleDateString('en-US', { month: 'long' })} ${startDate.getDate()}–${endDate.getDate()}, ${endDate.getFullYear()}`
+  }
+  return `${startDate.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })} – ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+}
+
+function formatEndDate(start?: string, end?: string) {
+  const endDate = end ? new Date(end) : start ? new Date(start) : undefined
+  if (!endDate) return ''
+  return endDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
+function onImgError(e: Event) {
+  const el = e.target as HTMLImageElement | null
+  if (!el) return
+  let idx = parseInt(el.dataset?.fallbackIdx ?? '0', 10)
+  if (Number.isNaN(idx) || idx < 0) idx = 0
+  const fallbacks: string[] = [
+    'https://picsum.photos/seed/epison1/1200/800',
+    'https://picsum.photos/seed/epison2/1200/800',
+    'https://placehold.co/1200x800/png',
+  ]
+  if (idx >= fallbacks.length) return
+  const fb = (fallbacks[idx] ?? fallbacks[0]) as string
+  if (typeof fb === 'string') {
+    try {
+      el.src = fb
+    } catch {
+      el.setAttribute('src', fb)
+    }
+  }
+  if (el.dataset) el.dataset.fallbackIdx = String(idx + 1)
+}
+
+const latestEvents = computed(() => {
   const list = eventsResponse.value?.data || []
-  return list.map(e => ({
-    id: e.id,
-    title: e.title,
-    type: toTitleCase(e.type),
-    date: e.startDate,
-    location: e.location,
-    description: e.description || '',
-    image: e.bannerUrl || `https://picsum.photos/seed/${slugify(e.slug || e.title)}/1200/800`,
-  }))
+  return [...list]
+    .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+    .map(e => ({
+      id: e.id,
+      title: e.title,
+      type: toTitleCase(e.type),
+      startDate: e.startDate,
+      endDate: e.endDate,
+      location: e.location,
+      description: e.description || '',
+      slug: e.slug || slugify(e.title),
+      image: e.bannerUrl || `https://picsum.photos/seed/${slugify(e.slug || e.title)}/1200/800`,
+    }))
 })
 
 const features = [
@@ -445,9 +522,4 @@ const features = [
       'Exclusive access to research publications, guidelines, and other valuable resources in epidemiology.',
   },
 ]
-
-function formatDate(dateString: string) {
-  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' }
-  return new Date(dateString).toLocaleDateString('en-US', options)
-}
 </script>

@@ -11,36 +11,6 @@
     <!-- Events Grid -->
     <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Toggle -->
-        <div class="flex items-center justify-center mb-10">
-          <div
-            class="inline-flex rounded-xl border border-gray-200 dark:border-gray-700 p-1 bg-white dark:bg-gray-800 shadow-sm"
-          >
-            <button
-              class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              :class="
-                activeTab === 'upcoming'
-                  ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
-                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-              "
-              @click="switchTab('upcoming')"
-            >
-              Upcoming
-            </button>
-            <button
-              class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              :class="
-                activeTab === 'past'
-                  ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
-                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-              "
-              @click="switchTab('past')"
-            >
-              Past
-            </button>
-          </div>
-        </div>
-
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <div
             v-for="event in displayedEvents"
@@ -144,14 +114,14 @@ useSeoMeta({
     'Join EPISON for conferences, workshops, and networking events that advance epidemiological knowledge and practice across Nigeria.',
   ogTitle: 'Events - Conferences, Workshops & Seminars | EPISON',
   ogDescription:
-    'Discover upcoming conferences, workshops, and networking events advancing epidemiological knowledge.',
+    'Discover conferences, workshops, and networking events advancing epidemiological knowledge.',
   ogImage: 'https://epison.ng/hero.jpeg',
   ogUrl: 'https://epison.ng/events',
   ogType: 'website',
   twitterCard: 'summary_large_image',
   twitterTitle: 'Events - Conferences, Workshops & Seminars | EPISON',
   twitterDescription:
-    'Discover upcoming conferences, workshops, and networking events advancing epidemiological knowledge.',
+    'Discover conferences, workshops, and networking events advancing epidemiological knowledge.',
   twitterImage: 'https://epison.ng/hero.jpeg',
 })
 
@@ -160,30 +130,15 @@ defineOgImage({
   alt: 'Events - Conferences, Workshops & Seminars | EPISON',
 })
 
-const route = useRoute()
-const router = useRouter()
 const { getPublicEvents } = useEvents()
 
-// Params
-const limit = 12
-const activeTab = ref<'upcoming' | 'past'>(
-  route.query.upcoming === 'false' ||
-    route.query.upcoming === '0' ||
-    route.query.upcoming === 'past'
-    ? 'past'
-    : 'upcoming'
-)
-const page = ref<number>(Number(route.query.page || 1) || 1)
-
-// Fetch public events from API with filters
+// Fetch all public events sorted with the latest at the top
 const query = computed(() => ({
-  page: page.value,
-  limit,
-  upcoming: activeTab.value === 'upcoming',
-  sort: 'startDate',
+  limit: 100,
+  sort: '-startDate',
 }))
 
-const { data: eventsResponse, refresh: refreshPublicEvents } = await getPublicEvents(query)
+const { data: eventsResponse } = await getPublicEvents(query)
 
 // Transform API response to match expected format
 const events = computed(() => {
@@ -204,43 +159,12 @@ const eventsWithSlug = computed(() =>
   }))
 )
 
-// Derived display collections (client-side) remain, as API already filters by upcoming
-const upcomingEvents = computed(() =>
-  eventsWithSlug.value
-    .filter(e => !isPast(e))
-    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-)
-
-const pastEvents = computed(() =>
-  eventsWithSlug.value
-    .filter(e => isPast(e))
-    .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
-)
-
+// List all events with the latest at the top
 const displayedEvents = computed(() =>
-  activeTab.value === 'upcoming' ? upcomingEvents.value : pastEvents.value
+  [...eventsWithSlug.value].sort(
+    (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+  )
 )
-
-// Keep URL query in sync and refresh when filters change
-watch([activeTab, page], async () => {
-  // Push query without navigating away
-  router.replace({
-    query: {
-      ...route.query,
-      upcoming: activeTab.value === 'upcoming' ? 'true' : 'false',
-      page: String(page.value),
-    },
-  })
-
-  // Manual refresh to ensure new data is fetched
-  await refreshPublicEvents()
-})
-
-function switchTab(tab: 'upcoming' | 'past') {
-  if (activeTab.value === tab) return
-  activeTab.value = tab
-  page.value = 1
-}
 
 function formatDateRange(start?: string, end?: string) {
   if (!start) return ''
