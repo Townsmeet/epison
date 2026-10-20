@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-teal-900/20"
-  >
+  <div class="min-h-screen bg-[#f8f8f4] dark:bg-gray-950">
     <!-- Hero Section (Reusable) -->
     <HeroSection
       title="Knowledge Hub"
@@ -9,9 +7,9 @@
     />
 
     <!-- Filters Section -->
-    <section class="py-12 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+    <section class="border-b border-gray-200 bg-white py-8 dark:border-gray-800 dark:bg-gray-900">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <!-- Search -->
           <div class="flex-1 max-w-md">
             <div class="relative">
@@ -56,8 +54,8 @@
     </section>
 
     <!-- Content Grid -->
-    <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="py-16 md:py-24">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <!-- Results Info -->
         <div class="mb-8">
           <p class="text-gray-600 dark:text-gray-400">
@@ -89,7 +87,7 @@
           <article
             v-for="(post, index) in filteredPosts"
             :key="index"
-            class="group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300"
+            class="group relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-primary-200 hover:shadow-[0_20px_50px_-24px_rgba(15,23,42,0.28)] dark:border-gray-700 dark:bg-gray-900"
           >
             <!-- Content Type Badge -->
             <div v-if="post.tags && post.tags.length" class="absolute top-4 right-4 z-10">
@@ -102,7 +100,7 @@
               </UBadge>
             </div>
 
-            <div class="h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
+            <div class="h-52 overflow-hidden bg-gray-100 dark:bg-gray-800">
               <img
                 :src="post.image"
                 :alt="post.title"

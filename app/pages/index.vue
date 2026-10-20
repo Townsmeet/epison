@@ -2,123 +2,77 @@
   <div class="overflow-x-hidden">
     <!-- Hero Section -->
     <section
-      class="relative min-h-screen flex items-center bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 overflow-hidden"
+      class="relative flex min-h-[calc(100svh-5rem)] items-center overflow-hidden bg-[#f8f8f4] dark:bg-gray-950"
     >
-      <!-- Subtle geometric background -->
-      <div class="absolute inset-0 opacity-30">
+      <div class="absolute inset-0 opacity-20 dark:opacity-10">
         <div
-          class="absolute top-20 left-10 w-72 h-72 bg-primary-100 dark:bg-primary-900/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"
+          class="absolute -top-24 -left-24 h-[30rem] w-[30rem] rounded-full bg-teal-200 blur-3xl dark:bg-teal-900"
         />
         <div
-          class="absolute top-40 right-10 w-72 h-72 bg-blue-100 dark:bg-blue-900/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"
-          style="animation-delay: 2s"
-        />
-        <div
-          class="absolute -bottom-8 left-20 w-72 h-72 bg-purple-100 dark:bg-purple-900/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"
-          style="animation-delay: 4s"
+          class="absolute -bottom-40 right-0 h-[34rem] w-[34rem] rounded-full bg-amber-100 blur-3xl dark:bg-amber-900"
         />
       </div>
 
-      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div class="grid lg:grid-cols-12 gap-8 items-center">
-          <!-- Content Column -->
-          <div class="lg:col-span-7 space-y-8">
-            <!-- Badge -->
-            <div
-              class="inline-flex items-center space-x-2 px-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full border border-gray-200/50 dark:border-gray-700/50 shadow-sm"
-            >
-              <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
-                >Advancing Public Health in Nigeria</span
-              >
-            </div>
-
-            <!-- Main Headline -->
+      <div class="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+        <div class="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
+          <div class="space-y-7 lg:col-span-7">
             <div class="space-y-4">
-              <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-                <span class="block text-gray-900 dark:text-white leading-none">Shaping the</span>
-                <span class="block text-gray-900 dark:text-white leading-none">Future of</span>
+              <h1 class="text-5xl font-semibold tracking-[-0.055em] md:text-6xl lg:text-[4.5rem]">
+                <span class="block leading-[1.02] text-gray-950 dark:text-white">Evidence for</span>
+                <span class="block leading-[1.02] text-gray-950 dark:text-white">a healthier</span>
                 <span
-                  class="block bg-gradient-to-r from-primary-600 via-primary-500 to-blue-600 bg-clip-text text-transparent leading-none"
+                  class="block font-serif text-primary-700 italic leading-[1.02] tracking-[-0.04em] dark:text-primary-400"
                 >
-                  Epidemiology
+                  Nigeria.
                 </span>
               </h1>
-
-              <!-- Decorative line -->
-              <div class="w-24 h-1 bg-gradient-to-r from-primary-500 to-blue-500 rounded-full" />
             </div>
 
-            <!-- Description -->
-            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-xl leading-relaxed">
-              Empowering health professionals through research, education, and community engagement
-              to build a healthier Nigeria.
+            <p class="max-w-xl text-lg leading-relaxed text-gray-600 dark:text-gray-300 md:text-xl">
+              Advancing public health through epidemiological research, education, and a stronger
+              professional community.
             </p>
 
-            <!-- Stats -->
-            <div class="flex flex-wrap items-center gap-8 pt-4">
-              <div class="flex items-center space-x-3">
-                <div class="flex -space-x-2">
-                  <div
-                    class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 border-2 border-white dark:border-gray-900 flex items-center justify-center"
-                  >
-                    <span class="text-xs font-bold text-white">1K+</span>
-                  </div>
-                  <div
-                    class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-white dark:border-gray-900"
-                  />
-                  <div
-                    class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 border-2 border-white dark:border-gray-900"
-                  />
-                </div>
-                <div>
-                  <p class="text-sm font-semibold text-gray-900 dark:text-white">Active Members</p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Nationwide Network</p>
-                </div>
-              </div>
-
-              <div class="h-12 w-px bg-gray-200 dark:bg-gray-700" />
-
-              <div>
-                <p class="text-2xl font-bold text-gray-900 dark:text-white">25+</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                  Years Experience
-                </p>
-              </div>
-
-              <div>
-                <p class="text-2xl font-bold text-gray-900 dark:text-white">50+</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                  Research Projects
-                </p>
-              </div>
+            <div class="flex flex-wrap items-center gap-3 pt-1">
+              <UButton
+                to="/membership"
+                color="primary"
+                size="xl"
+                trailing-icon="i-heroicons-arrow-right"
+                class="rounded-full px-6 py-3 font-semibold shadow-sm"
+              >
+                Become a member
+              </UButton>
+              <NuxtLink
+                to="/about"
+                class="inline-flex items-center rounded-full px-5 py-3 text-sm font-semibold text-gray-800 transition-colors hover:bg-white/70 dark:text-gray-200 dark:hover:bg-gray-900/70"
+              >
+                Discover EPISON
+              </NuxtLink>
             </div>
           </div>
 
-          <!-- Visual Column -->
-          <div class="lg:col-span-5 relative">
-            <div class="relative">
-              <!-- Main image -->
+          <div class="relative lg:col-span-5 lg:pl-4">
+            <div class="relative mx-auto max-w-lg">
               <div
-                class="relative z-10 rounded-3xl overflow-hidden shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-700"
+                class="relative z-10 overflow-hidden rounded-[2rem] border-[8px] border-white/80 shadow-[0_30px_80px_-30px_rgba(18,52,43,0.4)] dark:border-gray-900"
               >
                 <img
-                  class="w-full h-96 object-cover"
+                  class="h-[23rem] w-full object-cover md:h-[28rem]"
                   src="/hero.jpeg"
                   alt="Medical professionals in discussion"
                 />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                <div
+                  class="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent"
+                />
               </div>
 
-              <!-- Floating card -->
               <div
-                class="absolute -bottom-6 -left-6 z-20 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-xl border border-gray-100 dark:border-gray-700 backdrop-blur-sm"
+                class="absolute -bottom-5 -left-4 z-20 rounded-2xl border border-gray-100 bg-white p-4 shadow-xl dark:border-gray-700 dark:bg-gray-900 sm:-left-8"
               >
                 <div class="flex items-center space-x-3">
-                  <div
-                    class="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center"
-                  >
-                    <UIcon name="i-heroicons-chart-bar" class="w-6 h-6 text-white" />
+                  <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-700">
+                    <UIcon name="i-heroicons-chart-bar" class="h-6 w-6 text-white" />
                   </div>
                   <div>
                     <p class="text-sm font-semibold text-gray-900 dark:text-white">Health Impact</p>
@@ -127,9 +81,8 @@
                 </div>
               </div>
 
-              <!-- Floating badge -->
               <div
-                class="absolute -top-4 -right-4 z-20 bg-primary-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg"
+                class="absolute -right-3 -top-3 z-20 rounded-full border border-white/70 bg-amber-100 px-4 py-2 text-xs font-bold tracking-wide text-amber-950 shadow-lg dark:border-gray-800 dark:bg-amber-300 dark:text-amber-950"
               >
                 Est. 2010
               </div>
@@ -140,36 +93,35 @@
     </section>
 
     <!-- Events Section -->
-    <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Section Header -->
-        <div class="max-w-2xl mb-16">
+    <section class="bg-white py-20 dark:bg-gray-900 md:py-28">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mb-16 max-w-2xl">
           <div
-            class="inline-flex items-center space-x-2 px-4 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-full border border-gray-200/50 dark:border-gray-700/50 shadow-sm mb-6"
+            class="mb-5 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3.5 py-2 dark:border-gray-700 dark:bg-gray-800"
           >
-            <div class="w-2 h-2 bg-blue-500 rounded-full" />
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Latest Events</span>
+            <div class="h-1.5 w-1.5 rounded-full bg-primary-600" />
+            <span
+              class="text-xs font-semibold uppercase tracking-[0.12em] text-gray-700 dark:text-gray-300"
+              >Connect & Learn</span
+            >
           </div>
           <h2
-            class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight"
+            class="mb-5 text-4xl font-semibold tracking-tight text-gray-950 dark:text-white md:text-5xl"
           >
-            Our Latest
-            <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              >Events</span
-            >
+            Upcoming
+            <span class="font-serif italic text-primary-700 dark:text-primary-400">events</span>
           </h2>
-          <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+          <p class="max-w-xl text-lg leading-relaxed text-gray-600 dark:text-gray-300">
             Participate in our conferences, workshops, and seminars to stay ahead in the field of
             epidemiology.
           </p>
         </div>
 
-        <!-- Events Grid -->
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div v-if="latestEvents.length" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <div
             v-for="event in latestEvents"
             :key="event.id"
-            class="group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300"
+            class="group relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-primary-200 hover:shadow-[0_20px_50px_-24px_rgba(15,23,42,0.28)] dark:border-gray-700 dark:bg-gray-800"
           >
             <!-- Event Type Badge -->
             <div class="absolute top-4 right-4 z-10">
@@ -197,7 +149,7 @@
             </div>
 
             <!-- Event Image -->
-            <div class="h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
+            <div class="h-52 overflow-hidden bg-gray-100 dark:bg-gray-700">
               <img
                 :src="event.image"
                 :alt="event.title"
@@ -257,15 +209,15 @@
         </div>
 
         <!-- View All Link -->
-        <div class="mt-16 text-center">
+        <div class="mt-10 flex justify-center">
           <NuxtLink
             to="/events"
-            class="inline-flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors group"
+            class="inline-flex items-center gap-2 rounded-full border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 transition-colors hover:border-primary-300 hover:text-primary-700 dark:border-gray-700 dark:text-gray-200 dark:hover:text-primary-300 group"
           >
-            <span class="font-medium">View all events</span>
+            <span>View all events</span>
             <UIcon
               name="i-heroicons-arrow-right"
-              class="h-4 w-4 group-hover:translate-x-1 transition-transform"
+              class="h-4 w-4 transition-transform group-hover:translate-x-1"
             />
           </NuxtLink>
         </div>
@@ -273,115 +225,85 @@
     </section>
 
     <!-- Features Section -->
-    <section class="py-20 md:py-32 bg-white dark:bg-gray-900 relative overflow-hidden">
-      <!-- Subtle background pattern -->
-      <div class="absolute inset-0 opacity-5">
-        <div
-          class="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-primary-500 to-blue-500 rounded-full mix-blend-multiply filter blur-3xl"
-        />
-        <div
-          class="absolute bottom-20 left-20 w-96 h-96 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mix-blend-multiply filter blur-3xl"
-        />
+    <section class="relative overflow-hidden bg-[#f8f8f4] py-20 dark:bg-gray-950 md:py-28">
+      <div class="absolute inset-0 opacity-[0.08] dark:opacity-[0.04]">
+        <div class="absolute -right-20 top-20 h-96 w-96 rounded-full bg-primary-300 blur-3xl" />
+        <div class="absolute -left-20 bottom-20 h-96 w-96 rounded-full bg-amber-200 blur-3xl" />
       </div>
 
-      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Section Header -->
-        <div class="max-w-2xl mb-20">
+      <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mb-20 max-w-2xl">
           <div
-            class="inline-flex items-center space-x-2 px-4 py-2 bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full border border-gray-200/50 dark:border-gray-700/50 shadow-sm mb-6"
+            class="mb-5 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-3.5 py-2 dark:border-gray-700 dark:bg-gray-900/80"
           >
-            <div class="w-2 h-2 bg-primary-500 rounded-full" />
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
-              >Our Value Proposition</span
+            <div class="h-1.5 w-1.5 rounded-full bg-primary-500" />
+            <span
+              class="text-xs font-semibold uppercase tracking-[0.12em] text-gray-700 dark:text-gray-300"
+              >Why EPISON</span
             >
           </div>
           <h2
-            class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight"
+            class="mb-5 text-4xl font-semibold tracking-tight text-gray-950 dark:text-white md:text-5xl"
           >
             Why Join
-            <span
-              class="bg-gradient-to-r from-primary-600 to-blue-600 bg-clip-text text-transparent"
-              >EPISON?</span
-            >
+            <span class="font-serif italic text-primary-700 dark:text-primary-400">EPISON?</span>
           </h2>
-          <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+          <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300">
             We provide unparalleled opportunities for professional growth, networking, and impact in
             the field of epidemiology.
           </p>
         </div>
 
-        <!-- Features Grid -->
-        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          <div v-for="(feature, index) in features" :key="index" class="group relative">
-            <!-- Feature Card -->
+        <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <div v-for="feature in features" :key="feature.title" class="group">
             <div
-              class="relative h-full p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300"
+              class="h-full rounded-2xl border border-gray-200/80 bg-white p-7 transition-all duration-300 hover:-translate-y-1 hover:border-primary-200 hover:shadow-[0_20px_50px_-24px_rgba(15,23,42,0.22)] dark:border-gray-700 dark:bg-gray-900"
             >
-              <!-- Icon with gradient background -->
-              <div class="relative mb-6">
+              <div class="mb-6">
                 <div
-                  class="absolute inset-0 bg-gradient-to-br from-primary-500/20 to-blue-500/20 rounded-2xl blur-xl"
-                />
-                <div
-                  class="relative flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-primary-500 to-blue-600 text-white shadow-lg"
+                  class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-50 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300"
                 >
-                  <UIcon :name="feature.icon" class="h-8 w-8" />
+                  <UIcon :name="feature.icon" class="h-6 w-6" />
                 </div>
               </div>
 
-              <!-- Content -->
               <div class="space-y-4">
                 <h3
-                  class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors"
+                  class="text-lg font-semibold text-gray-950 transition-colors group-hover:text-primary-700 dark:text-white dark:group-hover:text-primary-300"
                 >
                   {{ feature.title }}
                 </h3>
 
-                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p class="leading-relaxed text-gray-600 dark:text-gray-300">
                   {{ feature.description }}
                 </p>
               </div>
-
-              <!-- Subtle hover effect -->
-              <div
-                class="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-blue-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              />
-            </div>
-
-            <!-- Floating number indicator -->
-            <div
-              class="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-gray-800 to-gray-900 dark:from-gray-100 dark:to-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-white dark:text-gray-900 shadow-lg"
-            >
-              {{ index + 1 }}
             </div>
           </div>
         </div>
 
-        <!-- Bottom CTA -->
-        <div class="mt-20 text-center">
+        <div class="mt-14">
           <div
-            class="inline-flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-primary-50 to-blue-50 dark:from-primary-900/20 dark:to-blue-900/20 rounded-full border border-primary-200/50 dark:border-primary-700/50"
+            class="flex flex-col gap-5 rounded-2xl border border-primary-200/70 bg-white p-6 dark:border-primary-800 dark:bg-gray-900 sm:flex-row sm:items-center sm:justify-between sm:px-8"
           >
-            <div class="flex -space-x-2">
-              <div
-                class="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full border-2 border-white dark:border-gray-900"
-              />
-              <div
-                class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full border-2 border-white dark:border-gray-900"
-              />
-              <div
-                class="w-8 h-8 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full border-2 border-white dark:border-gray-900"
-              />
+            <div>
+              <p
+                class="text-xs font-semibold uppercase tracking-[0.12em] text-primary-700 dark:text-primary-300"
+              >
+                Join the community
+              </p>
+              <p class="mt-1 text-lg font-semibold text-gray-950 dark:text-white">
+                Ready to make an impact?
+              </p>
             </div>
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
-              >Ready to make an impact?</span
-            >
-            <NuxtLink
+            <UButton
               to="/membership"
-              class="text-sm font-semibold text-primary-600 dark:text-primary-400 hover:underline"
+              color="primary"
+              trailing-icon="i-heroicons-arrow-right"
+              class="w-fit rounded-full px-5 font-semibold"
             >
-              Join us →
-            </NuxtLink>
+              Join EPISON
+            </UButton>
           </div>
         </div>
       </div>

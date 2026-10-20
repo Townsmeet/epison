@@ -13,7 +13,7 @@
         </div> -->
 
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex h-20 items-center justify-between">
+          <div class="flex h-[4.5rem] items-center justify-between">
             <!-- Logo -->
             <NuxtLink to="/" class="group flex items-center space-x-2.5">
               <div class="relative">
@@ -27,24 +27,24 @@
                 />
               </div>
               <div class="flex flex-col">
-                <span
-                  class="text-2xl font-extrabold bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-400 dark:to-primary-300 bg-clip-text text-transparent"
+                <span class="text-xl font-bold tracking-tight text-gray-950 dark:text-white"
                   >EPISON</span
                 >
-                <span class="text-[10px] font-medium text-gray-500 dark:text-gray-400 -mt-1"
+                <span
+                  class="-mt-0.5 text-[10px] font-medium tracking-wide text-gray-500 dark:text-gray-400"
                   >Epidemiological Society of Nigeria</span
                 >
               </div>
             </NuxtLink>
 
             <!-- Desktop Navigation -->
-            <nav class="hidden md:flex items-center space-x-1">
+            <nav class="hidden md:flex items-center gap-0.5">
               <NuxtLink
                 v-for="link in navLinks"
                 :key="link.to"
                 :to="link.to"
                 :target="link.target || undefined"
-                class="relative px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group"
+                class="group relative rounded-full px-3 py-2 text-[13px] font-medium transition-colors duration-200"
                 :class="{
                   'text-primary-600 dark:text-primary-400': isActive(link.to),
                   'text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400':
@@ -54,11 +54,11 @@
                 {{ link.label }}
                 <span
                   v-if="isActive(link.to)"
-                  class="absolute bottom-1 left-1/2 w-5 h-0.5 bg-primary-600 dark:bg-primary-400 -translate-x-1/2 rounded-full"
+                  class="absolute bottom-1 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-primary-600 dark:bg-primary-400"
                 />
                 <span
                   v-else
-                  class="absolute bottom-1 left-1/2 w-0 h-0.5 bg-primary-600 dark:bg-primary-400 group-hover:w-5 -translate-x-1/2 rounded-full transition-all duration-200"
+                  class="absolute bottom-1 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-primary-600 transition-all duration-200 group-hover:w-5 dark:bg-primary-400"
                 />
               </NuxtLink>
 
@@ -66,7 +66,7 @@
                 to="/membership"
                 color="primary"
                 variant="solid"
-                class="ml-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
+                class="ml-2 rounded-full px-4 py-2 text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
               >
                 Join Us
                 <UIcon
@@ -108,7 +108,7 @@
                   to="/membership"
                   color="primary"
                   variant="solid"
-                  class="text-sm font-medium bg-gradient-to-r from-primary-600 to-primary-700"
+                  class="rounded-full text-sm font-semibold"
                 >
                   Join Us
                 </UButton>
@@ -140,7 +140,7 @@
               class="flex items-center px-4 py-3 text-base font-medium rounded-lg transition-colors"
               :class="[
                 isActive(link.to)
-                  ? 'bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400'
+                  ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
                   : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800/50',
               ]"
               @click="isMobileMenuOpen = false"
@@ -158,7 +158,7 @@
                 to="/membership"
                 color="primary"
                 variant="solid"
-                class="w-full justify-center py-3 text-base font-medium mt-2 bg-gradient-to-r from-primary-600 to-primary-700"
+                class="mt-2 w-full justify-center rounded-full py-3 text-base font-semibold"
                 @click="isMobileMenuOpen = false"
               >
                 Join EPISON
@@ -188,7 +188,7 @@
 
     <!-- Modern Footer -->
     <footer
-      class="bg-white dark:bg-gray-900 border-t border-gray-200/50 dark:border-gray-800/50 relative overflow-hidden"
+      class="relative overflow-hidden border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950"
     >
       <!-- Decorative elements -->
       <div
@@ -205,8 +205,7 @@
             <div class="flex flex-col space-y-4">
               <div class="flex items-center space-x-3">
                 <img src="/logo.png" alt="EPISON Logo" class="h-10 w-auto" />
-                <span
-                  class="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-400 dark:to-primary-300 bg-clip-text text-transparent"
+                <span class="text-xl font-bold tracking-tight text-gray-950 dark:text-white"
                   >EPISON</span
                 >
               </div>
@@ -235,11 +234,11 @@
           <!-- Quick Links -->
           <div class="lg:col-span-2 lg:col-start-6">
             <h3
-              class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-5 relative inline-block"
+              class="relative mb-5 inline-block text-xs font-semibold uppercase tracking-[0.14em] text-gray-900 dark:text-white"
             >
               Quick Links
               <span
-                class="absolute -bottom-2 left-0 w-8 h-0.5 bg-primary-600 dark:bg-primary-400 rounded-full"
+                class="absolute -bottom-2 left-0 h-0.5 w-8 rounded-full bg-primary-600 dark:bg-primary-400"
               />
             </h3>
             <ul class="space-y-3">
@@ -258,11 +257,11 @@
           <!-- Resources -->
           <div class="lg:col-span-2">
             <h3
-              class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-5 relative inline-block"
+              class="relative mb-5 inline-block text-xs font-semibold uppercase tracking-[0.14em] text-gray-900 dark:text-white"
             >
               Legal
               <span
-                class="absolute -bottom-2 left-0 w-8 h-0.5 bg-primary-600 dark:bg-primary-400 rounded-full"
+                class="absolute -bottom-2 left-0 h-0.5 w-8 rounded-full bg-primary-600 dark:bg-primary-400"
               />
             </h3>
             <ul class="space-y-3">
@@ -281,11 +280,11 @@
           <!-- Contact -->
           <div class="lg:col-span-3">
             <h3
-              class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-5 relative inline-block"
+              class="relative mb-5 inline-block text-xs font-semibold uppercase tracking-[0.14em] text-gray-900 dark:text-white"
             >
               Get In Touch
               <span
-                class="absolute -bottom-2 left-0 w-8 h-0.5 bg-primary-600 dark:bg-primary-400 rounded-full"
+                class="absolute -bottom-2 left-0 h-0.5 w-8 rounded-full bg-primary-600 dark:bg-primary-400"
               />
             </h3>
             <address class="space-y-4 not-italic">

@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-teal-900/20"
-  >
+  <div class="min-h-screen bg-[#f8f8f4] dark:bg-gray-950">
     <!-- Hero Section (Reusable) -->
     <HeroSection
       title="Contact Us"
@@ -9,13 +7,13 @@
     />
 
     <!-- Contact Info & Form -->
-    <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="lg:grid lg:grid-cols-3 lg:gap-12">
+    <section class="py-16 md:py-24">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="lg:grid lg:grid-cols-3 lg:gap-8">
           <!-- Contact Information -->
           <div class="space-y-8">
             <div
-              class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm p-8"
+              class="rounded-2xl border border-gray-200/80 bg-white p-7 shadow-sm dark:border-gray-700 dark:bg-gray-900 md:p-8"
             >
               <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                 Contact Information
@@ -29,7 +27,7 @@
                 <div class="flex items-start">
                   <div class="flex-shrink-0 mt-1">
                     <div
-                      class="flex items-center justify-center h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white"
+                      class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300"
                     >
                       <UIcon name="i-heroicons-map-pin" class="h-5 w-5" />
                     </div>
@@ -47,7 +45,7 @@
                 <!-- <div class="flex items-start">
                   <div class="flex-shrink-0 mt-1">
                     <div
-                      class="flex items-center justify-center h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white"
+                      class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300"
                     >
                       <UIcon name="i-heroicons-phone" class="h-5 w-5" />
                     </div>
@@ -104,7 +102,7 @@
           <!-- Contact Form -->
           <div class="mt-12 lg:mt-0 lg:col-span-2">
             <div
-              class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm p-8"
+              class="rounded-2xl border border-gray-200/80 bg-white p-7 shadow-sm dark:border-gray-700 dark:bg-gray-900 md:p-8"
             >
               <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                 Send us a message
@@ -158,7 +156,13 @@
                 </div>
 
                 <div class="flex justify-end">
-                  <UButton type="submit" color="primary" :loading="isSubmitting" size="lg">
+                  <UButton
+                    type="submit"
+                    color="primary"
+                    :loading="isSubmitting"
+                    size="lg"
+                    class="rounded-full px-6 font-semibold"
+                  >
                     Send Message
                   </UButton>
                 </div>

@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-teal-900/20"
-  >
+  <div class="min-h-screen bg-[#f8f8f4] dark:bg-gray-950">
     <!-- Hero Section (Reusable) -->
     <HeroSection
       title="About EPiSON"
@@ -9,8 +7,8 @@
     />
 
     <!-- Main Goals Section -->
-    <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="bg-white py-16 dark:bg-gray-900 md:py-24">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <!-- Section Header -->
         <div class="max-w-3xl mx-auto text-center mb-16">
           <div
@@ -38,11 +36,11 @@
         </div>
 
         <!-- Goals Grid -->
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           <div
             v-for="(goal, index) in goals"
             :key="index"
-            class="group bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-primary-200 dark:hover:border-primary-700 transition-all duration-300"
+            class="group rounded-2xl border border-gray-200/80 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary-200 hover:shadow-lg dark:border-gray-700 dark:bg-gray-900"
           >
             <div class="flex items-start space-x-4">
               <div class="flex-shrink-0">
@@ -67,12 +65,12 @@
     </section>
 
     <!-- Membership Section -->
-    <section class="py-20 md:py-32 bg-white dark:bg-gray-900">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid lg:grid-cols-2 gap-16 items-center">
+    <section class="bg-[#f8f8f4] py-16 dark:bg-gray-950 md:py-24">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div class="relative order-2 lg:order-1">
             <div
-              class="relative z-10 rounded-3xl overflow-hidden shadow-2xl transform -rotate-2 hover:rotate-0 transition-transform duration-700"
+              class="relative z-10 overflow-hidden rounded-[2rem] border-[8px] border-white/80 shadow-[0_30px_80px_-30px_rgba(18,52,43,0.4)] dark:border-gray-900"
             >
               <img
                 class="w-full h-96 object-cover"
@@ -84,7 +82,7 @@
 
             <!-- Floating badge -->
             <div
-              class="absolute -top-4 -left-4 z-20 bg-gradient-to-r from-primary-500 to-blue-500 text-white px-6 py-3 rounded-full text-sm font-semibold shadow-lg"
+              class="absolute -left-3 -top-3 z-20 rounded-full border border-white/70 bg-amber-100 px-5 py-2.5 text-sm font-semibold text-amber-950 shadow-lg dark:border-gray-800 dark:bg-amber-300"
             >
               Since 2010
             </div>
@@ -118,8 +116,8 @@
     </section>
 
     <!-- Leadership -->
-    <section class="py-20 md:py-32 bg-white dark:bg-gray-900">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="bg-white py-16 dark:bg-gray-900 md:py-24">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <!-- Section Header -->
         <div class="max-w-2xl mb-20">
           <div
@@ -142,11 +140,11 @@
         </div>
 
         <!-- Leadership Grid -->
-        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           <div
             v-for="(member, index) in leadership"
             :key="index"
-            class="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+            class="group relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-primary-200 hover:shadow-lg dark:border-gray-700 dark:bg-gray-900"
           >
             <div class="p-8">
               <div class="flex flex-col items-center text-center">
@@ -191,7 +189,7 @@
     </section>
 
     <!-- Board of Trustees -->
-    <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50 relative overflow-hidden">
+    <section class="relative overflow-hidden bg-[#f8f8f4] py-16 dark:bg-gray-950 md:py-24">
       <!-- Subtle background pattern -->
       <div class="absolute inset-0 opacity-5">
         <div
@@ -226,11 +224,11 @@
         </div>
 
         <!-- Board of Trustees Grid -->
-        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           <div
             v-for="(trustee, index) in boardOfTrustees"
             :key="index"
-            class="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+            class="group relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-primary-200 hover:shadow-lg dark:border-gray-700 dark:bg-gray-900"
           >
             <div class="p-8">
               <div class="flex flex-col items-center text-center">
@@ -275,9 +273,7 @@
     </section>
 
     <!-- CTA -->
-    <section
-      class="py-20 md:py-32 bg-gradient-to-br from-primary-600 via-primary-500 to-blue-600 relative overflow-hidden"
-    >
+    <section class="relative overflow-hidden bg-primary-900 py-16 dark:bg-gray-900 md:py-24">
       <!-- Decorative elements -->
       <div class="absolute inset-0 opacity-10">
         <div
@@ -288,17 +284,17 @@
         />
       </div>
 
-      <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-        <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
+      <div class="relative mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
+        <h2 class="mb-6 text-4xl font-semibold leading-tight tracking-tight text-white md:text-5xl">
           Ready to make a difference?
         </h2>
-        <p class="text-xl text-primary-100 mb-8 leading-relaxed max-w-2xl mx-auto">
+        <p class="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-primary-100 md:text-xl">
           Become part of a growing community of public health professionals dedicated to advancing
           epidemiology in Nigeria.
         </p>
 
         <div
-          class="inline-flex items-center space-x-3 px-8 py-4 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
+          class="inline-flex items-center gap-4 rounded-full border border-white/20 bg-white px-6 py-3 shadow-lg transition-all duration-300 hover:shadow-xl group"
         >
           <div class="flex -space-x-2">
             <div

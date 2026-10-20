@@ -7,8 +7,8 @@
     />
 
     <!-- Terms Content -->
-    <section class="py-20 md:py-32 bg-white dark:bg-gray-900">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="bg-[#f8f8f4] py-14 dark:bg-gray-950 md:py-20">
+      <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <div class="prose prose-lg dark:prose-invert max-w-none">
           <p class="text-gray-600 dark:text-gray-300 mb-8">
             <strong>Last updated:</strong> August 2024

@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-teal-900/20"
-  >
+  <div class="min-h-screen bg-[#f8f8f4] dark:bg-gray-950">
     <!-- Hero Section (Reusable) -->
     <HeroSection
       title="Events"
@@ -9,13 +7,13 @@
     />
 
     <!-- Events Grid -->
-    <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <section class="py-16 md:py-24">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div v-if="displayedEvents.length" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <div
             v-for="event in displayedEvents"
             :key="event.id"
-            class="group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300"
+            class="group relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-primary-200 hover:shadow-[0_20px_50px_-24px_rgba(15,23,42,0.28)] dark:border-gray-700 dark:bg-gray-900"
           >
             <!-- Event Type Badge -->
             <div class="absolute top-4 right-4 z-10">
@@ -43,7 +41,7 @@
             </div>
 
             <!-- Event Image -->
-            <div class="h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
+            <div class="h-52 overflow-hidden bg-gray-100 dark:bg-gray-800">
               <img
                 :src="event.image"
                 :alt="event.title"

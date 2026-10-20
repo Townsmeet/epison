@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-teal-900/20"
-  >
+  <div class="min-h-screen bg-[#f8f8f4] dark:bg-gray-950">
     <!-- Hero Section (Reusable) -->
     <HeroSection
       title="Membership"
@@ -9,7 +7,7 @@
     />
 
     <!-- Member Directory CTA -->
-    <section class="py-8 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <section class="border-b border-gray-200 bg-white py-7 dark:border-gray-800 dark:bg-gray-900">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
           <div class="flex items-center space-x-4">
@@ -45,10 +43,10 @@
     </section>
 
     <!-- Membership Types -->
-    <section class="py-20 md:py-32 bg-gray-50/50 dark:bg-gray-900/50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="py-16 md:py-24">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div
-          class="mb-6 p-4 bg-primary-50 dark:bg-gray-800/60 rounded-lg text-sm text-gray-700 dark:text-gray-300"
+          class="mb-6 rounded-2xl border border-primary-200/70 bg-white p-5 text-sm leading-relaxed text-gray-700 dark:border-primary-800 dark:bg-gray-900 dark:text-gray-300"
         >
           <p>
             We recommend the
@@ -57,10 +55,10 @@
           </p>
         </div>
 
-        <div class="grid grid-cols-1 gap-8 mt-8 xl:mt-12 lg:grid-cols-4">
+        <div class="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-2 xl:mt-12 xl:grid-cols-4">
           <!-- Early Career (EPiSON only) -->
           <div
-            class="flex flex-col h-full overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm"
+            class="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900"
           >
             <div class="flex-grow p-6">
               <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
@@ -73,7 +71,9 @@
               </p>
             </div>
 
-            <div class="p-3 bg-gray-50 dark:bg-gray-700 mt-auto">
+            <div
+              class="mt-auto border-t border-gray-100 bg-gray-50/80 p-5 dark:border-gray-700 dark:bg-gray-800/70"
+            >
               <div class="mb-3">
                 <span class="text-3xl font-bold text-gray-900 dark:text-white">₦15,000</span>
                 <span class="text-gray-500 dark:text-gray-400">/year</span>
@@ -86,7 +86,7 @@
 
           <!-- Early Career (Joint International Epidemiological Association & EPiSON) - Recommended -->
           <div
-            class="flex flex-col h-full overflow-hidden bg-white dark:bg-gray-800 border-2 border-primary-500/70 dark:border-primary-400/70 rounded-lg shadow-lg"
+            class="flex h-full flex-col overflow-hidden rounded-2xl border-2 border-primary-500/70 bg-white shadow-lg dark:border-primary-400/70 dark:bg-gray-900"
           >
             <div class="flex-grow p-6">
               <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
@@ -98,7 +98,9 @@
               </p>
             </div>
 
-            <div class="p-3 bg-gray-50 dark:bg-gray-700 mt-auto">
+            <div
+              class="mt-auto border-t border-gray-100 bg-gray-50/80 p-5 dark:border-gray-700 dark:bg-gray-800/70"
+            >
               <div class="mb-3">
                 <span class="text-3xl font-bold text-gray-900 dark:text-white">₦40,000</span>
                 <span class="text-gray-500 dark:text-gray-400">/year</span>
@@ -111,7 +113,7 @@
 
           <!-- Regular (EPiSON only) -->
           <div
-            class="flex flex-col h-full overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm"
+            class="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900"
           >
             <div class="flex-grow p-6">
               <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
@@ -122,7 +124,9 @@
               </p>
             </div>
 
-            <div class="p-3 bg-gray-50 dark:bg-gray-700 mt-auto">
+            <div
+              class="mt-auto border-t border-gray-100 bg-gray-50/80 p-5 dark:border-gray-700 dark:bg-gray-800/70"
+            >
               <div class="mb-3">
                 <span class="text-3xl font-bold text-gray-900 dark:text-white">₦30,000</span>
                 <span class="text-gray-500 dark:text-gray-400">/year</span>
@@ -135,7 +139,7 @@
 
           <!-- Regular (Joint IEA & EPiSON) - Recommended -->
           <div
-            class="flex flex-col h-full overflow-hidden bg-white dark:bg-gray-800 border-2 border-primary-500 dark:border-primary-400 rounded-lg shadow-lg transform scale-105 z-10"
+            class="z-10 flex h-full flex-col overflow-hidden rounded-2xl border-2 border-primary-500 bg-white shadow-lg dark:border-primary-400 dark:bg-gray-900"
           >
             <div class="flex-grow p-6">
               <div class="flex justify-between items-center">
@@ -149,7 +153,9 @@
               </p>
             </div>
 
-            <div class="p-3 bg-gray-50 dark:bg-gray-700 mt-auto">
+            <div
+              class="mt-auto border-t border-gray-100 bg-gray-50/80 p-5 dark:border-gray-700 dark:bg-gray-800/70"
+            >
               <div class="mb-3">
                 <span class="text-3xl font-bold text-gray-900 dark:text-white">₦70,000</span>
                 <span class="text-gray-500 dark:text-gray-400">/year</span>
@@ -164,8 +170,8 @@
     </section>
 
     <!-- Benefits Section -->
-    <section class="py-20 md:py-32">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="bg-white py-16 dark:bg-gray-900 md:py-24">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="text-center">
           <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl">
             Benefits of EPISON Membership
