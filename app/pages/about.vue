@@ -417,17 +417,17 @@ const leadership = [
     image: '/excomembers/2nd-vice-president.jpeg',
   },
   {
-    name: 'Prof. Nonye Egenti',
+    name: 'Prof. Bernadine Nsa Ekpenyong',
     position: 'Secretary General',
-    institution: 'University of Abuja',
-    bio: 'Professor and Consultant Community Health Physician.',
+    institution: 'University of Calabar',
+    bio: 'Professor and unit Head, Epidemiology & Biostatistics Unit, Department of Public Health, UNICAL, Public Health Epidemiologist, Consultant Optometrist, Editor and Researcher',
     image: '/excomembers/secretary-general.jpeg',
   },
   {
-    name: 'Prof. Bernadine Nsa Ekpenyong',
+    name: 'Dr. Dupe Arinola Hambolu',
     position: 'Assistant Secretary',
-    institution: 'University of Calabar',
-    bio: 'Professor and unit Head, Epidemiology & Biostatistics Unit, Department of Public Health, UNICAL, Public Health Epidemiologist, Consultant Optometrist, Editor and Researcher',
+    institution: 'Federal Ministry of Livestock Development (FMLD)',
+    bio: 'Deputy Director at the FMLD. Senior Veterinary Epidemiologist and Veterinary Public Health Specialist with over 19 years of experience',
     image: '/excomembers/assistant-secretary.jpeg',
   },
   {

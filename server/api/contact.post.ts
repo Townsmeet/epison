@@ -56,8 +56,8 @@ export default defineEventHandler(async event => {
   const emailSubject = `[Contact] ${subject} — ${fullName}`
 
   await sendEmail({
-    to: 'nonye_2006@yahoo.com',
-    cc: ['townsmeet@gmail.com', 'kelvinospore@gmail.com', 'benyita2001@yahoo.com'],
+    to: 'benyita2001@yahoo.com',
+    cc: ['townsmeet@gmail.com', 'kelvinospore@gmail.com'],
     subject: emailSubject,
     htmlContent,
   })
