@@ -293,9 +293,9 @@
                   <UIcon name="i-heroicons-map-pin" class="h-5 w-5" />
                 </div>
                 <p class="ml-3 text-sm text-gray-600 dark:text-gray-300">
-                  Department of Community Medicine,<br />
-                  Univeristy of Abuja Teaching Hospital,<br />
-                  Abuja, Nigeria.
+                  Department of Public Health,<br />
+                  University of Calabar,<br />
+                  Calabar Nigeria, West Africa.
                 </p>
               </div>
               <div class="flex items-center">

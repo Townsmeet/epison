@@ -35,9 +35,9 @@
                   <div class="ml-4 text-gray-600 dark:text-gray-300">
                     <p class="font-semibold text-gray-900 dark:text-white">EPISON Secretariat</p>
                     <p class="mt-1 text-sm leading-relaxed">
-                      Department of Community Medicine,<br />
-                      Univeristy of Abuja Teaching Hospital,<br />
-                      Abuja, Nigeria.
+                      Department of Public Health,<br />
+                      University of Calabar,<br />
+                      Calabar Nigeria, West Africa.
                     </p>
                   </div>
                 </div>
