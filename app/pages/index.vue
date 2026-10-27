@@ -108,8 +108,7 @@
           <h2
             class="mb-5 text-4xl font-semibold tracking-tight text-gray-950 dark:text-white md:text-5xl"
           >
-            Upcoming
-            <span class="font-serif italic text-primary-700 dark:text-primary-400">events</span>
+            Events
           </h2>
           <p class="max-w-xl text-lg leading-relaxed text-gray-600 dark:text-gray-300">
             Participate in our conferences, workshops, and seminars to stay ahead in the field of
